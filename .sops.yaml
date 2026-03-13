@@ -1,0 +1,10 @@
+keys:
+  - &amba age17hew4gnwapvvv53vyzmcgsk8y65spqg79r0kzs2dfpacteewts7s5dqdwz  # amba personal Mac (derived from ~/.ssh/id_ed25519)
+  - &ambp age1p5tysfdy70seyxgvzlshe6hgryf9eww040qjz3revkcxf5cq0yfqs6qds0
+
+creation_rules:
+  - path_regex: secrets/.*\.yaml$
+    key_groups:
+      - age:
+          - *amba
+          - *ambp
