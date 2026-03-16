@@ -1,94 +1,58 @@
 #!/bin/bash
 
-# When launched by AeroSpace, the $CONFIG_DIR environment variable may not be set.
-# This fallback ensures SketchyBar can always locate its items and plugins.
-if [ -z "$CONFIG_DIR" ]; then
-  CONFIG_DIR="$HOME/.config/sketchybar"
-fi
-
-# Sourcing colors and icons
+# Load colors and icons
 source "$CONFIG_DIR/colors.sh"
 source "$CONFIG_DIR/icons.sh"
 
+# Variable definitions
 PLUGIN_DIR="$CONFIG_DIR/plugins"
 ITEM_DIR="$CONFIG_DIR/items"
 
 # Font configuration
 FONT="SF Pro"
 APP_FONT="sketchybar-app-font"
-PADDINGS=3
 
-##### Bar Appearance #####
-bar=(
-  height=26
-  color=$BAR_COLOR
-  shadow=off
-  position=top
-  sticky=on
-  padding_right=10
-  padding_left=10
-  corner_radius=9
-  y_offset=4
-  margin=4
-  blur_radius=5
-)
+# Global bar configuration
+sketchybar --bar height=26 \
+                 y_offset=4 \
+                 margin=4 \
+                 blur_radius=20 \
+                 position=top \
+                 padding_left=10 \
+                 padding_right=10 \
+                 color=$BAR_COLOR \
+                 sticky=on \
+                 topmost=on
 
-sketchybar --bar "${bar[@]}"
+# Default item configuration
+sketchybar --default icon.font="$FONT:Bold:14.0" \
+                     icon.color=$WHITE \
+                     label.font="$FONT:Semibold:13.0" \
+                     label.color=$WHITE \
+                     padding_left=3 \
+                     padding_right=3 \
+                     label.padding_left=3 \
+                     label.padding_right=3
 
-##### Changing Defaults #####
-defaults=(
-  updates=when_shown
-  icon.font="$FONT:Bold:14.0"
-  icon.color=$ICON_COLOR
-  icon.padding_left=$PADDINGS
-  icon.padding_right=$PADDINGS
-  label.font="$FONT:Semibold:13.0"
-  label.color=$LABEL_COLOR
-  label.padding_left=$PADDINGS
-  label.padding_right=$PADDINGS
-  padding_right=$PADDINGS
-  padding_left=$PADDINGS
-  background.height=22
-  background.corner_radius=9
-  popup.background.border_width=2
-  popup.background.corner_radius=9
-  popup.background.border_color=$POPUP_BORDER_COLOR
-  popup.background.color=$POPUP_BACKGROUND_COLOR
-  popup.blur_radius=20
-  popup.background.shadow.drawing=on
-)
-
-sketchybar --default "${defaults[@]}"
-
-##### AeroSpace Spaces (Keeping your logic) #####
+##### Space / Workspace Items #####
+# Register AeroSpace workspace change event (required before subscribing items)
 sketchybar --add event aerospace_workspace_change
 
-FOCUSED_WORKSPACE=$(aerospace list-workspaces --focused)
-
-for sid in $(aerospace list-workspaces --all); do
-  if [ "$sid" = "$FOCUSED_WORKSPACE" ]; then
-    DRAWING="on"
-    L_COLOR=$BLACK
-    BG_COLOR=$WHITE
-  else
-    DRAWING="off"
-    L_COLOR=$GREY
-    BG_COLOR=$WHITE
-  fi
-
+# Using AeroSpace workspaces
+for sid in 1 2 3 4 5 6 7 8 9 10
+do
   sketchybar --add item space.$sid left \
-      --subscribe space.$sid aerospace_workspace_change \
-      --set space.$sid \
-            background.color=$BG_COLOR \
-            background.drawing=$DRAWING \
-            icon="$sid" \
-            icon.font="$FONT:Bold:14.0" \
-            label.font="$APP_FONT:Regular:15.0" \
-            label.y_offset=-2 \
-            label.color=$L_COLOR \
-            icon.color=$L_COLOR \
-            click_script="aerospace workspace $sid" \
-            script="$CONFIG_DIR/plugins/aerospace.sh $sid"
+             --subscribe space.$sid aerospace_workspace_change \
+             --set space.$sid \
+             background.drawing=on \
+             background.margin_horizontal=2 \
+             background.corner_radius=8 \
+             icon="$sid" \
+             icon.font="$FONT:Bold:14.0" \
+             label.font="$APP_FONT:Regular:15.0" \
+             label.y_offset=-2 \
+             click_script="aerospace workspace $sid" \
+             script="$PLUGIN_DIR/aerospace.sh $sid"
 done
 
 ##### Left Items #####
@@ -109,8 +73,6 @@ source $ITEM_DIR/volume.sh
 source $ITEM_DIR/ram.sh
 source $ITEM_DIR/cpu.sh
 source $ITEM_DIR/disk.sh
-source $ITEM_DIR/wifi.sh
-# source $ITEM_DIR/network.sh
 
-##### Force all scripts to run the first time #####
 sketchybar --update
+echo "sketchybar configuration loaded.."

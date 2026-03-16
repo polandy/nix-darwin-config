@@ -1,37 +1,62 @@
 #!/usr/bin/env bash
 
-# Sourcing colors and icons to use them in the script
+# AeroSpace PATH
+USER_NAME=$(id -un)
+export PATH="/run/current-system/sw/bin:/etc/profiles/per-user/$USER_NAME/bin:/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"
+
+# Sourcing colors and icons
 source "$CONFIG_DIR/colors.sh"
 source "$CONFIG_DIR/icons.sh"
 source "$CONFIG_DIR/plugins/icon_map.sh"
 
-# Query the apps open on this specific workspace
-APPS=$(aerospace list-windows --workspace "$1" --format "%{app-name}")
+# Determine IDs
+CURRENT_SID=$(echo "$1" | tr -d '[:space:]')
+FOCUSED_WS=$(echo "$FOCUSED_WORKSPACE" | tr -d '[:space:]')
+if [ -z "$FOCUSED_WS" ]; then
+    FOCUSED_WS=$(aerospace list-workspaces --focused | tr -d '[:space:]')
+fi
 
+# Query apps
+APPS=$(aerospace list-windows --workspace "$CURRENT_SID" --format "%{app-name}")
 ICON_STR=""
 if [ -n "$APPS" ]; then
-  # Remove duplicates and map to icons
   while read -r app; do
     __icon_map "$app"
     ICON_STR+="$icon_result "
   done <<< "$(echo "$APPS" | sort -u)"
 fi
 
-# Ensure there's a space if ICON_STR is empty for visual consistency
-if [ -z "$ICON_STR" ]; then
-  ICON_STR=" "
-fi
+WHITE_CLEAN=${WHITE#0x??}
 
-# Determine display style based on focus
-if [ "$1" = "$FOCUSED_WORKSPACE" ]; then
+if [ "$CURRENT_SID" = "$FOCUSED_WS" ]; then
+    # Focused: Pure white pill, black text for maximum contrast
     sketchybar --set "$NAME" background.drawing=on \
-                            background.color="$WHITE" \
+                            background.color=0xffffffff \
+                            background.border_width=0 \
+                            background.padding_left=4 \
+                            background.padding_right=4 \
                             label.color="$BLACK" \
                             icon.color="$BLACK" \
                             label="$ICON_STR"
 else
-    sketchybar --set "$NAME" background.drawing=off \
-                            label.color="$GREY" \
-                            icon.color="$GREY" \
-                            label="$ICON_STR"
+    # Unfocused
+    if [ -n "$ICON_STR" ]; then
+        # Grouped: Very subtle background, no border, tighter padding
+        sketchybar --set "$NAME" background.drawing=on \
+                                background.color="0x20$WHITE_CLEAN" \
+                                background.border_width=0 \
+                                background.padding_left=2 \
+                                background.padding_right=2 \
+                                label.color="$GREY" \
+                                icon.color="$GREY" \
+                                label="$ICON_STR"
+    else
+        # Empty: Transparent
+        sketchybar --set "$NAME" background.drawing=off \
+                                background.padding_left=2 \
+                                background.padding_right=2 \
+                                label.color="$GREY" \
+                                icon.color="$GREY" \
+                                label=""
+    fi
 fi
