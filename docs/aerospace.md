@@ -67,3 +67,8 @@ Open windows are shown as app icons using `sketchybar-app-font` glyphs (via `__i
 - **SF Pro** — [Apple Developer](https://developer.apple.com/fonts/)
 - **SF Symbols** — [Apple Developer](https://developer.apple.com/sf-symbols/)
 - **sketchybar-app-font** — installed automatically via Homebrew Cask
+
+### Required tools
+
+- **ifstat** — network speed widget (`brew install ifstat`)
+- **jq** — JSON parsing (`brew install jq`)
