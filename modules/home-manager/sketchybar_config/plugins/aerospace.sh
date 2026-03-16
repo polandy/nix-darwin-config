@@ -30,14 +30,30 @@ WHITE_CLEAN=${WHITE#0x??}
 
 if [ "$CURRENT_SID" = "$FOCUSED_WS" ]; then
     # Focused: Pure white pill, black text for maximum contrast
-    sketchybar --set "$NAME" background.drawing=on \
-                            background.color=0xffffffff \
-                            background.border_width=0 \
-                            background.padding_left=4 \
-                            background.padding_right=4 \
-                            label.color="$BLACK" \
-                            icon.color="$BLACK" \
-                            label="$ICON_STR"
+    if [ -n "$ICON_STR" ]; then
+        sketchybar --set "$NAME" background.drawing=on \
+                                background.color=0xffffffff \
+                                background.border_width=0 \
+                                background.padding_left=4 \
+                                background.padding_right=4 \
+                                label.color="$BLACK" \
+                                label.padding_left=3 \
+                                label.padding_right=3 \
+                                icon.color="$BLACK" \
+                                label="$ICON_STR"
+    else
+        # Focused + empty: zero label padding so number icon stays centered
+        sketchybar --set "$NAME" background.drawing=on \
+                                background.color=0xffffffff \
+                                background.border_width=0 \
+                                background.padding_left=4 \
+                                background.padding_right=4 \
+                                label.color="$BLACK" \
+                                label.padding_left=0 \
+                                label.padding_right=0 \
+                                icon.color="$BLACK" \
+                                label=""
+    fi
 else
     # Unfocused
     if [ -n "$ICON_STR" ]; then
