@@ -66,6 +66,7 @@ sketchybar --add item separator left \
                            label.drawing=off \
            --add item front_app left \
            --set front_app icon.drawing=off \
+                           click_script="$PLUGIN_DIR/toggle_labels.sh" \
                            script="$PLUGIN_DIR/front_app.sh" \
            --subscribe front_app front_app_switched
 
