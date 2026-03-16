@@ -13,9 +13,9 @@ FONT="SF Pro"
 APP_FONT="sketchybar-app-font"
 
 # Global bar configuration
-sketchybar --bar height=26 \
-                 y_offset=4 \
-                 margin=4 \
+sketchybar --bar height=33 \
+                 y_offset=0 \
+                 margin=0 \
                  blur_radius=20 \
                  position=top \
                  padding_left=10 \
@@ -44,27 +44,30 @@ do
   sketchybar --add item space.$sid left \
              --subscribe space.$sid aerospace_workspace_change \
              --set space.$sid \
+             padding_left=2 \
+             padding_right=2 \
              background.drawing=on \
-             background.margin_horizontal=2 \
+             background.margin_horizontal=1 \
              background.corner_radius=8 \
              icon="$sid" \
-             icon.font="$FONT:Bold:14.0" \
-             label.font="$APP_FONT:Regular:15.0" \
+             icon.font="$FONT:Bold:13.0" \
+             label.font="$APP_FONT:Regular:14.0" \
              label.y_offset=-2 \
              click_script="aerospace workspace $sid" \
              script="$PLUGIN_DIR/aerospace.sh $sid"
 done
 
-##### Left Items #####
+##### Left Items (app context) #####
 sketchybar --add item separator left \
            --set separator icon=$CHEVRON \
                            icon.color=$GREY \
+                           icon.align=left \
+                           icon.padding_right=6 \
                            label.drawing=off \
            --add item front_app left \
            --set front_app icon.drawing=off \
                            script="$PLUGIN_DIR/front_app.sh" \
            --subscribe front_app front_app_switched
-
 
 ##### Right Items #####
 source $ITEM_DIR/clock.sh
