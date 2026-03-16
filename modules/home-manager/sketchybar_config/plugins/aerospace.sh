@@ -37,7 +37,7 @@ if [ -z "$ICON_STR" ]; then
         1)  default_app="Messages" ;;
         2)  default_app="Mail" ;;
         4)  default_app="Firefox" ;;
-        5)  default_app="Finder" ;;
+        5)  DEFAULT_ICON="$APP_FILES"; DEFAULT_ICON_FONT="Hack Nerd Font:Regular:14.0" ;;
         6)  default_app="Cursor" ;;
         9)  DEFAULT_ICON="$YABAI_GRID"; DEFAULT_ICON_FONT="SF Pro:Regular:14.0" ;;
         10) DEFAULT_ICON="$DISK";       DEFAULT_ICON_FONT="SF Pro:Regular:14.0" ;;

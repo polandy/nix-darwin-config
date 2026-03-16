@@ -14,7 +14,7 @@ CHEVRON=􀆊
 
 # App Icons (Nerd Font Fallbacks)
 APP_ALACRITTY=
-APP_FINDER=󰀶
+APP_FILES=󰉋
 APP_FIREFOX=
 APP_CHROME=
 APP_VSCODE=󰨞
