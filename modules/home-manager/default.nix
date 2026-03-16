@@ -7,5 +7,8 @@
   home-manager.backupFileExtension = "backup";
 
   # Include sops-nix home-manager module for all hosts
-  home-manager.sharedModules = [ sops-nix.homeManagerModules.sops ];
+  home-manager.sharedModules = [ 
+    sops-nix.homeManagerModules.sops 
+    ./fish.nix
+  ];
 }

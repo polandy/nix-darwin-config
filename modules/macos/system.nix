@@ -1,9 +1,6 @@
 { config, pkgs, self, ... }:
 
 {
-  environment = {
-    shells = [ pkgs.fish ];
-  };
   system = {
     defaults = {
       NSGlobalDomain = {

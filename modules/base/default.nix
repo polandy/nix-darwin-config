@@ -15,14 +15,7 @@
 
 
   # Enable alternative shell support in nix-darwin.
-  programs.fish = {
-    enable = true;
-    shellAbbrs = {
-      nrs = "darwin-rebuild switch --flake .";
-      nrb = "darwin-rebuild build --flake .";
-      nfmt = "nix fmt";
-    };
-  };
+  programs.fish.enable = true;
 
   environment.variables = {
     editor = "nvim";
