@@ -24,7 +24,7 @@ case ${PERCENTAGE} in
   ;;
   4[0-9]) ICON=􀺶
   ;;
-  3[0-9]) ICON=􀺴
+  3[0-9]) ICON=􀺴; COLOR=$YELLOW
   ;;
   2[0-9]) ICON=􀛩; COLOR=$RED
   ;;
@@ -37,4 +37,4 @@ if [[ $CHARGING != "" ]]; then
   ICON=􀢋
 fi
 
-sketchybar --set $NAME icon="$ICON" icon.color=$COLOR label="${PERCENTAGE}%"
+sketchybar --set $NAME icon="$ICON" icon.color=$COLOR label="${PERCENTAGE}%" label.color=$COLOR
