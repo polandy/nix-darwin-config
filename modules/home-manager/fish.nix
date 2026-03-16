@@ -9,6 +9,16 @@
       nrb = "darwin-rebuild build --flake .";
       nfmt = "nix fmt";
     };
+    # Homebrew and Mise setup
+    shellInit = ''
+      if test -d /opt/homebrew
+        /opt/homebrew/bin/brew shellenv | source
+      end
+
+      if type -q mise
+        mise activate fish | source
+      end
+    '';
     
     # macOS specific key bindings
     interactiveShellInit = ''
