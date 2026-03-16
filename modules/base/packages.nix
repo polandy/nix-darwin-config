@@ -10,6 +10,7 @@
     pkgs.findutils
     pkgs.gnused
     pkgs.htop
+    pkgs.just
     pkgs.mas
     pkgs.mise
     pkgs.ncdu

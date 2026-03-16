@@ -22,10 +22,9 @@
         "ambp" = nix-darwin.lib.darwinSystem {
           inherit system;
           # Pass 'self' to modules
-          specialArgs = { inherit self lib home-manager; };
+          specialArgs = { inherit self lib home-manager sops-nix; };
           modules = [
             ./hosts/ambp
-
             {
               # Disable nix-darwin's management of the Nix daemon and nix.conf
               # because we use the Determinate Systems Nix installer.
