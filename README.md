@@ -11,9 +11,9 @@ This is a personal [nix-darwin](https://github.com/LnL7/nix-darwin) configuratio
 ## Primary Tools
 
 * **Terminal Emulator:** [Alacritty](https://alacritty.org/) (launched via AeroSpace with `Option + Enter`).
-* **Window Manager:** [AeroSpace](https://nikitabobko.github.io/AeroSpace/) (i3-like tiling for macOS).
-* **Status Bar:** [Sketchybar](https://felixkratz.github.io/Sketchybar/) (highly customizable macOS bar).
-* **UI Polish:** [JankyBorders](https://github.com/FelixKratz/JankyBorders) (active window borders).
+* **Window Manager:** [AeroSpace](https://nikitabobko.github.io/AeroSpace/) (i3-like tiling for macOS) — see [docs/aerospace.md](./docs/aerospace.md).
+* **Status Bar:** [Sketchybar](https://felixkratz.github.io/Sketchybar/) (highly customizable macOS bar) — see [docs/aerospace.md](./docs/aerospace.md).
+* **UI Polish:** [JankyBorders](https://github.com/FelixKratz/JankyBorders) (active window borders) — see [docs/aerospace.md](./docs/aerospace.md).
 * **Container Runtime:** [Colima](https://github.com/abiosoft/colima) (Docker Desktop alternative).
 * **Secrets:** [sops-nix](https://github.com/Mic92/sops-nix) (age-encrypted secrets).
 
@@ -76,12 +76,6 @@ causing macOS to revoke permissions and prompt for re-authorization after each `
 To avoid this, GUI apps that require system permissions are installed via [Homebrew Cask](https://github.com/Homebrew/homebrew-cask) instead
 of as Nix packages. Homebrew Cask installs to `/Applications/<App>.app` with a stable bundle ID,
 so permissions persist across updates.
-
-## AeroSpace Startup Configuration
-
-AeroSpace is configured to start automatically as a user-level service via [Home Manager](https://github.com/nix-community/home-manager) (`launchd.agents.aerospace.enable = true`) rather than its native `start-at-login` setting in `aerospace.toml`.
-
-This is intentional: the native `start-at-login` mechanism registers an absolute application path in macOS Login Items. Because Nix updates often change this path in the `/nix/store`, the native registration would break after every update. Using the Home Manager `launchd` service ensures the agent always points to the current, correct version of AeroSpace provided by Nix.
 
 ## Setup Colima Container Runtime
 
