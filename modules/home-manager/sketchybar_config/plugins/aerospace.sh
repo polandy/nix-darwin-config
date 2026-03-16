@@ -34,7 +34,7 @@ DEFAULT_ICON_FONT="sketchybar-app-font:Regular:14.0"
 if [ -z "$ICON_STR" ]; then
     default_app=""
     case "$CURRENT_SID" in
-        1)  default_app="Slack" ;;
+        1)  default_app="Messages" ;;
         2)  default_app="Mail" ;;
         4)  default_app="Firefox" ;;
         5)  default_app="Finder" ;;
