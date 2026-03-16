@@ -1,8 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
-# The $NAME variable is passed from sketchybar and holds the name of
-# the item invoking this script:
-# https://felixkratz.github.io/SketchyBar/config/events#events-and-scripting
-
-sketchybar --set "$NAME" label="$(date '+%d.%b %H:%M')"
-
+# Matches Felix's calendar style: e.g., "Mon 16. Mar 14:00"
+sketchybar --set $NAME label="$(date '+%a %d. %b %H:%M')"

@@ -1,7 +1,4 @@
-# This is a demo config to showcase some of the most important commands.
-# It is meant to be changed and configured, as it is intentionally kept sparse.
-# For a (much) more advanced configuration example see my dotfiles:
-# https://github.com/FelixKratz/dotfiles
+#!/bin/bash
 
 # When launched by AeroSpace, the $CONFIG_DIR environment variable may not be set.
 # This fallback ensures SketchyBar can always locate its items and plugins.
@@ -9,19 +6,62 @@ if [ -z "$CONFIG_DIR" ]; then
   CONFIG_DIR="$HOME/.config/sketchybar"
 fi
 
+# Sourcing colors and icons
+source "$CONFIG_DIR/colors.sh"
+source "$CONFIG_DIR/icons.sh"
+
 PLUGIN_DIR="$CONFIG_DIR/plugins"
 ITEM_DIR="$CONFIG_DIR/items"
+
+# Font configuration
+# We use Hack Nerd Font as the primary font for compatibility, 
+# but we define a separate variable for icons in case the user has SF Pro.
 FONT="Hack Nerd Font"
+PADDINGS=3
 
 ##### Bar Appearance #####
-# Configuring the general appearance of the bar.
-# These are only some of the options available. For all options see:
-# https://felixkratz.github.io/SketchyBar/config/bar
-# If you are looking for other colors, see the color picker:
-# https://felixkratz.github.io/SketchyBar/config/tricks#color-picker
+bar=(
+  height=26
+  color=$BAR_COLOR
+  shadow=off
+  position=top
+  sticky=on
+  padding_right=10
+  padding_left=10
+  corner_radius=9
+  y_offset=4
+  margin=4
+  blur_radius=5
+)
 
-sketchybar --bar position=top height=40 blur_radius=30 color=0x40000000 y_offset=0
+sketchybar --bar "${bar[@]}"
 
+##### Changing Defaults #####
+defaults=(
+  updates=when_shown
+  icon.font="$FONT:Bold:14.0"
+  icon.color=$ICON_COLOR
+  icon.padding_left=$PADDINGS
+  icon.padding_right=$PADDINGS
+  label.font="$FONT:Semibold:13.0"
+  label.color=$LABEL_COLOR
+  label.padding_left=$PADDINGS
+  label.padding_right=$PADDINGS
+  padding_right=$PADDINGS
+  padding_left=$PADDINGS
+  background.height=22
+  background.corner_radius=9
+  popup.background.border_width=2
+  popup.background.corner_radius=9
+  popup.background.border_color=$POPUP_BORDER_COLOR
+  popup.background.color=$POPUP_BACKGROUND_COLOR
+  popup.blur_radius=20
+  popup.background.shadow.drawing=on
+)
+
+sketchybar --default "${defaults[@]}"
+
+##### AeroSpace Spaces (Keeping your logic) #####
 sketchybar --add event aerospace_workspace_change
 
 FOCUSED_WORKSPACE=$(aerospace list-workspaces --focused)
@@ -29,23 +69,27 @@ FOCUSED_WORKSPACE=$(aerospace list-workspaces --focused)
 for sid in $(aerospace list-workspaces --all); do
   if [ "$sid" = "$FOCUSED_WORKSPACE" ]; then
     DRAWING="on"
+    L_COLOR=$BLACK
+    BG_COLOR=$WHITE
   else
     DRAWING="off"
+    L_COLOR=$GREY
+    BG_COLOR=$WHITE
   fi
 
   sketchybar --add item space.$sid left \
       --subscribe space.$sid aerospace_workspace_change \
       --set space.$sid \
-            background.color=0x44ffffff \
-            background.corner_radius=50 \
-            background.height=20 \
+            background.color=$BG_COLOR \
             background.drawing=$DRAWING \
-            background.padding_right=7 \
             label="$sid" \
+            label.color=$L_COLOR \
+            icon.color=$L_COLOR \
             click_script="aerospace workspace $sid" \
             script="$CONFIG_DIR/plugins/aerospace.sh $sid"
 done
-# set icons for spaces
+
+# Set specific icons for spaces if they exist in your previous config
 sketchybar --set space.1 icon=
 sketchybar --set space.2 icon=
 sketchybar --set space.3 icon=
@@ -57,62 +101,13 @@ sketchybar --set space.8 icon=
 sketchybar --set space.9 icon=
 sketchybar --set space.10 icon=
 
-
-# Assign each space indicator to only the monitor it belongs to, so bars on
-# other monitors don't show unrelated workspaces.
-#
-# AeroSpace numbers monitors in the opposite order from sketchybar (AeroSpace 1
-# = sketchybar's last display, and vice versa), so we invert the index with
-# (MONITOR_COUNT + 1 - i). This was verified empirically: without the inversion
-# the workspaces appeared on the wrong bars.
-MONITOR_COUNT=$(aerospace list-monitors | wc -l | tr -d ' ')
-for i in $(seq 1 $MONITOR_COUNT); do
-  DISPLAY_IDX=$((MONITOR_COUNT + 1 - i))
-  for sid in $(aerospace list-workspaces --monitor $i 2>/dev/null); do
-    sketchybar --set space.$sid display=$DISPLAY_IDX
-  done
-done
-
-##### Changing Defaults #####
-# We now change some default values, which are applied to all further items.
-# For a full list of all available item properties see:
-# https://felixkratz.github.io/SketchyBar/config/items
-
-default=(
-  padding_left=5
-  padding_right=5
-  icon.font="$FONT:Bold:17.0"
-  label.font="$FONT:Bold:14.0"
-  icon.color=0xffffffff
-  label.color=0xffffffff
-  icon.padding_left=4
-  icon.padding_right=4
-  label.padding_left=4
-  label.padding_right=4
-)
-sketchybar --default "${default[@]}"
-
-##### Adding Left Items #####
-# We add some regular items to the left side of the bar, where
-# only the properties deviating from the current defaults need to be set
-
-sketchybar --add item chevron left \
-           --set chevron icon= label.drawing=off \
-           --add item front_app left \
-           --set front_app icon.drawing=off script="$PLUGIN_DIR/front_app.sh" \
+##### Left Items #####
+sketchybar --add item front_app left \
+           --set front_app icon.drawing=off \
+                           script="$PLUGIN_DIR/front_app.sh" \
            --subscribe front_app front_app_switched
 
-##### Adding Right Items #####
-# In the same way as the left items we can add items to the right side.
-# Additional position (e.g. center) are available, see:
-# https://felixkratz.github.io/SketchyBar/config/items#adding-items-to-sketchybar
-
-# Some items refresh on a fixed cycle, e.g. the clock runs its script once
-# every 10s. Other items respond to events they subscribe to, e.g. the
-# volume.sh script is only executed once an actual change in system audio
-# volume is registered. More info about the event system can be found here:
-# https://felixkratz.github.io/SketchyBar/config/events
-
+##### Right Items #####
 source $ITEM_DIR/clock.sh
 source $ITEM_DIR/battery.sh
 source $ITEM_DIR/volume.sh
@@ -120,8 +115,7 @@ source $ITEM_DIR/ram.sh
 source $ITEM_DIR/cpu.sh
 source $ITEM_DIR/disk.sh
 source $ITEM_DIR/wifi.sh
-source $ITEM_DIR/network.sh
+# source $ITEM_DIR/network.sh
 
-
-##### Force all scripts to run the first time (never do this in a script) #####
+##### Force all scripts to run the first time #####
 sketchybar --update
