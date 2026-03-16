@@ -39,7 +39,7 @@ sketchybar --default icon.font="$FONT:Bold:14.0" \
 sketchybar --add event aerospace_workspace_change
 
 # Using AeroSpace workspaces
-for sid in 1 2 3 4 5 6 7 8 9 10
+for sid in 1 2 3 4 5 6 7 8 9 10 11
 do
   sketchybar --add item space.$sid left \
              --subscribe space.$sid aerospace_workspace_change \

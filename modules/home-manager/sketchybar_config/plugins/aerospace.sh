@@ -28,26 +28,62 @@ fi
 
 WHITE_CLEAN=${WHITE#0x??}
 
+# Per-workspace default icon (ghost when empty)
+DEFAULT_ICON=""
+DEFAULT_ICON_FONT="sketchybar-app-font:Regular:14.0"
+if [ -z "$ICON_STR" ]; then
+    default_app=""
+    case "$CURRENT_SID" in
+        1)  default_app="Slack" ;;
+        2)  default_app="Mail" ;;
+        4)  default_app="Firefox" ;;
+        5)  default_app="Finder" ;;
+        6)  default_app="Cursor" ;;
+        9)  DEFAULT_ICON="$YABAI_GRID"; DEFAULT_ICON_FONT="SF Pro:Regular:14.0" ;;
+        10) DEFAULT_ICON="$DISK";       DEFAULT_ICON_FONT="SF Pro:Regular:14.0" ;;
+        11) default_app="Logseq" ;;
+    esac
+    if [ -n "$default_app" ]; then
+        __icon_map "$default_app"
+        DEFAULT_ICON="$icon_result"
+    fi
+fi
+
 if [ "$CURRENT_SID" = "$FOCUSED_WS" ]; then
-    # Focused: Pure white pill, black text for maximum contrast
     if [ -n "$ICON_STR" ]; then
+        # Focused + apps: white pill, black icons
         sketchybar --set "$NAME" background.drawing=on \
                                 background.color=0xffffffff \
                                 background.border_width=0 \
                                 background.padding_left=4 \
                                 background.padding_right=4 \
+                                label.font="sketchybar-app-font:Regular:14.0" \
                                 label.color="$BLACK" \
                                 label.padding_left=3 \
                                 label.padding_right=3 \
                                 icon.color="$BLACK" \
                                 label="$ICON_STR"
-    else
-        # Focused + empty: zero label padding so number icon stays centered
+    elif [ -n "$DEFAULT_ICON" ]; then
+        # Focused + empty + default: white pill, ghost icon (dimmed)
         sketchybar --set "$NAME" background.drawing=on \
                                 background.color=0xffffffff \
                                 background.border_width=0 \
                                 background.padding_left=4 \
                                 background.padding_right=4 \
+                                label.font="$DEFAULT_ICON_FONT" \
+                                label.color=0x50000000 \
+                                label.padding_left=3 \
+                                label.padding_right=3 \
+                                icon.color="$BLACK" \
+                                label="$DEFAULT_ICON"
+    else
+        # Focused + truly empty: white pill, zero label padding for centered number
+        sketchybar --set "$NAME" background.drawing=on \
+                                background.color=0xffffffff \
+                                background.border_width=0 \
+                                background.padding_left=4 \
+                                background.padding_right=4 \
+                                label.font="sketchybar-app-font:Regular:14.0" \
                                 label.color="$BLACK" \
                                 label.padding_left=0 \
                                 label.padding_right=0 \
@@ -55,22 +91,32 @@ if [ "$CURRENT_SID" = "$FOCUSED_WS" ]; then
                                 label=""
     fi
 else
-    # Unfocused
     if [ -n "$ICON_STR" ]; then
-        # Grouped: Very subtle background, no border, tighter padding
+        # Unfocused + apps: subtle background, grey icons
         sketchybar --set "$NAME" background.drawing=on \
                                 background.color="0x20$WHITE_CLEAN" \
                                 background.border_width=0 \
                                 background.padding_left=2 \
                                 background.padding_right=2 \
+                                label.font="sketchybar-app-font:Regular:14.0" \
                                 label.color="$GREY" \
                                 icon.color="$GREY" \
                                 label="$ICON_STR"
-    else
-        # Empty: Transparent
+    elif [ -n "$DEFAULT_ICON" ]; then
+        # Unfocused + empty + default: no background, very dimmed ghost
         sketchybar --set "$NAME" background.drawing=off \
                                 background.padding_left=2 \
                                 background.padding_right=2 \
+                                label.font="$DEFAULT_ICON_FONT" \
+                                label.color=0x30ffffff \
+                                icon.color="$GREY" \
+                                label="$DEFAULT_ICON"
+    else
+        # Unfocused + truly empty: transparent, no label
+        sketchybar --set "$NAME" background.drawing=off \
+                                background.padding_left=2 \
+                                background.padding_right=2 \
+                                label.font="sketchybar-app-font:Regular:14.0" \
                                 label.color="$GREY" \
                                 icon.color="$GREY" \
                                 label=""
