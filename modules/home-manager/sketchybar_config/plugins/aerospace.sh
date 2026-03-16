@@ -38,8 +38,10 @@ if [ -z "$ICON_STR" ]; then
         2)  default_app="Mail" ;;
         4)  default_app="Firefox" ;;
         5)  DEFAULT_ICON="$APP_FILES"; DEFAULT_ICON_FONT="Hack Nerd Font:Regular:14.0" ;;
-        6)  default_app="Cursor" ;;
-        9)  DEFAULT_ICON="$YABAI_GRID"; DEFAULT_ICON_FONT="SF Pro:Regular:14.0" ;;
+        6)  DEFAULT_ICON="$APP_CODE";   DEFAULT_ICON_FONT="Hack Nerd Font:Regular:14.0" ;;
+        7)  DEFAULT_ICON="$APP_CAMERA"; DEFAULT_ICON_FONT="Hack Nerd Font:Regular:14.0" ;;
+        8)  DEFAULT_ICON="$APP_FANCY";  DEFAULT_ICON_FONT="Hack Nerd Font:Regular:14.0" ;;
+        9)  DEFAULT_ICON="$APP_STAR";   DEFAULT_ICON_FONT="Hack Nerd Font:Regular:14.0" ;;
         10) DEFAULT_ICON="$DISK";       DEFAULT_ICON_FONT="SF Pro:Regular:14.0" ;;
         11) default_app="Logseq" ;;
     esac
