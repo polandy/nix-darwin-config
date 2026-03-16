@@ -8,6 +8,11 @@
       nrs = "darwin-rebuild switch --flake .";
       nrb = "darwin-rebuild build --flake .";
       nfmt = "nix fmt";
+      ls  = "eza";
+      ll  = "eza -l --icons";
+      la  = "eza -la --icons";
+      lt  = "eza --tree --icons";
+      gd  = "git diff";
     };
     # Homebrew and Mise setup
     shellInit = ''
@@ -17,6 +22,10 @@
 
       if type -q mise
         mise activate fish | source
+      end
+
+      if type -q zoxide
+        zoxide init fish | source
       end
     '';
     
