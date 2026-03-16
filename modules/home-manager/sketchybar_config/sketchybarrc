@@ -57,6 +57,22 @@ sketchybar --set space.8 icon=
 sketchybar --set space.9 icon=
 sketchybar --set space.10 icon=
 
+
+# Assign each space indicator to only the monitor it belongs to, so bars on
+# other monitors don't show unrelated workspaces.
+#
+# AeroSpace numbers monitors in the opposite order from sketchybar (AeroSpace 1
+# = sketchybar's last display, and vice versa), so we invert the index with
+# (MONITOR_COUNT + 1 - i). This was verified empirically: without the inversion
+# the workspaces appeared on the wrong bars.
+MONITOR_COUNT=$(aerospace list-monitors | wc -l | tr -d ' ')
+for i in $(seq 1 $MONITOR_COUNT); do
+  DISPLAY_IDX=$((MONITOR_COUNT + 1 - i))
+  for sid in $(aerospace list-workspaces --monitor $i 2>/dev/null); do
+    sketchybar --set space.$sid display=$DISPLAY_IDX
+  done
+done
+
 ##### Changing Defaults #####
 # We now change some default values, which are applied to all further items.
 # For a full list of all available item properties see:
