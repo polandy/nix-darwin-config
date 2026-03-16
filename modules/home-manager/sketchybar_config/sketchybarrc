@@ -14,61 +14,60 @@ APP_FONT="sketchybar-app-font"
 
 # Global bar configuration
 sketchybar --bar height=33 \
-                 y_offset=0 \
-                 margin=0 \
-                 blur_radius=20 \
-                 position=top \
-                 padding_left=10 \
-                 padding_right=10 \
-                 color=$BAR_COLOR \
-                 sticky=on \
-                 topmost=window
+  y_offset=0 \
+  margin=0 \
+  blur_radius=20 \
+  position=top \
+  padding_left=10 \
+  padding_right=10 \
+  color=$BAR_COLOR \
+  sticky=on \
+  topmost=window
 
 # Default item configuration
 sketchybar --default icon.font="$FONT:Bold:14.0" \
-                     icon.color=$WHITE \
-                     label.font="$FONT:Semibold:13.0" \
-                     label.color=$WHITE \
-                     padding_left=3 \
-                     padding_right=3 \
-                     label.padding_left=3 \
-                     label.padding_right=3
+  icon.color=$WHITE \
+  label.font="$FONT:Semibold:13.0" \
+  label.color=$WHITE \
+  padding_left=3 \
+  padding_right=3 \
+  label.padding_left=3 \
+  label.padding_right=3
 
 ##### Space / Workspace Items #####
 # Register AeroSpace workspace change event (required before subscribing items)
 sketchybar --add event aerospace_workspace_change
 
 # Using AeroSpace workspaces
-for sid in 1 2 3 4 5 6 7 8 9 10 11
-do
+for sid in 1 2 3 4 5 6 7 8 9 10 11; do
   sketchybar --add item space.$sid left \
-             --subscribe space.$sid aerospace_workspace_change \
-             --set space.$sid \
-             padding_left=2 \
-             padding_right=2 \
-             background.drawing=on \
-             background.margin_horizontal=1 \
-             background.corner_radius=8 \
-             icon="$sid" \
-             icon.font="$FONT:Bold:13.0" \
-             label.font="$APP_FONT:Regular:14.0" \
-             label.y_offset=-2 \
-             click_script="aerospace workspace $sid" \
-             script="$PLUGIN_DIR/aerospace.sh $sid"
+    --subscribe space.$sid aerospace_workspace_change \
+    --set space.$sid \
+    padding_left=2 \
+    padding_right=2 \
+    background.drawing=on \
+    background.margin_horizontal=1 \
+    background.corner_radius=8 \
+    icon="$sid" \
+    icon.font="$FONT:Bold:13.0" \
+    label.font="$APP_FONT:Regular:14.0" \
+    label.y_offset=-2 \
+    click_script="aerospace workspace $sid" \
+    script="$PLUGIN_DIR/aerospace.sh $sid"
 done
 
 ##### Left Items (app context) #####
 sketchybar --add item separator left \
-           --set separator icon=$CHEVRON \
-                           icon.color=$GREY \
-                           icon.align=left \
-                           icon.padding_right=6 \
-                           label.drawing=off \
-           --add item front_app left \
-           --set front_app icon.drawing=off \
-                           click_script="$PLUGIN_DIR/toggle_labels.sh" \
-                           script="$PLUGIN_DIR/front_app.sh" \
-           --subscribe front_app front_app_switched
+  --set separator icon=$CHEVRON \
+  icon.color=$GREY \
+  icon.align=left \
+  icon.padding_right=6 \
+  label.drawing=off \
+  --add item front_app left \
+  --set front_app icon.drawing=off \
+  click_script="$PLUGIN_DIR/toggle_labels.sh" \
+  script="$PLUGIN_DIR/front_app.sh" \
+  --subscribe front_app front_app_switched
 
 ##### Right Items #####
 source $ITEM_DIR/clock.sh
@@ -77,9 +76,9 @@ source $ITEM_DIR/volume.sh
 source $ITEM_DIR/ram.sh
 source $ITEM_DIR/cpu.sh
 source $ITEM_DIR/disk.sh
+source $ITEM_DIR/wifi.sh
 source $ITEM_DIR/network.sh
 source $ITEM_DIR/vpn.sh
-source $ITEM_DIR/wifi.sh
 
 sketchybar --update
 echo "sketchybar configuration loaded.."
