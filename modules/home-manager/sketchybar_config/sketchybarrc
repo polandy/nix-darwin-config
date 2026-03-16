@@ -79,6 +79,7 @@ source $ITEM_DIR/cpu.sh
 source $ITEM_DIR/disk.sh
 source $ITEM_DIR/network.sh
 source $ITEM_DIR/vpn.sh
+source $ITEM_DIR/wifi.sh
 
 sketchybar --update
 echo "sketchybar configuration loaded.."
