@@ -5,5 +5,5 @@ sketchybar -m --add item disk right \
                          label.font="Hack Nerd Font:Bold:13.0" \
                          label.width=40 \
                          label.align=center \
-                         update_freq=1 \
+                         update_freq=30 \
                          script="$CONFIG_DIR/plugins/disk.sh"
