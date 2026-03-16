@@ -19,3 +19,9 @@ fmt:
 # Clean up nix store (garbage collection)
 clean:
     sudo nix-collect-garbage -d
+
+# Reload sketchybar config (copies from repo then reloads)
+reload-bar:
+    rm -rf ~/.config/sketchybar && \
+    cp -r ~/nix-darwin-config/modules/home-manager/sketchybar_config/. ~/.config/sketchybar/ && \
+    sketchybar --reload
