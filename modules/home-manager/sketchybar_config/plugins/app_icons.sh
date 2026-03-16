@@ -5,7 +5,7 @@
 
 function get_app_icon {
   case "$1" in
-    "Alacritty") echo ":alacritty:" ;;
+    "Alacritty") echo ":terminal:" ;;
     "Finder") echo ":finder:" ;;
     "Firefox") echo ":firefox:" ;;
     "Google Chrome") echo ":google_chrome:" ;;

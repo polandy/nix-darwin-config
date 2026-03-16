@@ -52,7 +52,7 @@ function __icon_map() {
         icon_result=":airport_utility:"
         ;;
    "Alacritty")
-        icon_result=":alacritty:"
+        icon_result=":terminal:"
         ;;
    "Alfred")
         icon_result=":alfred:"
