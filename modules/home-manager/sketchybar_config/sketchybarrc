@@ -22,7 +22,7 @@ sketchybar --bar height=33 \
                  padding_right=10 \
                  color=$BAR_COLOR \
                  sticky=on \
-                 topmost=on
+                 topmost=window
 
 # Default item configuration
 sketchybar --default icon.font="$FONT:Bold:14.0" \
