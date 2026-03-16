@@ -12,7 +12,6 @@
       ll  = "eza -l --icons";
       la  = "eza -la --icons";
       lt  = "eza --tree --icons";
-      gd  = "git diff";
     };
     # Homebrew and Mise setup
     shellInit = ''
