@@ -13,7 +13,7 @@ DISK=􀤂
 CHEVRON=􀆊
 
 # App Icons (Nerd Font Fallbacks)
-APP_ALACRITTY=
+APP_TERMINAL=
 APP_FILES=󰉋
 APP_CODE=󰅩
 APP_CAMERA=󰄀
