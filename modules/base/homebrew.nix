@@ -9,6 +9,7 @@
     # In other words, brew uninstall --zap is run for all those formulae.
     onActivation.cleanup = "zap";
     taps = [
+      "kvndrsslr/formulae"
     ];
     brews = [
       "ifstat"
@@ -27,6 +28,7 @@
       "logseq"
       "whatsapp"
       "claude-code"
+      "font-sketchybar-app-font"
     ];
   };
 }

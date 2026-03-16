@@ -29,6 +29,15 @@ This is a personal [nix-darwin](https://github.com/LnL7/nix-darwin) configuratio
    nix run nix-darwin -- switch --flake .#amba
    ```
 
+## Manual Font Installation (Required)
+
+Due to licensing restrictions, Apple's proprietary fonts cannot be automatically installed via Nix. You **must** manually download and install them for the Sketchybar UI to render correctly:
+
+1. **SF Pro Fonts:** [Download from Apple Developer](https://developer.apple.com/fonts/) (Install the `SF Pro` family).
+2. **SF Symbols:** [Download SF Symbols 6](https://developer.apple.com/sf-symbols/) (Required for system icons like CPU, RAM, and Battery).
+
+*Note: The `sketchybar-app-font` is handled automatically via Homebrew Cask once the requirements above are met.*
+
 ## Directory Structure
 
 The repository follows a clean, modular structure that separates machine-specific configurations (hosts) from logical groupings of settings (modules).

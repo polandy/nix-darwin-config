@@ -14,9 +14,8 @@ PLUGIN_DIR="$CONFIG_DIR/plugins"
 ITEM_DIR="$CONFIG_DIR/items"
 
 # Font configuration
-# We use Hack Nerd Font as the primary font for compatibility, 
-# but we define a separate variable for icons in case the user has SF Pro.
-FONT="Hack Nerd Font"
+FONT="SF Pro"
+APP_FONT="sketchybar-app-font"
 PADDINGS=3
 
 ##### Bar Appearance #####
@@ -82,30 +81,26 @@ for sid in $(aerospace list-workspaces --all); do
       --set space.$sid \
             background.color=$BG_COLOR \
             background.drawing=$DRAWING \
-            label="$sid" \
+            icon="$sid" \
+            icon.font="$FONT:Bold:14.0" \
+            label.font="$APP_FONT:Regular:15.0" \
+            label.y_offset=-2 \
             label.color=$L_COLOR \
             icon.color=$L_COLOR \
             click_script="aerospace workspace $sid" \
             script="$CONFIG_DIR/plugins/aerospace.sh $sid"
 done
 
-# Set specific icons for spaces if they exist in your previous config
-sketchybar --set space.1 icon=
-sketchybar --set space.2 icon=
-sketchybar --set space.3 icon=
-sketchybar --set space.4 icon=
-sketchybar --set space.5 icon=
-sketchybar --set space.6 icon=
-sketchybar --set space.7 icon=
-sketchybar --set space.8 icon=
-sketchybar --set space.9 icon=
-sketchybar --set space.10 icon=
-
 ##### Left Items #####
-sketchybar --add item front_app left \
+sketchybar --add item separator left \
+           --set separator icon=$CHEVRON \
+                           icon.color=$GREY \
+                           label.drawing=off \
+           --add item front_app left \
            --set front_app icon.drawing=off \
                            script="$PLUGIN_DIR/front_app.sh" \
            --subscribe front_app front_app_switched
+
 
 ##### Right Items #####
 source $ITEM_DIR/clock.sh
