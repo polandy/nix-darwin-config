@@ -96,8 +96,8 @@ source $ITEM_DIR/vpn.sh
 ##### Display Change Handler #####
 sketchybar --add item display_watcher center \
   --set display_watcher drawing=off \
-  --subscribe display_watcher display_change \
-  script="sketchybar --reload"
+               script="$PLUGIN_DIR/display_change.sh" \
+  --subscribe display_watcher display_change
 
 sketchybar --update
 
