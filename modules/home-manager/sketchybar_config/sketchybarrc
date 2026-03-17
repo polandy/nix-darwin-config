@@ -38,11 +38,24 @@ sketchybar --default icon.font="$FONT:Bold:14.0" \
 # Register AeroSpace workspace change event (required before subscribing items)
 sketchybar --add event aerospace_workspace_change
 
+# Build workspace→display map from AeroSpace.
+# AeroSpace and sketchybar number displays in opposite order (AeroSpace: built-in first;
+# sketchybar: main/primary display first), so invert: sketchybar_id = (total - aero_id + 1).
+declare -A WS_DISPLAY
+_num_monitors=$(aerospace list-monitors --format "%{monitor-id}" 2>/dev/null | wc -l | tr -d ' ')
+for _monitor in $(aerospace list-monitors --format "%{monitor-id}" 2>/dev/null); do
+    _display=$(( _num_monitors + 1 - _monitor ))
+    for _ws in $(aerospace list-workspaces --monitor "$_monitor" 2>/dev/null); do
+        WS_DISPLAY[$_ws]=$_display
+    done
+done
+
 # Using AeroSpace workspaces
 for sid in 1 2 3 4 5 6 7 8 9 10 11; do
   sketchybar --add item space.$sid left \
     --subscribe space.$sid aerospace_workspace_change \
     --set space.$sid \
+    display="${WS_DISPLAY[$sid]:-1}" \
     padding_left=2 \
     padding_right=2 \
     background.drawing=on \
@@ -80,5 +93,12 @@ source $ITEM_DIR/wifi.sh
 source $ITEM_DIR/network.sh
 source $ITEM_DIR/vpn.sh
 
+##### Display Change Handler #####
+sketchybar --add item display_watcher center \
+  --set display_watcher drawing=off \
+  --subscribe display_watcher display_change \
+  script="sketchybar --reload"
+
 sketchybar --update
+
 echo "sketchybar configuration loaded.."
