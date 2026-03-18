@@ -2,7 +2,7 @@
 
 {
   imports = [
-    ../../modules/home-manager/macos-aerospace-desktop.nix
+    ../../modules/home-manager/macos-aerospace-desktop
   ];
 
   home.stateVersion = "24.05"; # Match a recent stable version or unstable
