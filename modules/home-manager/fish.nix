@@ -1,6 +1,10 @@
 { config, pkgs, lib, ... }:
 
 {
+  programs.eza = {
+    enable = true;
+  };
+
   programs.fish = {
     enable = true;
 
@@ -9,9 +13,9 @@
       nrb = "darwin-rebuild build --flake .";
       nfmt = "nix fmt";
       ls  = "eza";
-      ll  = "eza -l --icons";
-      la  = "eza -la --icons";
-      lt  = "eza --tree --icons";
+      ll  = "eza -l --icons=auto";
+      la  = "eza -la --icons=auto";
+      lt  = "eza --tree --icons=auto";
     };
     # Homebrew and Mise setup
     shellInit = ''

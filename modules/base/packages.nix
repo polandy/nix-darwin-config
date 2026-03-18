@@ -34,7 +34,6 @@
     pkgs.lazygit
     pkgs.mcp-nixos
     pkgs.zoxide
-    pkgs.eza
   ];
 
 }
