@@ -6,4 +6,5 @@ sketchybar --add item teams right \
                      label.drawing=off \
                      drawing=off \
                      update_freq=15 \
-                     script="$PLUGIN_DIR/teams.sh"
+                     script="$PLUGIN_DIR/teams.sh" \
+                     click_script="open -a 'Microsoft Teams'"
