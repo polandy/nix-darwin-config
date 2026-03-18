@@ -90,9 +90,10 @@ source $ITEM_DIR/ram.sh
 source $ITEM_DIR/cpu.sh
 source $ITEM_DIR/disk.sh
 source $ITEM_DIR/wifi.sh
-source $ITEM_DIR/network.sh
 source $ITEM_DIR/vpn.sh
 source $ITEM_DIR/teams.sh
+# network is sourced last so it appears closest to the notch on the right side
+source $ITEM_DIR/network.sh
 
 ##### Display Change Handler #####
 sketchybar --add item display_watcher center \
