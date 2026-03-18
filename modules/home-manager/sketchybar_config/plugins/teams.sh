@@ -22,8 +22,14 @@ BADGE=$(osascript -e '
   end tell
 ' 2>/dev/null)
 
+[ "$BADGE" = "missing value" ] && BADGE=""
+
 if [ -n "$BADGE" ]; then
-  sketchybar --set teams drawing=on icon.color=$RED
+  sketchybar --set teams drawing=on \
+                       icon.color=$RED \
+                       label.drawing=on \
+                       label="$BADGE"
 else
-  sketchybar --set teams drawing=off
+  sketchybar --set teams drawing=off \
+                       label.drawing=off
 fi
