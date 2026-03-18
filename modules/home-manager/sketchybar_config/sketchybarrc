@@ -92,6 +92,7 @@ source $ITEM_DIR/disk.sh
 source $ITEM_DIR/wifi.sh
 source $ITEM_DIR/network.sh
 source $ITEM_DIR/vpn.sh
+source $ITEM_DIR/teams.sh
 
 ##### Display Change Handler #####
 sketchybar --add item display_watcher center \
