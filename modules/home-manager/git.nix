@@ -1,5 +1,8 @@
 { pkgs, ... }:
 
 {
-  programs.git.enable = true;
+  programs.git = {
+    enable = true;
+    extraConfig.core.editor = "nvim";
+  };
 }
