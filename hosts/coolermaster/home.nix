@@ -16,7 +16,6 @@
   home.packages = with pkgs; [
     calibre
     ansible
-    nvtop
   ];
 
   programs.home-manager.enable = true;
