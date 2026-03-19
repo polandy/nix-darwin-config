@@ -4,13 +4,18 @@
 default:
     @just --list
 
-# Build the flake for a host (e.g., just build ambp)
-build host:
-    darwin-rebuild build --flake .#{{host}}
+# Switch to the appropriate configuration for the current host (macOS or Linux)
+switch:
+    #!/usr/bin/env bash
+    if [[ "$(uname)" == "Darwin" ]]; then
+      sudo darwin-rebuild switch --flake .#$(hostname -s)
+    else
+      home-manager switch --flake .#andy@$(hostname)
+    fi
 
-# Switch to the flake for a host (e.g., just switch amba)
-switch host:
-    sudo darwin-rebuild switch --flake .#{{host}}
+# Build without activating — macOS only (darwin-rebuild has no Linux equivalent)
+build-darwin:
+    darwin-rebuild build --flake .#$(hostname -s)
 
 # Format all nix files
 fmt:

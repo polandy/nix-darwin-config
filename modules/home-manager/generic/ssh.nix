@@ -1,14 +1,14 @@
-{ config, pkgs, ... }:
+{ pkgs, ... }:
 
 {
   programs.ssh = {
     enable = true;
     enableDefaultConfig = false;
-    includes = [ "~/.colima/ssh_config" ];
+    includes = pkgs.lib.optionals pkgs.stdenv.isDarwin [ "~/.colima/ssh_config" ];
     matchBlocks = {
       "*" = {
         addKeysToAgent = "yes";
-        extraOptions = {
+        extraOptions = pkgs.lib.optionalAttrs pkgs.stdenv.isDarwin {
           UseKeychain = "yes";
         };
         identityFile = "~/.ssh/id_ed25519";

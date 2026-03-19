@@ -13,14 +13,15 @@
 
   outputs = inputs@{ self, nix-darwin, nixpkgs, home-manager, sops-nix, ... }:
     let
-      system = "aarch64-darwin";
       lib = nixpkgs.lib;
+      darwinSystem = "aarch64-darwin";
+      pkgsFor = system: nixpkgs.legacyPackages.${system};
     in
     {
       # $ darwin-rebuild build --flake .#ambp
       darwinConfigurations = {
         "ambp" = nix-darwin.lib.darwinSystem {
-          inherit system;
+          system = darwinSystem;
           # Pass 'self' to modules
           specialArgs = { inherit self lib home-manager sops-nix; };
           modules = [
@@ -34,7 +35,7 @@
           ];
         };
         "amba" = nix-darwin.lib.darwinSystem {
-          inherit system;
+          system = darwinSystem;
           # Pass 'self' to modules
           specialArgs = { inherit self lib home-manager sops-nix; };
           modules = [
@@ -50,6 +51,29 @@
         };
       };
 
-      formatter.${system} = nixpkgs.legacyPackages.${system}.nixpkgs-fmt;
+      # Standalone home-manager for Linux hosts
+      homeConfigurations = {
+        "andy@x1" = home-manager.lib.homeManagerConfiguration {
+          pkgs = pkgsFor "x86_64-linux";
+          extraSpecialArgs = { inherit sops-nix; };
+          modules = [
+            ./hosts/x1/home.nix
+            sops-nix.homeManagerModules.sops
+          ];
+        };
+        "andy@coolermaster" = home-manager.lib.homeManagerConfiguration {
+          pkgs = pkgsFor "x86_64-linux";
+          extraSpecialArgs = { inherit sops-nix; };
+          modules = [
+            ./hosts/coolermaster/home.nix
+            sops-nix.homeManagerModules.sops
+          ];
+        };
+      };
+
+      formatter = {
+        ${darwinSystem} = (pkgsFor darwinSystem).nixpkgs-fmt;
+        "x86_64-linux" = (pkgsFor "x86_64-linux").nixpkgs-fmt;
+      };
     };
 }
