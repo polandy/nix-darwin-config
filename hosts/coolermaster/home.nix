@@ -13,5 +13,11 @@
     SOPS_AGE_KEY_FILE = "${config.home.homeDirectory}/.config/sops/age/keys.txt";
   };
 
+  home.packages = with pkgs; [
+    calibre
+    ansible
+    nvtop
+  ];
+
   programs.home-manager.enable = true;
 }

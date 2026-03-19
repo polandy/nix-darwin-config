@@ -28,6 +28,14 @@
     yt-dlp
     neovim
 
+    # photography
+    darktable
+    digikam
+    hugin
+
+    # beets
+    beets
+
     # base-ui
     alacritty
     firefox
