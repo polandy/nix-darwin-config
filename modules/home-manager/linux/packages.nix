@@ -1,6 +1,12 @@
 { pkgs, ... }: {
   home.packages = with pkgs; [
     just
+    p7zip
+    bind
+    du-dust
+    imagemagick
+    mc
+    hugo
     bat
     ripgrep
     fd
@@ -9,7 +15,7 @@
     mise
     zoxide
     vivid
-eza
+    eza
     tmux
     ncdu
     tree
