@@ -3,7 +3,7 @@
     just
     p7zip
     bind
-    du-dust
+    dust
     imagemagick
     mc
     hugo
