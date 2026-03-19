@@ -27,5 +27,17 @@
     restic
     yt-dlp
     neovim
+
+    # base-ui
+    alacritty
+    firefox
+    chromium
+    mpv
+    vlc
+    ffmpeg
+    meld
+    android-tools
+    geeqie
+    evince
   ];
 }
