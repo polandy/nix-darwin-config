@@ -17,6 +17,19 @@ Personal Nix configuration managing macOS (nix-darwin) and Linux (standalone hom
 * **Container Runtime:** [Colima](https://github.com/abiosoft/colima) (Docker Desktop alternative).
 * **Secrets:** [sops-nix](https://github.com/Mic92/sops-nix) (age-encrypted secrets).
 
+## Package Management Strategy (Linux)
+
+On Arch Linux, two package managers coexist:
+
+| Manager | What goes here |
+|---------|---------------|
+| **home-manager** (this repo) | User-level tools and apps available in nixpkgs, dotfile/config management |
+| **yay/metapac** ([dotfiles repo](https://github.com/polandy/dotfiles)) | AUR packages, system daemons and drivers, anything requiring pacman hooks or systemd system units |
+
+**Rule of thumb:** if it's in nixpkgs and user-level, it belongs here. If it's AUR (e.g. `-bin`, `-git` suffixes) or touches the system (kernel, display manager, portals, bluetooth), it stays in yay.
+
+This split is permanent for as long as the Linux hosts run Arch. On NixOS, metapac would go away entirely.
+
 ## Installation
 
 ### macOS (nix-darwin)
@@ -33,7 +46,7 @@ Personal Nix configuration managing macOS (nix-darwin) and Linux (standalone hom
 
 3. **Clone the repo and activate:**
    ```bash
-   git clone https://github.com/andybluntish/nix-darwin-config.git ~/dev/nix-darwin-config
+   git clone https://github.com/polandy/nix-darwin-config.git ~/dev/nix-darwin-config
    cd ~/dev/nix-darwin-config
    nix run nix-darwin -- switch --flake .#amba   # or .#ambp
    ```
@@ -56,7 +69,7 @@ Linux hosts (x1, coolermaster) run Arch Linux with standalone home-manager. Syst
 
 2. **Clone the repo:**
    ```bash
-   git clone https://github.com/andybluntish/nix-darwin-config.git ~/dev/nix-darwin-config
+   git clone https://github.com/polandy/nix-darwin-config.git ~/dev/nix-darwin-config
    cd ~/dev/nix-darwin-config
    ```
 
