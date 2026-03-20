@@ -12,29 +12,29 @@ fi
 
 COLOR=$WHITE
 case ${PERCENTAGE} in
-  9[0-9]|100) ICON=􀛨
+  9[0-9]|100) ICON=$BATTERY_100
   ;;
-  8[0-9]) ICON=􀺸
+  8[0-9]) ICON=$BATTERY_75
   ;;
-  7[0-9]) ICON=􀺸
+  7[0-9]) ICON=$BATTERY_75
   ;;
-  6[0-9]) ICON=􀺶
+  6[0-9]) ICON=$BATTERY_50
   ;;
-  5[0-9]) ICON=􀺶
+  5[0-9]) ICON=$BATTERY_50
   ;;
-  4[0-9]) ICON=􀺶
+  4[0-9]) ICON=$BATTERY_50
   ;;
-  3[0-9]) ICON=􀺴; COLOR=$YELLOW
+  3[0-9]) ICON=$BATTERY_25; COLOR=$YELLOW
   ;;
-  2[0-9]) ICON=􀛩; COLOR=$RED
+  2[0-9]) ICON=$BATTERY_25; COLOR=$RED
   ;;
-  1[0-9]) ICON=􀛩; COLOR=$RED
+  1[0-9]) ICON=$BATTERY_0; COLOR=$RED
   ;;
-  *) ICON=􀛪; COLOR=$RED
+  *) ICON=$BATTERY_0; COLOR=$RED
 esac
 
 if [[ $CHARGING != "" ]]; then
-  ICON=􀢋
+  ICON=$BATTERY_CHARGING
 fi
 
 sketchybar --set $NAME icon="$ICON" icon.color=$COLOR label="${PERCENTAGE}%" label.color=$COLOR

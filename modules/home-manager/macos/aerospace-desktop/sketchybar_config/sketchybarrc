@@ -9,7 +9,8 @@ PLUGIN_DIR="$CONFIG_DIR/plugins"
 ITEM_DIR="$CONFIG_DIR/items"
 
 # Font configuration
-FONT="SF Pro"
+FONT="SF Pro Text"
+ICON_FONT="Hack Nerd Font"
 APP_FONT="sketchybar-app-font"
 
 # Global bar configuration
@@ -25,7 +26,7 @@ sketchybar --bar height=33 \
   topmost=window
 
 # Default item configuration
-sketchybar --default icon.font="$FONT:Bold:14.0" \
+sketchybar --default icon.font="$ICON_FONT:Regular:14.0" \
   icon.color=$WHITE \
   label.font="$FONT:Semibold:13.0" \
   label.color=$WHITE \
