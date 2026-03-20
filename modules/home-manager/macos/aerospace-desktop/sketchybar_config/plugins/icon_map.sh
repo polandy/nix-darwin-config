@@ -717,7 +717,7 @@ function __icon_map() {
    "Microsoft Excel")
         icon_result=":microsoft_excel:"
         ;;
-   "Microsoft Outlook")
+   "Microsoft Outlook" | "Outlook Email")
         icon_result=":microsoft_outlook:"
         ;;
    "Microsoft PowerPoint")
