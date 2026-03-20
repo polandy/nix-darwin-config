@@ -1,23 +1,23 @@
 # Andy's Nix Config
 
-Personal Nix configuration managing macOS (nix-darwin) and Linux (standalone home-manager) machines.
+Personal Nix configuration managing Linux (standalone home-manager) and macOS (nix-darwin) machines.
 
 ## Quick Start
 
-* Apply configuration (macOS or Linux): `just switch`
+* Apply configuration (Linux or macOS): `just switch`
 * Build without activating (macOS only): `just build-darwin`
 * Update flake dependencies: `nix flake update`
 
 ## Primary Tools
 
-| Category | macOS | Linux |
+| Category | Linux | macOS |
 |----------|-------|-------|
 | **Terminal** | [Alacritty](https://alacritty.org/) | [Alacritty](https://alacritty.org/) |
-| **Window Manager** | [AeroSpace](https://nikitabobko.github.io/AeroSpace/) — see [docs/aerospace.md](./docs/aerospace.md) | [Hyprland](https://hyprland.org/) / [Niri](https://github.com/YaLTeR/niri) |
-| **Status Bar** | [Sketchybar](https://felixkratz.github.io/Sketchybar/) — see [docs/aerospace.md](./docs/aerospace.md) | [Waybar](https://github.com/Alexays/Waybar) |
-| **App Launcher** | [Raycast](https://www.raycast.com/) | [Rofi](https://github.com/davatorium/rofi) |
-| **UI Polish** | [JankyBorders](https://github.com/FelixKratz/JankyBorders) — see [docs/aerospace.md](./docs/aerospace.md) | — |
-| **Container Runtime** | [Colima](https://github.com/abiosoft/colima) (Docker Desktop alternative) | Docker |
+| **Window Manager** | [Hyprland](https://hyprland.org/) / [Niri](https://github.com/YaLTeR/niri) | [AeroSpace](https://nikitabobko.github.io/AeroSpace/) — see [docs/aerospace.md](./docs/aerospace.md) |
+| **Status Bar** | [Waybar](https://github.com/Alexays/Waybar) | [Sketchybar](https://felixkratz.github.io/Sketchybar/) — see [docs/aerospace.md](./docs/aerospace.md) |
+| **App Launcher** | [Rofi](https://github.com/davatorium/rofi) | [Raycast](https://www.raycast.com/) |
+| **UI Polish** | — | [JankyBorders](https://github.com/FelixKratz/JankyBorders) — see [docs/aerospace.md](./docs/aerospace.md) |
+| **Container Runtime** | Docker | [Colima](https://github.com/abiosoft/colima) (Docker Desktop alternative) |
 | **Secrets** | [sops-nix](https://github.com/Mic92/sops-nix) | [sops-nix](https://github.com/Mic92/sops-nix) |
 
 ## Package Management Strategy (Linux)
@@ -34,32 +34,6 @@ On Arch Linux, two package managers coexist:
 This split is permanent for as long as the Linux hosts run Arch. On NixOS, metapac would go away entirely.
 
 ## Installation
-
-### macOS (nix-darwin)
-
-1. **Install Nix** using the [Determinate Systems installer](https://github.com/DeterminateSystems/nix-installer):
-   ```bash
-   curl --proto '=https' --tlsv1.2 -sSf -L https://install.determinate.systems/nix | sh -s -- install
-   ```
-
-2. **Install Homebrew** (required for GUI apps with TCC permissions):
-   ```bash
-   /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-   ```
-
-3. **Clone the repo and activate:**
-   ```bash
-   git clone https://github.com/polandy/nix-darwin-config.git ~/dev/nix-darwin-config
-   cd ~/dev/nix-darwin-config
-   nix run nix-darwin -- switch --flake .#amba   # or .#ambp
-   ```
-
-4. **Subsequent updates:**
-   ```bash
-   just switch
-   ```
-
-5. **Set up secrets** — see [docs/sops-nix.md](./docs/sops-nix.md) for age key setup.
 
 ### Linux (standalone home-manager)
 
@@ -88,6 +62,32 @@ Linux hosts (x1, coolermaster) run Arch Linux with standalone home-manager. Syst
 
 5. **Set up secrets** — copy your age key to `~/.config/sops/age/keys.txt`.
 
+### macOS (nix-darwin)
+
+1. **Install Nix** using the [Determinate Systems installer](https://github.com/DeterminateSystems/nix-installer):
+   ```bash
+   curl --proto '=https' --tlsv1.2 -sSf -L https://install.determinate.systems/nix | sh -s -- install
+   ```
+
+2. **Install Homebrew** (required for GUI apps with TCC permissions):
+   ```bash
+   /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+   ```
+
+3. **Clone the repo and activate:**
+   ```bash
+   git clone https://github.com/polandy/nix-darwin-config.git ~/dev/nix-darwin-config
+   cd ~/dev/nix-darwin-config
+   nix run nix-darwin -- switch --flake .#amba   # or .#ambp
+   ```
+
+4. **Subsequent updates:**
+   ```bash
+   just switch
+   ```
+
+5. **Set up secrets** — see [docs/sops-nix.md](./docs/sops-nix.md) for age key setup.
+
 ---
 
 ## Directory Structure
@@ -98,10 +98,10 @@ The repository follows a clean, modular structure that separates machine-specifi
 nix-config/
 ├── flake.nix               # Entry point: darwinConfigurations + homeConfigurations
 ├── hosts/                  # Machine-specific configurations
-│   ├── amba/               # Personal Mac (nix-darwin)
-│   ├── ambp/               # Work Mac (nix-darwin)
 │   ├── x1/                 # ThinkPad X1 (standalone home-manager)
-│   └── coolermaster/       # Desktop (standalone home-manager)
+│   ├── coolermaster/       # Desktop (standalone home-manager)
+│   ├── amba/               # Personal Mac (nix-darwin)
+│   └── ambp/               # Work Mac (nix-darwin)
 └── modules/                # Shared configuration modules
     ├── macos/              # macOS-only modules (nix-darwin)
     │   ├── base/           # Foundational settings (users, core packages, basic homebrew)
@@ -113,8 +113,8 @@ nix-config/
     │   └── ui.nix          # UI polish (AeroSpace, Sketchybar, JankyBorders)
     └── home-manager/
         ├── generic/        # Cross-platform HM modules (fish, git, ssh, syncthing)
-        ├── macos/          # macOS-only HM modules (aerospace-desktop)
-        └── linux/          # Linux-only HM modules (packages, WM configs)
+        ├── linux/          # Linux-only HM modules (packages, WM configs)
+        └── macos/          # macOS-only HM modules (aerospace-desktop)
 ```
 
 ## Secrets Management
