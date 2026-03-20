@@ -10,12 +10,15 @@ Personal Nix configuration managing macOS (nix-darwin) and Linux (standalone hom
 
 ## Primary Tools
 
-* **Terminal Emulator:** [Alacritty](https://alacritty.org/) (launched via AeroSpace with `Option + Enter`).
-* **Window Manager:** [AeroSpace](https://nikitabobko.github.io/AeroSpace/) (i3-like tiling for macOS) — see [docs/aerospace.md](./docs/aerospace.md).
-* **Status Bar:** [Sketchybar](https://felixkratz.github.io/Sketchybar/) (highly customizable macOS bar) — see [docs/aerospace.md](./docs/aerospace.md).
-* **UI Polish:** [JankyBorders](https://github.com/FelixKratz/JankyBorders) (active window borders) — see [docs/aerospace.md](./docs/aerospace.md).
-* **Container Runtime:** [Colima](https://github.com/abiosoft/colima) (Docker Desktop alternative).
-* **Secrets:** [sops-nix](https://github.com/Mic92/sops-nix) (age-encrypted secrets).
+| Category | macOS | Linux |
+|----------|-------|-------|
+| **Terminal** | [Alacritty](https://alacritty.org/) | [Alacritty](https://alacritty.org/) |
+| **Window Manager** | [AeroSpace](https://nikitabobko.github.io/AeroSpace/) — see [docs/aerospace.md](./docs/aerospace.md) | [Hyprland](https://hyprland.org/) / [Niri](https://github.com/YaLTeR/niri) |
+| **Status Bar** | [Sketchybar](https://felixkratz.github.io/Sketchybar/) — see [docs/aerospace.md](./docs/aerospace.md) | [Waybar](https://github.com/Alexays/Waybar) |
+| **App Launcher** | [Raycast](https://www.raycast.com/) | [Rofi](https://github.com/davatorium/rofi) |
+| **UI Polish** | [JankyBorders](https://github.com/FelixKratz/JankyBorders) — see [docs/aerospace.md](./docs/aerospace.md) | — |
+| **Container Runtime** | [Colima](https://github.com/abiosoft/colima) (Docker Desktop alternative) | Docker |
+| **Secrets** | [sops-nix](https://github.com/Mic92/sops-nix) | [sops-nix](https://github.com/Mic92/sops-nix) |
 
 ## Package Management Strategy (Linux)
 
