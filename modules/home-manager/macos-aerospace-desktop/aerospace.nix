@@ -44,7 +44,7 @@
     outer.bottom = 0
     outer.left = 0
     outer.right = 0
-    outer.top = [{ monitor."Built-in Retina Display" = 35 }]
+    outer.top = 35
 
     [mode.main.binding]
     alt-enter = "exec-and-forget open -na alacritty"
@@ -97,6 +97,7 @@
     shift-alt-backspace = "workspace-back-and-forth"
     alt-shift-semicolon = "mode service"
     alt-r = "mode resize"
+    alt-shift-r = "reload-config"
 
     [mode.resize.binding]
     h = "resize smart -50"
