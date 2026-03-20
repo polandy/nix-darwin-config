@@ -2,6 +2,7 @@
 
 {
   imports = [
+    ./base
     ./ui.nix
     ./hardware.nix
     ./system.nix

@@ -2,9 +2,8 @@
 
 {
   imports = [
-    ../../modules/base
     ../../modules/macos
-    ../../modules/devops
+    ../../modules/macos/devops
     ../../modules/home-manager
     home-manager.darwinModules.home-manager
   ];
