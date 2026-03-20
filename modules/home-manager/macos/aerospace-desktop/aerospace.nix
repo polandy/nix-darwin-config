@@ -44,7 +44,7 @@
     outer.bottom = 0
     outer.left = 0
     outer.right = 0
-    outer.top = 35
+    outer.top = [{ monitor."Built-in Retina Display" = 0 }, 33]
 
     [mode.main.binding]
     alt-enter = "exec-and-forget open -na alacritty"
