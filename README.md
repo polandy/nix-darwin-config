@@ -100,10 +100,14 @@ nix-config/
 │   ├── x1/                 # ThinkPad X1 (standalone home-manager)
 │   └── coolermaster/       # Desktop (standalone home-manager)
 └── modules/                # Shared configuration modules
-    ├── base/               # Foundational settings (users, core packages, basic homebrew)
-    ├── devops/             # Work-related and devops tools
-    ├── leisure/            # Personal and hobby applications
-    ├── macos/              # macOS system settings (UI, hardware, system defaults)
+    ├── macos/              # macOS-only modules (nix-darwin)
+    │   ├── base/           # Foundational settings (users, core packages, basic homebrew)
+    │   ├── devops/         # Work-related and devops tools
+    │   ├── leisure/        # Personal and hobby applications
+    │   ├── fonts.nix       # Font installation
+    │   ├── input.nix       # Keyboard and trackpad settings
+    │   ├── system.nix      # macOS system defaults
+    │   └── ui.nix          # UI polish (AeroSpace, Sketchybar, JankyBorders)
     └── home-manager/
         ├── generic/        # Cross-platform HM modules (fish, git, ssh, syncthing)
         ├── macos/          # macOS-only HM modules (aerospace-desktop)

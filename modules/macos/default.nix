@@ -4,7 +4,7 @@
   imports = [
     ./base
     ./ui.nix
-    ./hardware.nix
+    ./input.nix
     ./system.nix
     ./fonts.nix
   ];
