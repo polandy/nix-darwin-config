@@ -107,17 +107,17 @@
     esc = ["mode main"]
 
     [workspace-to-monitor-force-assignment]
-    1 = ["SF16T", 1]
-    2 = ["SF16T", 1]
-    3 = ["SF16T", "PA328", 1]
-    4 = ["BenQ PD3220U", "PA328", 1]
-    5 = ["BenQ PD3220U", "PA328", 1]
-    6 = 2
-    7 = 2
-    8 = 2
-    9 = 2
-    10 = 2
-    11 = 2
+    1 = ["SF16T", "LEN T25d-10 (1)", 1]
+    2 = ["SF16T", "LEN T25d-10 (1)", 1]
+    3 = ["SF16T", "PA328", "LEN T25d-10 (1)", 1]
+    4 = ["BenQ PD3220U", "PA328", "LEN T25d-10 (1)", 1]
+    5 = ["BenQ PD3220U", "PA328", "LEN T25d-10 (1)", 1]
+    6 = ["LEN T25d-10 (2)", 2]
+    7 = ["LEN T25d-10 (2)", 2]
+    8 = ["LEN T25d-10 (2)", 2]
+    9 = ["LEN T25d-10 (2)", 2]
+    10 = ["LEN T25d-10 (2)", 2]
+    11 = ["LEN T25d-10 (2)", 2]
 
     [mode.service.binding]
     esc = ["reload-config", "mode main"]
