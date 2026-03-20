@@ -3,9 +3,9 @@
 {
   sops.age.keyFile = "/Users/andy/.config/sops/age/keys.txt";
 
-  sops.secrets."syncthing/homelab_id" = { sopsFile = ../../secrets/syncthing.yaml; };
-  sops.secrets."syncthing/ipm_id" = { sopsFile = ../../secrets/syncthing.yaml; };
-  sops.secrets."syncthing/pixel9_id" = { sopsFile = ../../secrets/syncthing.yaml; };
+  sops.secrets."syncthing/homelab_id" = { sopsFile = ../../../secrets/syncthing.yaml; };
+  sops.secrets."syncthing/ipm_id" = { sopsFile = ../../../secrets/syncthing.yaml; };
+  sops.secrets."syncthing/pixel9_id" = { sopsFile = ../../../secrets/syncthing.yaml; };
 
   services.syncthing = {
     enable = true;
