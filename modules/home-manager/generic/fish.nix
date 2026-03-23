@@ -1,8 +1,22 @@
 { config, pkgs, lib, ... }:
 
 {
+  home.sessionVariables = {
+    EDITOR = "nvim";
+  };
+
   programs.eza = {
     enable = true;
+  };
+
+  programs.mise = {
+    enable = true;
+    enableFishIntegration = true;
+  };
+
+  programs.zoxide = {
+    enable = true;
+    enableFishIntegration = true;
   };
 
   programs.fish = {
@@ -17,18 +31,9 @@
       la  = "eza -la --icons=auto";
       lt  = "eza --tree --icons=auto";
     };
-    # Homebrew and Mise setup
     shellInit = ''
       if test -d /opt/homebrew
         /opt/homebrew/bin/brew shellenv | source
-      end
-
-      if type -q mise
-        mise activate fish | source
-      end
-
-      if type -q zoxide
-        zoxide init fish | source
       end
     '';
     
