@@ -1,4 +1,4 @@
-{ config, pkgs, lib, self, home-manager, ... }:
+{ config, pkgs, lib, self, home-manager, sops-nix, ... }:
 
 {
   imports = [
@@ -8,5 +8,6 @@
     home-manager.darwinModules.home-manager
   ];
 
+  home-manager.sharedModules = [ sops-nix.homeManagerModules.sops ];
   home-manager.users.andy = import ./home.nix;
 }
