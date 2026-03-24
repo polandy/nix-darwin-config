@@ -14,7 +14,6 @@
     pkgs.mas
     pkgs.mise
     pkgs.ncdu
-    pkgs.neovim
     pkgs.p7zip
     pkgs.tmux
     pkgs.tree

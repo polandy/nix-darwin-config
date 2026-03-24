@@ -3,5 +3,6 @@
     ./atuin.nix
     ./fish.nix
     ./git.nix
+    ./nvim.nix
   ];
 }

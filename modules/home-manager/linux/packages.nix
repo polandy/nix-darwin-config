@@ -26,8 +26,6 @@
     rclone
     restic
     yt-dlp
-    neovim
-
     # photography
     darktable
     digikam
