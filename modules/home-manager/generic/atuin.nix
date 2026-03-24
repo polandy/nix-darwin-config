@@ -8,7 +8,7 @@
     enableFishIntegration = true;
     daemon.enable = true;
     settings = {
-      enter_accept = true;
+      enter_accept = false;
       search_mode = "fuzzy";
       sync.records = true;
       daemon = {
