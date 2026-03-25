@@ -35,7 +35,6 @@
     beets
 
     # base-ui
-    alacritty
     firefox
     chromium
     mpv
