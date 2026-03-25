@@ -1,0 +1,77 @@
+{ ... }: {
+  programs.tmux = {
+    enable = true;
+    prefix = "C-a";
+    mouse = true;
+    keyMode = "vi";
+    terminal = "tmux-256color";
+    escapeTime = 0;
+    extraConfig = ''
+      set -ag terminal-overrides ",xterm-256color:RGB"
+
+      # Pass C-/ through, but explicitly send the C-_ key sequence
+      bind-key -n C-/ send-keys "\x1f"
+
+      unbind-key C-b
+      bind-key C-a send-prefix
+
+      # vi-mappings to move between panes
+      bind-key -r h select-pane -L
+      bind-key -r j select-pane -D
+      bind-key -r k select-pane -U
+      bind-key -r l select-pane -R
+
+      # resize panes
+      bind-key -r H resize-pane -L 5
+      bind-key -r J resize-pane -D 5
+      bind-key -r K resize-pane -U 5
+      bind-key -r L resize-pane -R 5
+
+      # auto resize panes
+      bind-key -r r select-layout even-horizontal
+      bind-key -r R select-layout even-vertical
+
+      # split window
+      bind-key -r b split-window -h
+      bind-key -r v split-window -v
+
+      # screen mappings to move between windows
+      bind-key -r p select-window -t :-
+      bind-key -r n select-window -t :+
+
+      # session management
+      bind-key -r s choose-session
+      bind-key -r < command-prompt -I "#S" "rename-session '%%'; run-shell 'tmux display-message \"Session renamed to $(tmux display-message -p -t \"%%\" \"#S\")\"'"
+
+      # sync panes
+      bind e set -g synchronize-panes
+
+      # slower repeats
+      set-option -g repeat-time 250
+
+      setw -g xterm-keys on
+
+      # reload tmux config
+      bind r source-file ~/.tmux.conf \; display-message "Config reloaded!"
+
+      # open a man page in new window
+      bind / command-prompt "split-window 'exec man %%'"
+
+      # quick view of processes
+      bind '~' split-window "exec htop"
+
+      # status bar
+      set -g status-position top
+      set -g status-keys vi
+      set -g status-interval 1
+      set -g status-fg black
+      set -g status-bg yellow
+      set -g status-left-length 20
+      set -g status-left '#[fg=black][#[fg=red]#S#[fg=black]]#[default]'
+      set -g status-justify centre
+      set -g status-right '#[fg=black][ %d.%m.%Y %H:%M:%S ]#[default]'
+      setw -g window-status-current-format ' #[fg=red,italics](#I.#P #W)#[default] '
+      setw -g window-status-format ' #I:#W '
+    '';
+  };
+}
