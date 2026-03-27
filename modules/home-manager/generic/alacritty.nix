@@ -1,12 +1,14 @@
 { pkgs, ... }: {
+  home.packages = [ pkgs.nerd-fonts.jetbrains-mono ];
+
   programs.alacritty = {
     enable = true;
     settings = {
       font = {
-        normal = { family = "FiraCode Nerd Font"; style = "Regular"; };
-        bold = { family = "FiraCode Nerd Font"; style = "Bold"; };
-        italic = { family = "FiraCode Nerd Font"; style = "Italic"; };
-        bold_italic = { family = "FiraCode Nerd Font"; style = "Bold Italic"; };
+        normal = { family = "JetBrainsMono Nerd Font"; style = "Regular"; };
+        bold = { family = "JetBrainsMono Nerd Font"; style = "Bold"; };
+        italic = { family = "JetBrainsMono Nerd Font"; style = "Italic"; };
+        bold_italic = { family = "JetBrainsMono Nerd Font"; style = "Bold Italic"; };
       };
       window = {
         dynamic_padding = false;
