@@ -7,5 +7,6 @@
     ./nvim.nix
     ./tmux.nix
     ./vim.nix
+    ./zsh.nix
   ];
 }

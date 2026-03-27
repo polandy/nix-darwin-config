@@ -6,6 +6,7 @@
   programs.atuin = {
     enable = true;
     enableFishIntegration = true;
+    enableZshIntegration = true;
     daemon.enable = true;
     settings = {
       enter_accept = false;
@@ -21,5 +22,9 @@
 
   programs.fish.shellInit = ''
     set -gx ATUIN_SYNC_ADDRESS (cat ${config.sops.secrets."atuin/sync_address".path})
+  '';
+
+  programs.zsh.envExtra = ''
+    export ATUIN_SYNC_ADDRESS=$(cat ${config.sops.secrets."atuin/sync_address".path})
   '';
 }

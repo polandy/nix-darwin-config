@@ -8,7 +8,17 @@ default:
 switch:
     #!/usr/bin/env bash
     if [[ "$(uname)" == "Darwin" ]]; then
-      sudo darwin-rebuild switch --flake .#$(hostname -s)
+      declare -A host_map=(
+        ["Andys-MacBook-Air"]="ambp"
+        ["Andys-MacBook-Air-2"]="amba"
+      )
+      hostname=$(hostname -s)
+      flake_host="${host_map[$hostname]}"
+      if [[ -z "$flake_host" ]]; then
+        echo "error: no flake config mapped for host '$hostname'"
+        exit 1
+      fi
+      sudo darwin-rebuild switch --flake ".#$flake_host"
     else
       home-manager switch --flake .#andy@$(hostname)
     fi
