@@ -17,6 +17,7 @@
         autostart = true;
       };
       ai.enabled = true;
+      vim_mode = true;
     };
   };
 
