@@ -1,5 +1,6 @@
 { pkgs, ... }: {
   home.packages = with pkgs; [
+    jetbrains-mono
     just
     p7zip
     bind
