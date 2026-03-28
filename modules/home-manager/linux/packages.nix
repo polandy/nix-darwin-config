@@ -32,9 +32,6 @@
     digikam
     hugin
 
-    # beets
-    beets
-
     # base-ui
     firefox
     chromium

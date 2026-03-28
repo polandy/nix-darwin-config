@@ -1,6 +1,7 @@
 { ... }: {
   imports = [
     ./packages.nix
+    ./beets.nix
     ./gtk.nix
     ./wireplumber.nix
     ./wayland
