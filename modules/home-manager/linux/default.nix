@@ -4,6 +4,7 @@
     ./beets.nix
     ./gtk.nix
     ./mc.nix
+    ./mimeapps.nix
     ./wireplumber.nix
     ./wayland
   ];
