@@ -2,6 +2,7 @@
   imports = [
     ./packages.nix
     ./beets.nix
+    ./geeqie.nix
     ./gtk.nix
     ./mc.nix
     ./mimeapps.nix
