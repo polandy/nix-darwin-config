@@ -15,6 +15,8 @@
     SOPS_AGE_KEY_FILE = "${config.home.homeDirectory}/.config/sops/age/keys.txt";
   };
 
+  myModules.beets.enable = true;
+
   home.packages = with pkgs; [
     calibre
     ansible
