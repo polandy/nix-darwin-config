@@ -1,6 +1,10 @@
 { config, pkgs, ... }:
 
 {
+  imports = [
+    ./niri.nix
+  ];
+
   home.packages = with pkgs; [
     # compositors
     hyprland
@@ -43,12 +47,8 @@
     foot
   ];
 
-  # Symlink configs from dotfiles (Option A — replace with native HM modules over time)
   home.file.".config/hypr".source =
     config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.dotfiles/config/hypr";
-
-  home.file.".config/niri".source =
-    config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.dotfiles/config/niri";
 
   home.file.".config/waybar".source =
     config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.dotfiles/config/waybar";
