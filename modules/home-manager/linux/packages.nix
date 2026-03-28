@@ -6,7 +6,6 @@
     bind
     dust
     imagemagick
-    mc
     hugo
     bat
     ripgrep

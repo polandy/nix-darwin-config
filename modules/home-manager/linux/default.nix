@@ -3,6 +3,7 @@
     ./packages.nix
     ./beets.nix
     ./gtk.nix
+    ./mc.nix
     ./wireplumber.nix
     ./wayland
   ];
