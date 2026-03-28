@@ -1,0 +1,27 @@
+font=JetBrainsMono Nerd Font 12
+width=360
+height=200
+padding=16
+margin=8
+border-size=2
+border-radius=12
+background-color=#24273ae6
+border-color=#8aadf4cc
+text-color=#cad3f5
+default-timeout=5000
+icons=1
+icon-path=/usr/share/icons/hicolor
+max-icon-size=48
+
+[urgency=low]
+border-color=#939ab7cc
+
+[urgency=high]
+background-color=#24273ae6
+border-color=#ed8796cc
+text-color=#ed8796
+
+# Always show default for Chrome notifications
+[app-name="Google Chrome"]
+background-color=#24273ae6
+border-color=#8aadf4cc
