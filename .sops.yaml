@@ -3,6 +3,7 @@ keys:
   - &amba age17hew4gnwapvvv53vyzmcgsk8y65spqg79r0kzs2dfpacteewts7s5dqdwz
   - &ambp age1p5tysfdy70seyxgvzlshe6hgryf9eww040qjz3revkcxf5cq0yfqs6qds0
   - &coolermaster age12rm25vwjs4uqx2lc9l3qleuz2neuz8gtv7ma5wmr78vdxcaxuddq8k6632
+  - &x1 age1900p6tjh68yc5yjpvluttl99uz84a5a8hh0awqwawk0rzdyus9gseqyzut
 
 creation_rules:
   - path_regex: secrets/.*\.yaml$
@@ -11,3 +12,4 @@ creation_rules:
           - *amba
           - *ambp
           - *coolermaster
+          - *x1
