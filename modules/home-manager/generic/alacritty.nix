@@ -3,6 +3,12 @@
 
   programs.alacritty = {
     enable = true;
+    # On non-NixOS Linux, Nix-packaged alacritty can't find host GPU drivers.
+    # Use a stub so home-manager still generates the config, but the binary
+    # comes from the system package manager instead.
+    package = if pkgs.stdenv.isLinux
+      then pkgs.runCommand "alacritty-stub" {} "mkdir -p $out/bin"
+      else pkgs.alacritty;
     settings = {
       font = {
         normal = { family = "JetBrainsMono Nerd Font"; style = "Regular"; };
