@@ -124,7 +124,7 @@ layout {
 
 spawn-at-startup "wl-paste" "--type" "text" "--watch" "cliphist" "store"
 spawn-at-startup "wl-paste" "--type" "image" "--watch" "cliphist" "store"
-spawn-at-startup "bash" "-c" "waybar --config ~/.dotfiles/config/waybar/config.niri --style ~/.dotfiles/config/waybar/style.niri.css >> /tmp/waybar.log 2>&1"
+spawn-at-startup "bash" "-c" "waybar --config ~/.config/waybar/config.niri --style ~/.config/waybar/style.niri.css >> /tmp/waybar.log 2>&1"
 
 hotkey-overlay {
     // Uncomment this line to disable the "Important Hotkeys" pop-up at startup.
