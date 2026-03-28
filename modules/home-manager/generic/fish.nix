@@ -9,17 +9,7 @@
     enable = true;
   };
 
-  programs.mise = {
-    enable = true;
-    enableFishIntegration = true;
-  };
-
-  programs.zoxide = {
-    enable = true;
-    enableFishIntegration = true;
-  };
-
-  programs.fish = {
+programs.fish = {
     enable = true;
 
     shellAbbrs = {
