@@ -1,7 +1,5 @@
 { ... }: {
   imports = [
-    ./packages.nix
-    ./beets.nix
     ./gtk.nix
     ./mc.nix
     ./mimeapps.nix
