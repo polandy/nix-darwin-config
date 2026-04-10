@@ -2,7 +2,6 @@
 
 {
   imports = [
-    ./niri
     ./hypr
     ./kanshi
     ./mako
@@ -10,10 +9,6 @@
   ];
 
   home.packages = with pkgs; [
-    # compositors
-    niri
-    xwayland-satellite
-
     # screenshots
     grim
     slurp

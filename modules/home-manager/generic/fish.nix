@@ -22,6 +22,13 @@
       lt = "eza --tree --icons=auto";
     };
 
+    loginShellInit = ''
+      # Start Hyprland via UWSM on TTY1 (Linux only)
+      if test (uname) = Linux; and test (tty) = /dev/tty1
+        exec uwsm start hyprland
+      end
+    '';
+
     shellInit = ''
       if test -d /opt/homebrew
         /opt/homebrew/bin/brew shellenv | source
