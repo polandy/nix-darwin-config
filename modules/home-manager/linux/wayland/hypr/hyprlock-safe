@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+# Wrapper around hyprlock that restarts it if it crashes (e.g. due to monitor
+# configuration changes while the screen is locked).
+# Exit 0 from hyprlock means the user successfully unlocked — stop looping.
+while true; do
+    hyprlock
+    [ $? -eq 0 ] && break
+    sleep 0.3
+done
