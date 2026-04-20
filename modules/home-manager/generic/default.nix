@@ -1,7 +1,6 @@
 { ... }: {
   imports = [
     ./alacritty.nix
-    ./atuin.nix
     ./fish.nix
     ./git.nix
     ./nvim.nix
