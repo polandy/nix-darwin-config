@@ -14,6 +14,8 @@
     lima
 
 
+    argocd
+
     kubectl
     kubectl-validate
     kubeconform
