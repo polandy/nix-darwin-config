@@ -10,10 +10,8 @@
       # ~/project  main ●2 …1   2s
       # ❯
       format = ''
-        $hostname$directory$git_branch$git_status$nix_shell$cmd_duration
+        $time$hostname$directory$git_branch$git_status$nix_shell$cmd_duration
         $character'';
-
-      right_format = "$time";
       add_newline = true;
 
       character = {
@@ -76,7 +74,7 @@
 
       time = {
         disabled = false;
-        format = "[$time]($style)";
+        format = "[$time]($style) ";
         style = "dimmed white";
         time_format = "%H:%M";
       };
