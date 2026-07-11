@@ -6,7 +6,7 @@
     settings = {
       core.editor = "nvim";
       push.autoSetupRemote = true;
-      init.defaultBranch = "master";
+      init.defaultBranch = "main";
       alias = {
       co = "checkout";
       ci = "commit";
