@@ -26,6 +26,7 @@
       "firefox"
       "google-chrome"
       "logseq"
+      "obsidian"
       "whatsapp"
       "claude-code"
       "font-sketchybar-app-font"
