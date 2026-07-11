@@ -8,6 +8,7 @@
     pkgs.coreutils # gnu core utilities
     pkgs.git
     pkgs.findutils
+    pkgs.gh
     pkgs.gnused
     pkgs.htop
     pkgs.just
