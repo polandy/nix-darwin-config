@@ -3,8 +3,11 @@ source "$CONFIG_DIR/colors.sh"
 
 # scutil catches macOS built-in VPNs; utun IPv4 check catches GlobalProtect and WireGuard
 SCUTIL_VPN=$(/usr/sbin/scutil --nc list 2>/dev/null | grep -c "Connected")
-# A utun with IPv4 + UP flag = active VPN tunnel (disconnected tunnels lose the UP flag)
-UTUN_VPN=$(/sbin/ifconfig 2>/dev/null | awk '/^utun/{iface=$1; flags=$2} /inet [0-9]/ && iface && flags ~ /UP/{found++} END{print found+0}')
+# A utun with IPv4 + UP flag = active VPN tunnel (disconnected tunnels lose the UP flag).
+# Reset iface on every interface header (/^[a-z]/), not just utun ones — otherwise a
+# physical interface's inet line (e.g. en0, which ifconfig lists AFTER utun0) gets
+# wrongly attributed to the preceding utun and triggers a false positive.
+UTUN_VPN=$(/sbin/ifconfig 2>/dev/null | awk '/^[a-z]/{iface=$1; flags=$2} /inet [0-9]/ && iface ~ /^utun/ && flags ~ /UP/{found++} END{print found+0}')
 # Tailscale: use CLI since its utun interface may persist when stopped
 TAILSCALE_VPN=0
 if command -v tailscale &>/dev/null; then
