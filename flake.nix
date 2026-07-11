@@ -13,62 +13,22 @@
 
   outputs = inputs@{ self, nix-darwin, nixpkgs, home-manager, sops-nix, ... }:
     let
-      lib = nixpkgs.lib;
+      myLib = import ./lib { inherit inputs; };
+      inherit (myLib) mkDarwin mkHome;
       darwinSystem = "aarch64-darwin";
       pkgsFor = system: nixpkgs.legacyPackages.${system};
     in
     {
       # $ darwin-rebuild build --flake .#ambp
       darwinConfigurations = {
-        "ambp" = nix-darwin.lib.darwinSystem {
-          system = darwinSystem;
-          # Pass 'self' to modules
-          specialArgs = { inherit self lib home-manager sops-nix; };
-          modules = [
-            ./hosts/ambp
-            {
-              # Disable nix-darwin's management of the Nix daemon and nix.conf
-              # because we use the Determinate Systems Nix installer.
-              # https://github.com/DeterminateSystems/nix-installer
-              nix.enable = false;
-            }
-          ];
-        };
-        "amba" = nix-darwin.lib.darwinSystem {
-          system = darwinSystem;
-          # Pass 'self' to modules
-          specialArgs = { inherit self lib home-manager sops-nix; };
-          modules = [
-            ./hosts/amba
-
-            {
-              # Disable nix-darwin's management of the Nix daemon and nix.conf
-              # because we use the Determinate Systems Nix installer.
-              # https://github.com/DeterminateSystems/nix-installer
-              nix.enable = false;
-            }
-          ];
-        };
+        "ambp" = mkDarwin { host = "ambp"; };
+        "amba" = mkDarwin { host = "amba"; };
       };
 
       # Standalone home-manager for Linux hosts
       homeConfigurations = {
-        "andy@x1" = home-manager.lib.homeManagerConfiguration {
-          pkgs = pkgsFor "x86_64-linux";
-          extraSpecialArgs = { inherit sops-nix; };
-          modules = [
-            ./hosts/x1/home.nix
-            sops-nix.homeManagerModules.sops
-          ];
-        };
-        "andy@coolermaster" = home-manager.lib.homeManagerConfiguration {
-          pkgs = pkgsFor "x86_64-linux";
-          extraSpecialArgs = { inherit sops-nix; };
-          modules = [
-            ./hosts/coolermaster/home.nix
-            sops-nix.homeManagerModules.sops
-          ];
-        };
+        "andy@x1" = mkHome { host = "x1"; };
+        "andy@coolermaster" = mkHome { host = "coolermaster"; };
       };
 
       formatter = {
