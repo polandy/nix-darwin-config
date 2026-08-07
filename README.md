@@ -112,9 +112,9 @@ nix-config/
     │   ├── system.nix      # macOS system defaults
     │   └── ui.nix          # UI polish (AeroSpace, Sketchybar, JankyBorders)
     └── home-manager/
-        ├── generic/        # Cross-platform HM modules (fish, git, ssh, syncthing)
+        ├── generic/        # Cross-platform HM modules (fish, git, ssh, …)
         ├── linux/          # Linux-only HM modules (packages, WM configs)
-        └── macos/          # macOS-only HM modules (aerospace-desktop)
+        └── macos/          # macOS-only HM modules (aerospace-desktop, syncthing)
 ```
 
 ## Secrets Management
