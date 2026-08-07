@@ -110,7 +110,7 @@ nix-config/
     │   ├── fonts.nix       # Font installation
     │   ├── input.nix       # Keyboard and trackpad settings
     │   ├── system.nix      # macOS system defaults
-    │   └── ui.nix          # UI polish (AeroSpace, Sketchybar, JankyBorders)
+    │   └── ui.nix          # UI defaults (dock, Finder, menu bar, spaces)
     └── home-manager/
         ├── generic/        # Cross-platform HM modules (fish, git, ssh, …)
         ├── linux/          # Linux-only HM modules (packages, WM configs)
