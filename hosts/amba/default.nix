@@ -1,4 +1,4 @@
-{ config, pkgs, lib, self, home-manager, sops-nix, ... }:
+{ config, pkgs, lib, self, home-manager, ... }:
 
 {
   imports = [
@@ -12,6 +12,5 @@
   networking.hostName = "amba";
   networking.localHostName = "amba";
 
-  home-manager.sharedModules = [ sops-nix.homeManagerModules.sops ];
   home-manager.users.andy = import ./home.nix;
 }
