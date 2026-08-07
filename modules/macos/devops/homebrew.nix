@@ -6,7 +6,6 @@
     ];
     casks = [
       "keepassxc"
-      "docker-desktop"
     ];
   };
 }
