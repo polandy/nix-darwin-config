@@ -1,13 +1,5 @@
 # nix-darwin / home-manager management commands
 
-# Map macOS hostname -> flake config name (darwin configs aren't named after the raw hostname)
-darwin_host := `
-  case "$(hostname -s)" in
-    Andys-MacBook-Air) echo ambp ;;
-    Andys-MacBook-Air-2) echo amba ;;
-    *) echo "" ;;
-  esac`
-
 # List all commands
 default:
     @just --list
@@ -17,26 +9,16 @@ switch:
     #!/usr/bin/env bash
     set -euo pipefail
     if [[ "$(uname)" == "Darwin" ]]; then
-      flake_host="{{darwin_host}}"
-      if [[ -z "$flake_host" ]]; then
-        echo "error: no flake config mapped for host '$(hostname -s)'"
-        exit 1
-      fi
-      sudo darwin-rebuild switch --flake ".#$flake_host"
+      # networking.hostName is set to the flake config name in hosts/<host>/default.nix.
+      # On a fresh machine (hostname not yet applied) use: darwin-rebuild switch --flake .#<host>
+      sudo darwin-rebuild switch --flake ".#$(hostname -s)"
     else
       home-manager switch --flake ".#andy@$(hostname -s)"
     fi
 
 # Build without activating — macOS only (darwin-rebuild has no Linux equivalent)
 build-darwin:
-    #!/usr/bin/env bash
-    set -euo pipefail
-    flake_host="{{darwin_host}}"
-    if [[ -z "$flake_host" ]]; then
-      echo "error: no flake config mapped for host '$(hostname -s)'"
-      exit 1
-    fi
-    darwin-rebuild build --flake ".#$flake_host"
+    darwin-rebuild build --flake ".#$(hostname -s)"
 
 # Format all nix files
 fmt:
