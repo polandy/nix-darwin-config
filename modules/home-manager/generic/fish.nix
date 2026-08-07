@@ -23,8 +23,8 @@
     enable = true;
 
     shellAbbrs = {
-      nrs = "darwin-rebuild switch --flake .";
-      nrb = "darwin-rebuild build --flake .";
+      nrs = "just switch";
+      nrb = "just build-darwin";
       nfmt = "nix fmt";
       ls  = "eza";
       ll  = "eza -l --icons=auto";
