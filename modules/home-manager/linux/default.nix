@@ -2,6 +2,7 @@
   imports = [
     ./gtk.nix
     ./mc.nix
+    ./metapac
     ./mimeapps.nix
     ./wireplumber.nix
     ./wayland
