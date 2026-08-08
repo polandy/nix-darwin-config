@@ -22,7 +22,7 @@ build-darwin:
 
 # Format all nix files
 fmt:
-    nix fmt
+    nix fmt -- .
 
 # Clean up nix store (garbage collection)
 clean:
