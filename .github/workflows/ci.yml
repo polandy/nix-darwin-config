@@ -1,0 +1,22 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  flake-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: DeterminateSystems/nix-installer-action@main
+
+      # Eval-only: catches breakage in any host configuration (darwin and Linux)
+      # without building anything.
+      - name: Evaluate all configurations
+        run: nix flake check --all-systems --no-build
+
+      - name: Check formatting
+        run: nix run .#formatter.x86_64-linux -- --check .
