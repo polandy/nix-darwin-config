@@ -27,7 +27,7 @@ On Arch Linux, two package managers coexist:
 | Manager | What goes here |
 |---------|---------------|
 | **home-manager** (this repo) | Configuration only — exclusively via `programs.*` modules (which handle both config generation and package install) |
-| **yay/metapac** ([dotfiles repo](https://github.com/polandy/dotfiles)) | All package installations — system packages, GUI apps, CLI tools, AUR packages |
+| **yay/metapac** (config in [`modules/home-manager/linux/metapac/`](./modules/home-manager/linux/metapac/), deployed by home-manager; run `metapac sync` on the host) | All package installations — system packages, GUI apps, CLI tools, AUR packages |
 
 **Rule:** `home.packages` is never used on Linux. If a tool has a `programs.<name>` module, use that (it installs the package and generates config). If it doesn't, install it via metapac and manage any config files directly in the dotfiles repo.
 
