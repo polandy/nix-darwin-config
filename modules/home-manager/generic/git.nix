@@ -10,7 +10,6 @@
       alias = {
       co = "checkout";
       ci = "commit";
-      cm = "commit";
       st = "status";
       ad = "add";
       df = "diff";
