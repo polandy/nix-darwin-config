@@ -9,16 +9,6 @@
     enable = true;
   };
 
-  programs.mise = {
-    enable = true;
-    enableFishIntegration = true;
-  };
-
-  programs.zoxide = {
-    enable = true;
-    enableFishIntegration = true;
-  };
-
   programs.fish = {
     enable = true;
 

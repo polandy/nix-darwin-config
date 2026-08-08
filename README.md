@@ -26,10 +26,12 @@ On Arch Linux, two package managers coexist:
 
 | Manager | What goes here |
 |---------|---------------|
-| **home-manager** (this repo) | User-level tools and apps available in nixpkgs, dotfile/config management |
-| **yay/metapac** ([dotfiles repo](https://github.com/polandy/dotfiles)) | AUR packages, system daemons and drivers, anything requiring pacman hooks or systemd system units |
+| **home-manager** (this repo) | Configuration only — exclusively via `programs.*` modules (which handle both config generation and package install) |
+| **yay/metapac** ([dotfiles repo](https://github.com/polandy/dotfiles)) | All package installations — system packages, GUI apps, CLI tools, AUR packages |
 
-**Rule of thumb:** if it's in nixpkgs and user-level, it belongs here. If it's AUR (e.g. `-bin`, `-git` suffixes) or touches the system (kernel, display manager, portals, bluetooth), it stays in yay.
+**Rule:** `home.packages` is never used on Linux. If a tool has a `programs.<name>` module, use that (it installs the package and generates config). If it doesn't, install it via metapac and manage any config files directly in the dotfiles repo.
+
+This keeps Nix's role focused on config generation and avoids outdated nixpkgs packages, while Arch's rolling release ensures packages are always up to date.
 
 This split is permanent for as long as the Linux hosts run Arch. On NixOS, metapac would go away entirely.
 
@@ -37,7 +39,7 @@ This split is permanent for as long as the Linux hosts run Arch. On NixOS, metap
 
 ### Linux (standalone home-manager)
 
-Linux hosts (x1, coolermaster) run Arch Linux with standalone home-manager. System packages are still managed by yay/metapac; home-manager handles dotfiles and user packages.
+Linux hosts (x1, coolermaster) run Arch Linux with standalone home-manager. All packages are managed by yay/metapac; home-manager handles configuration only via `programs.*` modules.
 
 1. **Install Nix** using the [Determinate Systems installer](https://github.com/DeterminateSystems/nix-installer):
    ```bash

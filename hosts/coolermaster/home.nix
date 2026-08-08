@@ -5,10 +5,5 @@
     ../../modules/home-manager/linux
   ];
 
-  home.packages = with pkgs; [
-    calibre
-    ansible
-  ];
-
   news.display = "silent";
 }
