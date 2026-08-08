@@ -27,6 +27,7 @@
       "google-chrome"
       "logseq"
       "obsidian"
+      "tailscale-app"
       "whatsapp"
       "claude-code"
       "font-sketchybar-app-font"
