@@ -16,10 +16,10 @@
       nrs = "just switch";
       nrb = "just build-darwin";
       nfmt = "nix fmt";
-      ls  = "eza";
-      ll  = "eza -l --icons=auto";
-      la  = "eza -la --icons=auto";
-      lt  = "eza --tree --icons=auto";
+      ls = "eza";
+      ll = "eza -l --icons=auto";
+      la = "eza -la --icons=auto";
+      lt = "eza --tree --icons=auto";
     };
 
     shellInit = ''

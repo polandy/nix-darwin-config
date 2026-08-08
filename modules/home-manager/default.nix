@@ -9,6 +9,6 @@
   # Include sops-nix home-manager module for all hosts
   home-manager.sharedModules = [
     sops-nix.homeManagerModules.sops
-    ./generic   # fish + git for all hosts
+    ./generic # fish + git for all hosts
   ];
 }
