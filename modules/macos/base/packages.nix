@@ -16,6 +16,7 @@
     pkgs.mise
     pkgs.ncdu
     pkgs.p7zip
+    pkgs.unrar # RAR5-Support; extract-Funktion nutzt `unrar x`
     pkgs.tmux
     pkgs.tree
     pkgs.unixtools.watch
