@@ -14,11 +14,20 @@
   # ~/Applications/Home Manager Apps/AeroSpace.app symlink. Launch the executable
   # from the store path directly -- that is also what nix-darwin's own
   # services.aerospace module does.
+  #
+  # --config-path points at the generated file in the store rather than letting
+  # AeroSpace pick up ~/.config/aerospace/aerospace.toml on its own, so the agent
+  # and its config can never drift apart: whichever binary launchd starts always
+  # reads the config built in the same generation. That matters because
+  # start-at-login is read from the config -- an agent running against a stale
+  # config would re-register the login item this setup exists to avoid.
   launchd.agents.aerospace = {
     enable = true;
     config = {
       ProgramArguments = [
         "${pkgs.aerospace}/Applications/AeroSpace.app/Contents/MacOS/AeroSpace"
+        "--config-path"
+        "${config.xdg.configFile."aerospace/aerospace.toml".source}"
       ];
       RunAtLoad = true;
       KeepAlive = true;
