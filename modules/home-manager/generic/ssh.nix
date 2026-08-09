@@ -1,6 +1,8 @@
 { pkgs, ... }:
 
 {
+  home.packages = [ pkgs.mosh ];
+
   programs.ssh = {
     enable = true;
     enableDefaultConfig = false;
@@ -9,6 +11,9 @@
       AddKeysToAgent = "yes";
       IdentityFile = "~/.ssh/id_ed25519";
     } // pkgs.lib.optionalAttrs pkgs.stdenv.isDarwin {
+      # UseKeychain is Apple-only; IgnoreUnknown keeps non-Apple ssh builds
+      # (e.g. the openssh that nixpkgs' mosh calls) from choking on it.
+      IgnoreUnknown = "UseKeychain";
       UseKeychain = "yes";
     };
   };
