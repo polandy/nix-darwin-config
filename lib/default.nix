@@ -2,7 +2,7 @@
 # one line per host. Adding a machine means adding a single mkDarwin/mkHome call.
 { inputs }:
 let
-  inherit (inputs) self nixpkgs nix-darwin home-manager sops-nix;
+  inherit (inputs) self nixpkgs nix-darwin home-manager sops-nix mac-app-util;
 in
 {
   # macOS host via nix-darwin. Host-specific modules (base, devops/leisure, home-manager)
@@ -10,9 +10,10 @@ in
   mkDarwin = { host, system ? "aarch64-darwin", modules ? [ ] }:
     nix-darwin.lib.darwinSystem {
       inherit system;
-      specialArgs = { inherit self home-manager sops-nix; };
+      specialArgs = { inherit self home-manager sops-nix mac-app-util; };
       modules = [
         (self + "/hosts/${host}")
+        mac-app-util.darwinModules.default
         {
           # The Nix daemon is managed by the Determinate Systems installer, not
           # nix-darwin. https://github.com/DeterminateSystems/nix-installer
