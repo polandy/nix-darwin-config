@@ -37,8 +37,8 @@
     pkgs.zoxide
     pkgs.gemini-cli
 
-    # GUI-Apps. Landen via mac-app-util als Alias in /Applications/Nix Apps,
-    # damit Spotlight sie findet.
+    # GUI apps. mac-app-util turns these into aliases under /Applications/Nix Apps
+    # so that Spotlight can find them.
     pkgs.brave
     pkgs.obsidian
     pkgs.raycast

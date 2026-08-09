@@ -8,22 +8,23 @@
     # and if the formula is a cask, removes all files associated with that cask.
     # In other words, brew uninstall --zap is run for all those formulae.
     onActivation.cleanup = "zap";
-    # Caveat: Homebrew kennt kein Versions-Pinning. Was hier steht, wird immer in
-    # der jeweils aktuellen Upstream-Version installiert -- diese Pakete sind, anders
-    # als alles aus nixpkgs, nicht über flake.lock reproduzierbar. Deshalb gilt:
-    # was in nixpkgs für aarch64-darwin sauber baut, gehört nach packages.nix.
+    # Caveat: Homebrew has no concept of version pinning. Whatever is listed here
+    # is always installed at the current upstream version, so unlike everything
+    # from nixpkgs these packages are not reproducible via flake.lock. Rule of
+    # thumb: if it builds cleanly for aarch64-darwin in nixpkgs, it belongs in
+    # packages.nix instead.
     taps = [
       "kvndrsslr/formulae"
     ];
     brews = [
-      "ifstat" # nicht in nixpkgs
+      "ifstat" # not in nixpkgs
     ];
     casks = [
-      # Bewusst hier statt in nixpkgs -- Begruendung je Eintrag:
-      "visual-studio-code" # nixpkgs hinkt ~2 Minor-Releases hinterher
-      "firefox" # Hauptbrowser: Cask patcht am selben Tag, der Nix-Store erst beim naechsten flake update
-      "logseq" # nixpkgs-Paket verwaist (0.10.x statt 2.x) und an insecure electron gebunden
-      "stolendata-mpv" # nixpkgs mpv hat keinen aarch64-darwin-Support
+      # Deliberately kept on Homebrew rather than nixpkgs, reason per entry:
+      "visual-studio-code" # nixpkgs trails by ~2 minor releases
+      "firefox" # main browser: the cask patches same-day, the Nix store only on the next flake update
+      "logseq" # nixpkgs package is unmaintained (0.10.x vs 2.x) and pinned to an insecure electron
+      "stolendata-mpv" # nixpkgs mpv has no aarch64-darwin support
       "google-chrome"
       "tailscale-app"
       "whatsapp"

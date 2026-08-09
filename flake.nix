@@ -9,9 +9,9 @@
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
     sops-nix.url = "github:Mic92/sops-nix";
     sops-nix.inputs.nixpkgs.follows = "nixpkgs";
-    # Legt fuer .app-Bundles aus dem Nix-Store echte macOS-Aliase statt Symlinks an,
-    # damit Spotlight und Dock sie finden. Ohne das sind nixpkgs-GUI-Apps praktisch
-    # nur ueber den Finder erreichbar.
+    # Creates real macOS aliases instead of symlinks for .app bundles from the Nix
+    # store, so Spotlight and the Dock can find them. Without it, nixpkgs GUI apps
+    # are practically only reachable through Finder.
     mac-app-util.url = "github:hraban/mac-app-util";
     mac-app-util.inputs.nixpkgs.follows = "nixpkgs";
   };

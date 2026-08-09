@@ -9,8 +9,8 @@
   # Include sops-nix home-manager module for all hosts
   home-manager.sharedModules = [
     sops-nix.homeManagerModules.sops
-    # Aliase fuer .app-Bundles aus home.packages (Alacritty, AeroSpace).
-    # Das Pendant fuer environment.systemPackages steckt in lib/default.nix.
+    # Aliases for .app bundles coming from home.packages (Alacritty, AeroSpace).
+    # The counterpart for environment.systemPackages lives in lib/default.nix.
     mac-app-util.homeManagerModules.default
     ./generic # fish + git for all hosts
   ];
