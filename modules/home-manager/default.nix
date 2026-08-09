@@ -12,6 +12,12 @@
     # Aliases for .app bundles coming from home.packages (Alacritty, AeroSpace).
     # The counterpart for environment.systemPackages lives in lib/default.nix.
     mac-app-util.homeManagerModules.default
+    {
+      # mac-app-util already exposes these apps as trampolines under
+      # ~/Applications/Home Manager Trampolines. home-manager's own symlink
+      # directory would only duplicate them, and Spotlight ignores it anyway.
+      targets.darwin.linkApps.enable = false;
+    }
     ./generic # fish + git for all hosts
   ];
 }
