@@ -23,7 +23,7 @@
     cliphist
 
     # wallpaper / idle
-    swww
+    awww # upstream rename of swww; binaries are awww / awww-daemon
     swayidle
     swaybg
 

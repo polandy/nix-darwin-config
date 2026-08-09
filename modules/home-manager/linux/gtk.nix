@@ -1,4 +1,4 @@
-{ pkgs, ... }:
+{ config, pkgs, ... }:
 
 {
   gtk = {
@@ -26,6 +26,11 @@
       gtk-toolbar-style = 3;
       gtk-xft-dpi = 98304;
     };
+    # Upstream changed this default from config.gtk.theme to null, because a GTK3
+    # theme name has no effect on libadwaita apps. Set explicitly to keep the
+    # previous behaviour: non-libadwaita GTK4 apps stay on Breeze like GTK3.
+    gtk4.theme = config.gtk.theme;
+
     gtk4.extraConfig = {
       gtk-cursor-blink = true;
       gtk-cursor-blink-time = 1000;
