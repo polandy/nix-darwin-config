@@ -27,6 +27,13 @@
       # would revoke the grant and abort the next rebuild. The cask keeps it at
       # /Applications/Alacritty.app. Config still comes from home-manager, see
       # modules/home-manager/generic/alacritty.nix.
+      #
+      # DEADLINE 2026-09-01: Homebrew has deprecated this cask because it fails
+      # the macOS Gatekeeper check and will disable it on that date, after which
+      # `brew bundle` fails on every switch. Options at that point: run rebuilds
+      # from /System/Applications/Utilities/Terminal.app and take alacritty from
+      # nixpkgs again (no TCC grant needed for it at all), or move to a cask that
+      # is still maintained -- ghostty, kitty, wezterm and iterm2 are all fine.
       "alacritty"
       "visual-studio-code" # nixpkgs trails by ~2 minor releases
       "firefox" # main browser: the cask patches same-day, the Nix store only on the next flake update
