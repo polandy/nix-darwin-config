@@ -19,15 +19,12 @@
       "ifstat" # nicht in nixpkgs
     ];
     casks = [
-      "raycast"
-      "utm"
-      "visual-studio-code"
-      "brave-browser"
-      "stolendata-mpv"
-      "firefox"
+      # Bewusst hier statt in nixpkgs -- Begruendung je Eintrag:
+      "visual-studio-code" # nixpkgs hinkt ~2 Minor-Releases hinterher
+      "firefox" # Hauptbrowser: Cask patcht am selben Tag, der Nix-Store erst beim naechsten flake update
+      "logseq" # nixpkgs-Paket verwaist (0.10.x statt 2.x) und an insecure electron gebunden
+      "stolendata-mpv" # nixpkgs mpv hat keinen aarch64-darwin-Support
       "google-chrome"
-      "logseq"
-      "obsidian"
       "tailscale-app"
       "whatsapp"
       "claude-code"

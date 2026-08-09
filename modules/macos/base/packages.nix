@@ -36,6 +36,13 @@
     pkgs.mcp-nixos
     pkgs.zoxide
     pkgs.gemini-cli
+
+    # GUI-Apps. Landen via mac-app-util als Alias in /Applications/Nix Apps,
+    # damit Spotlight sie findet.
+    pkgs.brave
+    pkgs.obsidian
+    pkgs.raycast
+    pkgs.utm
   ];
 
 }
