@@ -19,6 +19,32 @@ To avoid this, GUI apps that require system permissions are installed via [Homeb
 of as Nix packages. Homebrew Cask installs to `/Applications/<App>.app` with a stable bundle ID,
 so permissions persist across updates.
 
+### The terminal needs App Management
+
+`darwin-rebuild` writes to `/Applications/Nix Apps`, which requires the `App Management` permission
+(`kTCCServiceSystemPolicyAppBundles`). macOS attributes that request to the *terminal emulator the
+command runs in*, not to `darwin-rebuild` itself. Without it the rebuild aborts before activation:
+
+```
+error: permission denied when trying to update apps, aborting activation
+```
+
+This is why **Alacritty is a Homebrew cask** and not a nixpkgs package, even though it builds fine for
+aarch64-darwin. As a Nix package it runs from `/nix/store/<hash>-alacritty-<version>/bin/alacritty`,
+so the grant would be revoked by the very next `alacritty` update and every rebuild after that would
+fail until the permission is re-granted. The cask keeps it at `/Applications/Alacritty.app`.
+
+Home Manager still owns the configuration (`modules/home-manager/generic/alacritty.nix`); it installs
+a stub package so that `~/.config/alacritty/alacritty.toml` is generated without providing the binary.
+Linux uses the same stub, there because Nix-packaged alacritty cannot find host GPU drivers on
+non-NixOS.
+
+Grant the permission under System Settings > Privacy & Security > App Management. If the entry points
+at a `/nix/store/...` path from an earlier setup, remove it — it is tied to a build that no longer exists.
+
+The related problem of macOS *login items* storing store paths is described in
+[aerospace.md](aerospace.md#startup).
+
 ## Colima Container Runtime
 
 [Colima](https://github.com/abiosoft/colima) provides a seamless way to run Docker workloads in a virtualized environment using Apple's Virtualization framework.

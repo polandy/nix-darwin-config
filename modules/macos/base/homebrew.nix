@@ -21,6 +21,13 @@
     ];
     casks = [
       # Deliberately kept on Homebrew rather than nixpkgs, reason per entry:
+      # Terminal emulator: darwin-rebuild needs the App Management permission for
+      # the terminal it runs in, and macOS ties that permission to the executable
+      # path. From nixpkgs that path carries the version hash, so every update
+      # would revoke the grant and abort the next rebuild. The cask keeps it at
+      # /Applications/Alacritty.app. Config still comes from home-manager, see
+      # modules/home-manager/generic/alacritty.nix.
+      "alacritty"
       "visual-studio-code" # nixpkgs trails by ~2 minor releases
       "firefox" # main browser: the cask patches same-day, the Nix store only on the next flake update
       "logseq" # nixpkgs package is unmaintained (0.10.x vs 2.x) and pinned to an insecure electron
