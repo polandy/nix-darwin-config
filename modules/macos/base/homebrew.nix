@@ -8,16 +8,17 @@
     # and if the formula is a cask, removes all files associated with that cask.
     # In other words, brew uninstall --zap is run for all those formulae.
     onActivation.cleanup = "zap";
+    # Caveat: Homebrew kennt kein Versions-Pinning. Was hier steht, wird immer in
+    # der jeweils aktuellen Upstream-Version installiert -- diese Pakete sind, anders
+    # als alles aus nixpkgs, nicht über flake.lock reproduzierbar. Deshalb gilt:
+    # was in nixpkgs für aarch64-darwin sauber baut, gehört nach packages.nix.
     taps = [
       "kvndrsslr/formulae"
     ];
     brews = [
-      "ifstat"
-      "mas"
-      "gemini-cli"
+      "ifstat" # nicht in nixpkgs
     ];
     casks = [
-      "alacritty"
       "raycast"
       "utm"
       "visual-studio-code"

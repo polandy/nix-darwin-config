@@ -5,7 +5,6 @@
     brews = [
     ];
     casks = [
-      "keepassxc"
     ];
   };
 }

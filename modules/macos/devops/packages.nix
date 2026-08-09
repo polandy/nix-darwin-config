@@ -24,6 +24,8 @@
     yamllint
     yq-go
     k9s
+
+    keepassxc
   ];
 
 }
