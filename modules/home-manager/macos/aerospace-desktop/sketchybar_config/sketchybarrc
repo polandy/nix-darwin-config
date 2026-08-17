@@ -39,31 +39,14 @@ sketchybar --default icon.font="$ICON_FONT:Regular:14.0" \
 # Register AeroSpace workspace change event (required before subscribing items)
 sketchybar --add event aerospace_workspace_change
 
-# Build workspace→display map from AeroSpace.
-# AeroSpace and sketchybar number displays in opposite order (AeroSpace: built-in first;
-# sketchybar: main/primary display first), so invert: sketchybar_id = (total - aero_id + 1).
-declare -A WS_DISPLAY
-_num_monitors=$(aerospace list-monitors --format "%{monitor-id}" 2>/dev/null | wc -l | tr -d ' ')
-# LEN T25d-10 (DisplayLink) setup: AeroSpace and sketchybar number monitors the same way,
-# so use direct mapping. For MacBook setups, invert (sketchybar primary != AeroSpace built-in).
-_len_count=$(aerospace list-monitors --format "%{monitor-name}" 2>/dev/null | grep -c "LEN T25d-10" || true)
-for _monitor in $(aerospace list-monitors --format "%{monitor-id}" 2>/dev/null); do
-    if (( _len_count >= 2 )); then
-        _display=$_monitor
-    else
-        _display=$(( _num_monitors + 1 - _monitor ))
-    fi
-    for _ws in $(aerospace list-workspaces --monitor "$_monitor" 2>/dev/null); do
-        WS_DISPLAY[$_ws]=$_display
-    done
-done
-
-# Using AeroSpace workspaces
+# Using AeroSpace workspaces. The display assignment is a placeholder here;
+# plugins/workspace_display.sh (called below) maps each item onto the physical
+# display its workspace lives on.
 for sid in 1 2 3 4 5 6 7 8 9 10 11; do
   sketchybar --add item space.$sid left \
     --subscribe space.$sid aerospace_workspace_change \
     --set space.$sid \
-    display="${WS_DISPLAY[$sid]:-1}" \
+    display=1 \
     padding_left=2 \
     padding_right=2 \
     background.drawing=on \
@@ -108,6 +91,9 @@ sketchybar --add item display_watcher center \
   --set display_watcher drawing=off \
                script="$PLUGIN_DIR/display_change.sh" \
   --subscribe display_watcher display_change
+
+# Map workspace items onto the displays their AeroSpace workspaces live on
+"$PLUGIN_DIR/workspace_display.sh"
 
 sketchybar --update
 
