@@ -89,6 +89,8 @@
     alt-shift-semicolon = "mode service"
     alt-r = "mode resize"
     alt-shift-r = "reload-config"
+    # Rescue: re-enforce workspace->monitor placement and re-map the bar
+    alt-shift-d = "exec-and-forget ~/.config/sketchybar/plugins/fix_displays.sh"
 
     [mode.resize.binding]
     h = "resize smart -50"
