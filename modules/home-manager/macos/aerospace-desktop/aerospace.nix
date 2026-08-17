@@ -97,18 +97,25 @@
     right = "resize smart +50"
     esc = ["mode main"]
 
+    # The two identical DisplayLink monitors get their "(1)"/"(2)" suffixes from
+    # macOS in enumeration order, which is NOT stable across reconnects — so they
+    # must never be matched by suffixed name. Bare numbers are AeroSpace's
+    # left-to-right monitor sequence (positionally stable), and the un-suffixed
+    # pattern "LEN T25d-10" matches both monitors and resolves to the leftmost.
     [workspace-to-monitor-force-assignment]
-    1 = ["SF16T", "LEN T25d-10 (1)", 1]
-    2 = ["SF16T", "LEN T25d-10 (1)", 1]
-    3 = ["SF16T", "PA328", "LEN T25d-10 (1)", 1]
-    4 = ["BenQ PD3220U", "PA328", "LEN T25d-10 (1)", 1]
-    5 = ["BenQ PD3220U", "PA328", "LEN T25d-10 (1)", 1]
-    6 = ["LEN T25d-10 (2)", 2]
-    7 = ["LEN T25d-10 (2)", 2]
-    8 = ["LEN T25d-10 (2)", 2]
-    9 = ["LEN T25d-10 (2)", 2]
-    10 = ["LEN T25d-10 (2)", 2]
-    11 = ["LEN T25d-10 (2)", 2]
+    # Workspace 1 prefers the built-in display (webcam) when the lid is open;
+    # with the lid closed "Built-in" doesn't match and the usual monitors apply.
+    1 = ["Built-in", "SF16T", 1]
+    2 = ["SF16T", "LEN T25d-10", 1]
+    3 = ["SF16T", "PA328", "LEN T25d-10", 1]
+    4 = ["BenQ PD3220U", "PA328", "LEN T25d-10", 1]
+    5 = ["BenQ PD3220U", "PA328", "LEN T25d-10", 1]
+    6 = [2]
+    7 = [2]
+    8 = [2]
+    9 = [2]
+    10 = [2]
+    11 = [2]
 
     [mode.service.binding]
     esc = ["reload-config", "mode main"]
