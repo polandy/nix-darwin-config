@@ -7,6 +7,7 @@
     ../../modules/home-manager
     home-manager.darwinModules.home-manager
     ./homebrew.nix
+    ./mas-apps.nix
   ];
 
   # Hostname matches the flake config name, so `just switch` can derive it via `hostname -s`
