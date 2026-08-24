@@ -10,6 +10,7 @@
     onActivation.cleanup = "zap";
     taps = [
       "kvndrsslr/formulae"
+      "nikitabobko/tap"
     ];
     brews = [
       "ifstat"
@@ -17,6 +18,10 @@
       "gemini-cli"
     ];
     casks = [
+      # AeroSpace must come from Homebrew, not nixpkgs: macOS ties the
+      # Accessibility permission to the binary path, and nix store paths
+      # change on every update, silently breaking all hotkeys.
+      "nikitabobko/tap/aerospace"
       "alacritty"
       "raycast"
       "utm"
