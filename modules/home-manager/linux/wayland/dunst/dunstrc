@@ -1,0 +1,106 @@
+# Catppuccin Macchiato — matches waybar style.css
+#
+# base   #24273a / 0.90  BAR_COLOR      text   #cad3f5
+# blue   #8aadf4         green  #a6da95  red    #ed8796
+# grey   #939ab7         yellow #eed49f  mauve  #c6a0f6
+
+[global]
+    monitor = 0
+    follow  = mouse
+
+    # Sits below waybar (height 42) with the same gap hyprland uses.
+    origin   = top-right
+    offset   = (12, 54)
+    width    = (320, 440)
+    height   = (0, 320)
+    gap_size = 8
+    scale    = 0
+
+    notification_limit = 5
+    indicate_hidden    = yes
+
+    # Alpha lives in the color values below, so leave this at 0.
+    transparency  = 0
+    corner_radius = 14
+    frame_width   = 2
+
+    separator_height = 2
+    separator_color  = frame
+
+    padding            = 14
+    horizontal_padding = 16
+    text_icon_padding  = 12
+
+    font              = JetBrainsMono Nerd Font 11
+    line_height       = 2
+    markup            = full
+    format            = "<span size='small' alpha='60%'>%a</span>\n<b>%s</b>\n%b"
+    alignment         = left
+    vertical_alignment = center
+    ellipsize         = end
+    word_wrap         = yes
+    ignore_newline    = no
+
+    show_age_threshold = 60
+    stack_duplicates   = true
+    hide_duplicate_count = false
+    sticky_history     = yes
+    history_length     = 20
+
+    # Icons — gtk.nix sets the Breeze theme, so match it.
+    enable_recursive_icon_lookup = true
+    icon_theme    = breeze-dark,breeze,Adwaita
+    icon_position = left
+    min_icon_size = 32
+    max_icon_size = 48
+
+    progress_bar              = true
+    progress_bar_height       = 8
+    progress_bar_frame_width  = 0
+    progress_bar_min_width    = 280
+    progress_bar_max_width    = 400
+    progress_bar_corner_radius = 4
+    highlight = "#8aadf4,#c6a0f6"
+
+    dmenu   = /usr/bin/wofi --dmenu
+    browser = /usr/bin/xdg-open
+
+    mouse_left_click   = do_action, close_current
+    mouse_middle_click = context
+    mouse_right_click  = close_all
+
+[urgency_low]
+    background   = "#24273ae6"
+    foreground   = "#a5adcb"
+    frame_color  = "#939ab7cc"
+    highlight    = "#939ab7"
+    timeout      = 4
+    default_icon = dialog-information
+
+[urgency_normal]
+    background   = "#24273ae6"
+    foreground   = "#cad3f5"
+    frame_color  = "#8aadf4cc"
+    highlight    = "#8aadf4,#c6a0f6"
+    timeout      = 6
+    default_icon = dialog-information
+
+[urgency_critical]
+    background   = "#24273ae6"
+    foreground   = "#ed8796"
+    frame_color  = "#ed8796"
+    highlight    = "#ed8796"
+    timeout      = 0
+    default_icon = dialog-warning
+
+# Volume/brightness OSD from brightnessctl & friends — short and unobtrusive.
+[osd]
+    appname = "swayosd"
+    frame_color = "#a6da95cc"
+    timeout = 2
+
+# Chrome likes urgency_low for everything; give it the normal look.
+[chrome-normal-look]
+    appname     = "Google Chrome"
+    frame_color = "#8aadf4cc"
+    foreground  = "#cad3f5"

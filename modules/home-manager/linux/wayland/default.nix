@@ -3,6 +3,7 @@
 {
   imports = [
     ./hypr
+    ./dunst
     ./kanshi
     ./mako
     ./waybar
