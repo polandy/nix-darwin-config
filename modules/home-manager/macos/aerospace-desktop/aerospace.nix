@@ -43,7 +43,7 @@
     outer.top = [{ monitor."Built-in Retina Display" = 0 }, 33]
 
     [mode.main.binding]
-    alt-enter = "exec-and-forget open -na alacritty"
+    alt-enter = "exec-and-forget open -na Ghostty"
     alt-shift-q = "close --quit-if-last-window"
     alt-slash = "layout tiles horizontal vertical"
     alt-comma = "layout accordion horizontal vertical"
