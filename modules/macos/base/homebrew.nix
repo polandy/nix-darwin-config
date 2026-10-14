@@ -22,7 +22,11 @@
       # Accessibility permission to the binary path, and nix store paths
       # change on every update, silently breaking all hotkeys.
       "nikitabobko/tap/aerospace"
+      # Alacritty is disabled upstream since 2026-09-01 (not notarized, fails
+      # Gatekeeper): the installed app keeps working but gets no updates.
       "alacritty"
+      # Notarized alternative to Alacritty, currently being trialled.
+      "ghostty"
       "raycast"
       "utm"
       "visual-studio-code"
