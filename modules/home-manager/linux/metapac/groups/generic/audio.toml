@@ -1,4 +1,5 @@
-arch = [
+[arch]
+packages = [
   "gst-plugin-pipewire",
   "libpulse",
   "pipewire",

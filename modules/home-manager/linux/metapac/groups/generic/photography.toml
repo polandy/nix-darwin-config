@@ -1,7 +1,8 @@
-arch = [
+[arch]
+packages = [
   "darktable",
   "digikam",
   "hugin",
   "libopenraw",
-  "rapid-photo-downloader"
+  "rapid-photo-downloader",
 ]
