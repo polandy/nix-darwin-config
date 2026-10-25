@@ -1,42 +1,34 @@
-arch = [
-  # sway optionally requires foot: Terminal emulator used in the default configuration
-  "foot",
-  "grim",
-  "slurp",
-  "sway",
-  "swaybg",
-  "swayidle",
-  "swaylock-effects",
-  "waybar",
-  "wdisplays",
-  "wofi",
-  "xdg-desktop-portal-wlr",
-
+[arch]
+packages = [
   # hyprland
   "grimblast-git",
+  "hypridle",
   "hyprland",
   "hyprlock",
-  "hypridle",
-  "kanshi",
-  "swww",
-  "brightnessctl",
-  "nwg-displays",
   "hyprswitch",
-  "wlr-randr",
+  "uwsm",
   # run X clients under wayland
   "xorg-xwayland",
 
-  "wl-clipboard",
-  "cliphist",
-
-  # niri, see https://github.com/niri-wm/niri/wiki/Getting-Started
-  "niri",
-  "xwayland-satellite",
-  "xdg-desktop-portal-gnome",
-  "xdg-desktop-portal-gtk",
-  "dms-shell-bin",
-  "matugen",
+  # wayland tools
+  "awww",
+  "brightnessctl",
   "cava",
-  "qt6-multimedia-ffmpeg",
-
+  "cliphist",
+  "dunst",
+  "foot",
+  "grim",
+  "kanshi",
+  "matugen",
+  "nwg-displays",
+  "slurp",
+  "swaybg",
+  "swayidle",
+  "waybar",
+  "wdisplays",
+  "wl-clipboard",
+  "wlr-randr",
+  "qt6-wayland",
+  "xdg-desktop-portal-gtk",
+  "xdg-desktop-portal-hyprland",
 ]

@@ -1,6 +1,5 @@
-arch = [
-  "brightnessctl",
-
+[arch]
+packages = [
   "grub",
   "grub-btrfs",
 

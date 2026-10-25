@@ -11,13 +11,23 @@ Due to licensing restrictions, Apple's proprietary fonts cannot be automatically
 
 ## GUI App Permissions (TCC)
 
-macOS grants app permissions (e.g. Accessibility, Full Disk Access) by binary path or bundle ID.
-Nix packages install to `/nix/store/<hash>-<name>/`, and the hash changes with every update —
-causing macOS to revoke permissions and prompt for re-authorization after each `darwin-rebuild switch`.
+**Rule: any app that needs macOS system permissions (Accessibility, Full Disk Access,
+Screen Recording, Input Monitoring, App Management, …) must be installed via
+[Homebrew Cask](https://github.com/Homebrew/homebrew-cask) — never as a Nix package.**
 
-To avoid this, GUI apps that require system permissions are installed via [Homebrew Cask](https://github.com/Homebrew/homebrew-cask) instead
-of as Nix packages. Homebrew Cask installs to `/Applications/<App>.app` with a stable bundle ID,
-so permissions persist across updates.
+macOS grants these permissions by binary path or bundle ID. Nix packages install to
+`/nix/store/<hash>-<name>/`, and the hash changes with every update — macOS then silently
+revokes the permission after each `darwin-rebuild switch`. Homebrew Cask installs to
+`/Applications/<App>.app` with a stable path and bundle ID, so permissions persist.
+
+The failure mode is easy to misdiagnose: the app keeps running but its permission-dependent
+features stop working without any error. Concrete incident (2026-08): AeroSpace was installed
+from nixpkgs; after an update its Accessibility grant pointed at a stale store path and all
+hotkeys (`⌥+1`, `⌥+3`, …) silently stopped responding while the process itself looked healthy.
+Fix: moved it to the `nikitabobko/tap/aerospace` cask in `modules/macos/base/homebrew.nix`.
+
+Apps currently covered by this rule: AeroSpace (Accessibility). When adding a new app,
+check whether it will request a TCC permission — if yes, it goes in the homebrew casks list.
 
 ## Colima Container Runtime
 
