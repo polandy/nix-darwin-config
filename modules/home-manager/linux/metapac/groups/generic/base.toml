@@ -58,6 +58,7 @@ packages = [
   "eza",
   "fd",
   "fzf",
+  "github-cli",
   "htop",
   "hugo",
   "imagemagick",
