@@ -9,9 +9,6 @@ hostname_groups_enabled = true
 [arch]
 package_manager = "yay"
 
-[flatpak]
-systemwide = false
-
 # Which group files apply for which hostnames
 # paths starting without a / are relative to the groups folder
 # Default: None
@@ -21,10 +18,11 @@ x1 = [
   "generic/btrfs",
   "generic/audio",
   "generic/wireless",
-  "generic/xorg",
+  #  "generic/xorg",
   "generic/base-ui",
   "generic/wayland",
   "generic/photography",
+  "generic/latex",
   "hosts/x1",
 ]
 coolermaster = [

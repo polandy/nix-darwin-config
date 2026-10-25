@@ -1,4 +1,5 @@
-arch = [
+[arch]
+packages = [
   "virtualbox",
   "virtualbox-guest-iso",
   "vagrant"

@@ -1,12 +1,6 @@
-{ pkgs, ... }:
+{ ... }:
 
 {
-  home.packages = with pkgs; [
-    kanshi
-    wdisplays
-    wlr-randr
-    nwg-displays
-  ];
-
+  # kanshi package is managed by metapac (Arch).
   xdg.configFile."kanshi/config".source = ./config;
 }

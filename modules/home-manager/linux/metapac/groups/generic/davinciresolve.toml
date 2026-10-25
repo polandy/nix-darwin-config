@@ -1,4 +1,5 @@
-arch = [
+[arch]
+packages = [
   "libpng12",
   "qt5-webengine",
   "qt5-quickcontrols2",

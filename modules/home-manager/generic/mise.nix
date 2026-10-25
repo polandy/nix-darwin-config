@@ -10,6 +10,7 @@
         java = "17";
         maven = "3";
         node = "22";
+        python = "3.12";
         usage = "latest";
       };
     };
