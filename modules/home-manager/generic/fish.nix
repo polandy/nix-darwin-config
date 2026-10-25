@@ -5,6 +5,8 @@
     EDITOR = "nvim";
   };
 
+  home.sessionPath = [ "$HOME/.local/bin" ];
+
   programs.eza = {
     enable = true;
   };
