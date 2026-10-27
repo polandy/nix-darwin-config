@@ -7,7 +7,6 @@
     jetbrains.gateway
     jetbrains.idea
     openshift
-    minio-client
 
     docker-compose
     colima
