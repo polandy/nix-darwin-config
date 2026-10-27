@@ -1,9 +1,10 @@
-{ pkgs, ... }:
+{ config, pkgs, ... }:
 
 {
   gtk = {
     enable = true;
     theme.name = "Breeze";
+    gtk4.theme = config.gtk.theme;
     iconTheme.name = "breeze";
     cursorTheme = {
       name = "breeze_cursors";
@@ -38,6 +39,7 @@
   };
 
   home.pointerCursor = {
+    enable = true;
     name = "breeze_cursors";
     size = 24;
     package = pkgs.kdePackages.breeze;
