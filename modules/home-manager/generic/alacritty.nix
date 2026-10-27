@@ -3,13 +3,11 @@
 
   programs.alacritty = {
     enable = true;
-    # On non-NixOS Linux, Nix-packaged alacritty can't find host GPU drivers.
-    # Use a stub so home-manager still generates the config, but the binary
-    # comes from the system package manager instead.
-    package =
-      if pkgs.stdenv.isLinux
-      then pkgs.runCommand "alacritty-stub" { } "mkdir -p $out/bin"
-      else pkgs.alacritty;
+    # The binary comes from the system package manager, not Nix: on macOS
+    # via the Homebrew cask, and on non-NixOS Linux because Nix-packaged
+    # alacritty can't find host GPU drivers. Use a stub so home-manager
+    # still generates the config without installing the Nix package.
+    package = pkgs.runCommand "alacritty-stub" { } "mkdir -p $out/bin";
     settings = {
       font = {
         normal = { family = "JetBrainsMono Nerd Font"; style = "Regular"; };
