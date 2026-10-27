@@ -8,6 +8,7 @@
     jetbrains.idea
     openshift
 
+    docker-client
     docker-compose
     colima
     lima
