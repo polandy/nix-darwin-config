@@ -13,7 +13,7 @@ jobs:
         host: ["andy@x1", "andy@coolermaster"]
     name: ${{ matrix.host }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: cachix/install-nix-action@v31
         with:
           extra_nix_config: |
@@ -29,7 +29,7 @@ jobs:
         host: [ambp, amba]
     name: ${{ matrix.host }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: cachix/install-nix-action@v31
         with:
           extra_nix_config: |
