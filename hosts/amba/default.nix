@@ -6,6 +6,7 @@
     ../../modules/macos/leisure
     ../../modules/home-manager
     home-manager.darwinModules.home-manager
+    ./homebrew.nix
   ];
 
   # Hostname matches the flake config name, so `just switch` can derive it via `hostname -s`
