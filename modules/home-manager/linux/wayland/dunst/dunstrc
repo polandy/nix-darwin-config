@@ -1,0 +1,71 @@
+# Catppuccin Macchiato — matches waybar/style.css
+
+[global]
+    follow = mouse
+    origin = top-right
+    offset = (10, 10)
+    width = (280, 380)
+    height = (0, 200)
+    notification_limit = 5
+    gap_size = 8
+
+    font = JetBrainsMono Nerd Font 11
+    markup = full
+    format = "<b>%s</b>\n%b"
+    alignment = left
+    vertical_alignment = center
+    ellipsize = middle
+    ignore_newline = no
+    show_indicators = no
+
+    padding = 12
+    horizontal_padding = 14
+    text_icon_padding = 12
+    frame_width = 2
+    corner_radius = 12
+    separator_height = 0
+    separator_color = frame
+
+    progress_bar = true
+    progress_bar_height = 8
+    progress_bar_frame_width = 0
+    progress_bar_corner_radius = 4
+    highlight = "#8aadf4"
+
+    icon_position = left
+    min_icon_size = 32
+    max_icon_size = 48
+    icon_corner_radius = 6
+    icon_theme = "breeze-dark, breeze, hicolor"
+    enable_recursive_icon_lookup = true
+
+    history_length = 50
+    sticky_history = yes
+    show_age_threshold = 60
+    idle_threshold = 120
+
+    mouse_left_click = do_action, close_current
+    mouse_middle_click = close_all
+    mouse_right_click = close_current
+
+    dmenu = rofi -dmenu -p dunst
+    browser = xdg-open
+
+[urgency_low]
+    background = "#24273ae6"
+    foreground = "#a5adcb"
+    frame_color = "#939ab7aa"
+    timeout = 4
+
+[urgency_normal]
+    background = "#24273ae6"
+    foreground = "#cad3f5"
+    frame_color = "#8aadf4cc"
+    timeout = 6
+
+[urgency_critical]
+    background = "#24273af2"
+    foreground = "#cad3f5"
+    frame_color = "#ed8796"
+    highlight = "#ed8796"
+    timeout = 0

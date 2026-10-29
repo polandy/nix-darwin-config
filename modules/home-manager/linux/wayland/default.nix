@@ -4,7 +4,7 @@
   imports = [
     ./hypr
     ./kanshi
-    ./mako
+    ./dunst
     ./waybar
   ];
 
