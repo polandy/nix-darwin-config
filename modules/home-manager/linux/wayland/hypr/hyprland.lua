@@ -174,8 +174,11 @@ bind(mod,              "Return", exec(terminal))
 bind(mod,              "D",      exec("rofi -show run"))
 bind(mod .. " + CTRL", "D",      exec("rofi -show combi"))
 bind(mod,              "Tab",    exec("rofi -show window"))
--- hyprswitch 5 installs its own submap (via hyprctl eval) for repeated Tab presses and mod release
+-- hyprswitch 5 installs its own submap (via hyprctl eval) for repeated Tab presses.
+-- Its Alt release bind never fires: Hyprland only matches release binds in the submap the key was
+-- pressed in, and Alt goes down in the default submap. So close (and switch) from here; no-op if closed.
 bind("ALT",            "Tab",    exec("hyprswitch gui --mod-key ALT --key TAB --close mod-key-release && hyprswitch dispatch"))
+bind("ALT",            "Alt_L",  exec("hyprswitch close"), { release = true, transparent = true })
 bind(mod,              "E",      exec(fileManager))
 bind(mod .. " + SHIFT", "Q",     hl.dsp.window.close())
 bind(mod .. " + SHIFT", "space", hl.dsp.window.float({ action = "toggle" }))
