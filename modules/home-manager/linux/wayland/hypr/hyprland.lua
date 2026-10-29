@@ -73,6 +73,10 @@ hl.config({
 
         layout = "dwindle",
 
+        -- Drag window borders/gaps with the mouse to resize
+        resize_on_border        = true,
+        extend_border_grab_area = 10,
+
         allow_tearing = false,
     },
 
