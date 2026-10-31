@@ -259,6 +259,18 @@ bind("", "XF86MonBrightnessDown", exec("brightnessctl set 5%-"))
 bind("",  "XF86Display", exec("nwg-displays"))
 bind(mod, "M",           exec("kanshictl reload"))
 
+-- Clamshell mode: kanshi owns the outputs (it re-enables anything disabled behind its back), so
+-- the lid switches kanshi profiles. "clamshell" only matches with one external monitor connected,
+-- "clamshell-dual" with two; reloading lets kanshi pick the first matching profile again.
+local clamshell = "kanshictl switch clamshell || kanshictl switch clamshell-dual"
+bind("", "switch:on:Lid Switch",  exec(clamshell),           { locked = true })
+bind("", "switch:off:Lid Switch", exec("kanshictl reload"), { locked = true })
+
+-- Switch binds only fire on change, so apply a lid closed at login too (once kanshi is up)
+hl.on("hyprland.start", function()
+    hl.exec_cmd("sleep 1 && grep -q closed /proc/acpi/button/lid/LID/state && { " .. clamshell .. "; }")
+end)
+
 -- screenshot
 bind("", "Print", exec([[grim -g "$(slurp)" ~/Pictures/Screenshots/$(date +%Y-%m-%d_%H-%M-%S).png]]))
 
