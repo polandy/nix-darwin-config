@@ -80,7 +80,6 @@ packages = [
   "alacritty",
   "android-tools",
   "chromium",
-  "copyq",
   "evince",
   "firefox",
   "ffmpeg",

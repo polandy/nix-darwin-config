@@ -30,7 +30,8 @@ hl.env("WLR_NO_HARDWARE_CURSORS", "1")
 hl.on("hyprland.start", function()
     hl.exec_cmd("~/.config/waybar/launch-hyprland.sh")
     hl.exec_cmd("env QT_QPA_PLATFORM=xcb nextcloud")
-    hl.exec_cmd("copyq")
+    hl.exec_cmd("wl-paste --type text --watch cliphist store")
+    hl.exec_cmd("wl-paste --type image --watch cliphist store")
     hl.exec_cmd("blueman-applet")
     hl.exec_cmd("kanshi")
     hl.exec_cmd("awww-daemon")
@@ -136,7 +137,7 @@ hl.window_rule({
 
 hl.window_rule({
     name  = "float-misc",
-    match = { class = "^(pavucontrol|blueman-manager|galculator|copyq|steam)$" },
+    match = { class = "^(pavucontrol|blueman-manager|galculator|steam)$" },
     float = true,
 })
 
@@ -184,6 +185,7 @@ bind(mod,              "Tab",    exec("rofi -show window"))
 bind("ALT",            "Tab",    exec("hyprswitch gui --mod-key ALT --key TAB --close mod-key-release && hyprswitch dispatch"))
 bind("ALT",            "Alt_L",  exec("hyprswitch close"), { release = true, transparent = true })
 bind(mod,              "E",      exec(fileManager))
+bind("ALT + SHIFT",    "V",      exec("cliphist list | rofi -dmenu -i -p clipboard -display-columns 2 | cliphist decode | wl-copy"))
 bind(mod .. " + SHIFT", "Q",     hl.dsp.window.close())
 bind(mod .. " + SHIFT", "space", hl.dsp.window.float({ action = "toggle" }))
 bind(mod,              "P",      hl.dsp.window.pin())
@@ -308,7 +310,6 @@ hl.on("hyprland.start",         assignWorkspaces)
 hl.on("monitor.added",         assignWorkspaces)
 hl.on("monitor.removed",        assignWorkspaces)
 hl.on("monitor.layout_changed", assignWorkspaces)
-
 
 -- screenshot
 bind("", "Print", exec([[grim -g "$(slurp)" ~/Pictures/Screenshots/$(date +%Y-%m-%d_%H-%M-%S).png]]))
