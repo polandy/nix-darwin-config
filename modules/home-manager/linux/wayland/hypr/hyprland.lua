@@ -165,6 +165,15 @@ hl.window_rule({
     workspace = "6",
 })
 
+-- Blur behind dunst so notifications stay readable over terminals.
+-- "notifications" is dunst's layer-shell namespace.
+hl.layer_rule({
+    name  = "blur-notifications",
+    match = { namespace = "^(notifications)$" },
+    blur  = true,
+    ignore_alpha = 0.3,
+})
+
 -- ─── Keybindings ──────────────────────────────────────────────────────────────
 
 local function bind(mods, key, action, opts)

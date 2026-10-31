@@ -13,7 +13,7 @@ Personal Nix configuration managing Linux (standalone home-manager) and macOS (n
 | Category | Linux | macOS |
 |----------|-------|-------|
 | **Terminal** | [Alacritty](https://alacritty.org/) | [Alacritty](https://alacritty.org/) |
-| **Window Manager** | [Hyprland](https://hyprland.org/) / [Niri](https://github.com/YaLTeR/niri) | [AeroSpace](https://nikitabobko.github.io/AeroSpace/) — see [docs/aerospace.md](./docs/aerospace.md) |
+| **Window Manager** | [Hyprland](https://hyprland.org/) | [AeroSpace](https://nikitabobko.github.io/AeroSpace/) — see [docs/aerospace.md](./docs/aerospace.md) |
 | **Status Bar** | [Waybar](https://github.com/Alexays/Waybar) | [Sketchybar](https://felixkratz.github.io/Sketchybar/) — see [docs/aerospace.md](./docs/aerospace.md) |
 | **App Launcher** | [Rofi](https://github.com/davatorium/rofi) | [Raycast](https://www.raycast.com/) |
 | **UI Polish** | — | [JankyBorders](https://github.com/FelixKratz/JankyBorders) — see [docs/aerospace.md](./docs/aerospace.md) |
