@@ -271,6 +271,45 @@ hl.on("hyprland.start", function()
     hl.exec_cmd("sleep 1 && grep -q closed /proc/acpi/button/lid/LID/state && { " .. clamshell .. "; }")
 end)
 
+-- Workspaces per monitor: with two or more monitors, workspaces 1-5 live on the leftmost and 6-10
+-- on the next one. Monitor names change with the kanshi profile (clamshell, HDMI), so the rules
+-- are switched whenever the layout changes and existing workspaces are moved over. Rules can't be
+-- deleted, only disabled, so one rule per workspace/monitor pair is cached and toggled.
+local wsRules = {}
+
+local function wsRule(ws, monitor)
+    local key = ws .. "@" .. monitor
+    wsRules[key] = wsRules[key]
+        or hl.workspace_rule({ workspace = ws, monitor = monitor, default = ws == "1" or ws == "6" })
+    return wsRules[key]
+end
+
+local function assignWorkspaces()
+    for _, rule in pairs(wsRules) do rule:set_enabled(false) end
+
+    local monitors = hl.get_monitors()
+    if #monitors < 2 then return end
+    table.sort(monitors, function(a, b) return a.x < b.x end)
+
+    for i = 1, 10 do
+        local ws      = tostring(i)
+        local monitor = monitors[i <= 5 and 1 or 2].name
+        wsRule(ws, monitor):set_enabled(true)
+
+        local existing = hl.get_workspace(ws)
+        if existing and existing.monitor and existing.monitor.name ~= monitor then
+            hl.dispatch(hl.dsp.workspace.move({ workspace = ws, monitor = monitor }))
+        end
+    end
+end
+
+assignWorkspaces() -- config reloads fire none of the events below
+hl.on("hyprland.start",         assignWorkspaces)
+hl.on("monitor.added",         assignWorkspaces)
+hl.on("monitor.removed",        assignWorkspaces)
+hl.on("monitor.layout_changed", assignWorkspaces)
+
+
 -- screenshot
 bind("", "Print", exec([[grim -g "$(slurp)" ~/Pictures/Screenshots/$(date +%Y-%m-%d_%H-%M-%S).png]]))
 
