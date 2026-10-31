@@ -1,0 +1,10 @@
+configuration {
+  combi-modi: "window,drun,ssh";
+  font: "JetBrainsMono Nerd Font 13";
+  show-icons: true;
+  icon-theme: "breeze-dark";
+  drun-display-format: "{name}";
+  window-format: "{c}  {t}";
+}
+
+@theme "catppuccin-macchiato"

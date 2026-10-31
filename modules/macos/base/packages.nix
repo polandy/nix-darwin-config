@@ -33,7 +33,6 @@
     pkgs.fzf
     pkgs.cargo
     pkgs.lazygit
-    pkgs.mcp-nixos
     pkgs.zoxide
   ];
 

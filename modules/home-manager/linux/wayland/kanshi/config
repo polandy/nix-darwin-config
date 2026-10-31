@@ -5,11 +5,36 @@
 # Use `nwg-displays` or `wlr-randr` to discover output names,
 # then add named profiles below.
 #
-# Example named profile:
-# profile docked {
-#     output eDP-1 disable
-#     output "Dell Inc. Dell U2720Q" enable scale 1.5 position 0,0
-# }
+# kanshi picks the first profile matching the connected outputs, so the most
+# specific profiles come first.
+
+# Laptop + external monitor: laptop on the left (2048 = 2560 / 1.25 scale)
+profile docked {
+    output eDP-1 enable position 0,0
+    output * enable position 2048,0
+}
+
+# Lid closed with an external monitor; never auto-selected because "docked"
+# matches first. Hyprland's lid switch bind runs `kanshictl switch clamshell`
+# (or clamshell-dual).
+profile clamshell {
+    output eDP-1 disable
+    output * enable position 0,0
+}
+
+# Laptop + BenQ + a second external monitor (e.g. via HDMI): laptop left, BenQ in
+# the middle (3072 = 3840 / 1.25 scale), the other monitor on the right
+profile docked-dual {
+    output eDP-1 enable position 0,0
+    output "BNQ BenQ PD3220U A1M00013019" enable position 2048,0
+    output * enable position 5120,0
+}
+
+profile clamshell-dual {
+    output eDP-1 disable
+    output "BNQ BenQ PD3220U A1M00013019" enable position 0,0
+    output * enable position 3072,0
+}
 
 profile default {
     output * enable

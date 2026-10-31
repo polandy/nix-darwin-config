@@ -1,0 +1,118 @@
+/* Catppuccin Macchiato — matches waybar/dunst/hyprland */
+
+* {
+  base:     #24273ae6;
+  mantle:   #1e2030;
+  surface0: #363a4f;
+  text:     #cad3f5;
+  subtext0: #a5adcb;
+  overlay0: #6e738d;
+  blue:     #8aadf4;
+  mauve:    #c6a0f6;
+  red:      #ed8796;
+
+  background-color: transparent;
+  text-color: @text;
+  margin: 0;
+  padding: 0;
+  spacing: 0;
+}
+
+window {
+  location: center;
+  anchor: center;
+  width: 640px;
+  padding: 12px;
+  background-color: @base;
+  border: 2px;
+  border-color: @blue;
+  border-radius: 12px;
+}
+
+mainbox {
+  spacing: 10px;
+  children: [ inputbar, message, listview ];
+}
+
+inputbar {
+  spacing: 10px;
+  padding: 10px 14px;
+  background-color: @mantle;
+  border-radius: 8px;
+  children: [ prompt, entry ];
+}
+
+prompt {
+  text-color: @blue;
+}
+
+entry {
+  placeholder: "Search";
+  placeholder-color: @overlay0;
+  cursor: text;
+}
+
+message {
+  padding: 8px 14px;
+  background-color: @mantle;
+  border-radius: 8px;
+}
+
+textbox {
+  text-color: @subtext0;
+}
+
+listview {
+  lines: 8;
+  columns: 1;
+  fixed-height: false;
+  scrollbar: false;
+  spacing: 4px;
+}
+
+element {
+  padding: 8px 12px;
+  spacing: 10px;
+  border-radius: 8px;
+}
+
+element normal.normal,
+element alternate.normal {
+  text-color: @text;
+}
+
+element selected.normal {
+  background-color: @surface0;
+  text-color: @blue;
+}
+
+element normal.urgent,
+element alternate.urgent {
+  text-color: @red;
+}
+
+element selected.urgent {
+  background-color: @surface0;
+  text-color: @red;
+}
+
+element normal.active,
+element alternate.active {
+  text-color: @mauve;
+}
+
+element selected.active {
+  background-color: @surface0;
+  text-color: @mauve;
+}
+
+element-icon {
+  size: 24px;
+  vertical-align: 0.5;
+}
+
+element-text {
+  vertical-align: 0.5;
+  text-color: inherit;
+  highlight: bold;
+}
