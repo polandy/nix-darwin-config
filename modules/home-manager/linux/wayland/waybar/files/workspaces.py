@@ -3,6 +3,7 @@
 
 Run one instance per workspace: workspaces.py --workspace N
 Outputs JSON with CSS class so waybar can style the active workspace.
+Each bar only shows the workspaces of its own monitor (WAYBAR_OUTPUT_NAME).
 """
 
 import argparse
@@ -26,6 +27,12 @@ TRIGGER_EVENTS = {
     "focusedmon",
     "activewindow",
     "urgent",
+    "createworkspace",
+    "destroyworkspace",
+    "moveworkspace",
+    "monitoradded",
+    "monitorremoved",
+    "configreloaded",
 }
 
 
@@ -56,9 +63,28 @@ def app_icon(class_name: str) -> str:
     return DEFAULT_ICON
 
 
-def build_output(ws: int) -> dict:
+def workspace_monitor(ws: int) -> str | None:
+    """Monitor the workspace is on, or will be created on according to the workspace rules."""
+    for workspace in hyprctl(["workspaces", "-j"]):
+        if workspace.get("id") == ws:
+            return workspace.get("monitor")
+    for rule in hyprctl(["workspacerules", "-j"]):
+        if rule.get("enabled") and rule.get("workspaceString") == str(ws):
+            return rule.get("monitor")
+    return None
+
+
+def build_output(ws: int, output: str | None) -> dict:
+    monitor = workspace_monitor(ws)
+    if output and monitor and monitor != output:
+        return {"text": ""}  # empty text hides the module on this bar
+
     clients = hyprctl(["clients", "-j"])
-    active_ws = hyprctl(["activeworkspace", "-j"]).get("id", 1)
+    monitors = {m.get("name"): m for m in hyprctl(["monitors", "-j"])}
+    if output in monitors:
+        active_ws = monitors[output].get("activeWorkspace", {}).get("id")
+    else:
+        active_ws = hyprctl(["activeworkspace", "-j"]).get("id", 1)
 
     icons: list[str] = []
     for client in clients:
@@ -76,8 +102,8 @@ def build_output(ws: int) -> dict:
     return {"text": text, "class": css_class}
 
 
-def emit(ws: int) -> None:
-    print(json.dumps(build_output(ws)), flush=True)
+def emit(ws: int, output: str | None) -> None:
+    print(json.dumps(build_output(ws, output)), flush=True)
 
 
 def main() -> None:
@@ -85,8 +111,9 @@ def main() -> None:
     parser.add_argument("--workspace", type=int, required=True)
     args = parser.parse_args()
     ws = args.workspace
+    output = os.environ.get("WAYBAR_OUTPUT_NAME")
 
-    emit(ws)
+    emit(ws, output)
 
     sock_path = get_hyprland_socket(".socket2.sock")
     try:
@@ -106,7 +133,7 @@ def main() -> None:
             line, buf = buf.split("\n", 1)
             event = line.split(">>", 1)[0]
             if event in TRIGGER_EVENTS:
-                emit(ws)
+                emit(ws, output)
 
 
 if __name__ == "__main__":

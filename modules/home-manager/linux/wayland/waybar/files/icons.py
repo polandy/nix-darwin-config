@@ -40,7 +40,6 @@ APP_VSCODE       = "\uf1c9"      # fa-file-code-o       (vscode, vscodium)
 APP_INTELLIJ     = "\ue7b5"      # nf-dev-java          (jetbrains-idea)
 APP_MAIL         = "\uf0e0"      # fa-envelope          (thunderbird)
 APP_STEAM        = "\uf1b6"      # fa-steam
-APP_CLIPBOARD    = "\uf0c5"      # fa-files-o           (copyq)
 APP_VOLUME       = "\uf028"      # fa-volume-up         (pavucontrol)
 APP_BLUETOOTH    = "\uf293"      # fa-bluetooth         (blueman-manager)
 APP_CALCULATOR   = "\uf1ec"      # fa-calculator        (galculator)
@@ -62,7 +61,6 @@ APP_ICONS = {
     "vscodium":         APP_VSCODE,
     "steam":            APP_STEAM,
     "thunar":           APP_FILES,
-    "copyq":            APP_CLIPBOARD,
     "pavucontrol":      APP_VOLUME,
     "blueman-manager":  APP_BLUETOOTH,
     "galculator":       APP_CALCULATOR,

@@ -4,6 +4,7 @@
     ./mc.nix
     ./metapac
     ./mimeapps.nix
+    ./qt
     ./wireplumber.nix
     ./wayland
   ];

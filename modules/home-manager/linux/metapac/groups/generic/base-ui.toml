@@ -1,5 +1,6 @@
 [arch]
 packages = [
+  "adw-gtk-theme",
   "arc-gtk-theme",
   "breeze",
   "breeze-gtk",
@@ -40,6 +41,7 @@ packages = [
   "ntfs-3g",
   "otf-font-awesome",
   "pavucontrol",
+  "qt6ct",
   "poppler-data",
   "poppler-glib",
   "rofi",
@@ -78,7 +80,6 @@ packages = [
   "alacritty",
   "android-tools",
   "chromium",
-  "copyq",
   "evince",
   "firefox",
   "ffmpeg",

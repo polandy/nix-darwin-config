@@ -4,6 +4,4 @@
     ../../modules/home-manager/generic/ssh.nix
     ../../modules/home-manager/linux
   ];
-
-  news.display = "silent";
 }

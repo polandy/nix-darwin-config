@@ -111,8 +111,10 @@ button:hover {
   color: @grey;
 }
 
+/* Breeze GTK theme gives .warning/.critical a light background */
 #battery {
   color: @green;
+  background: transparent;
 }
 
 #battery.warning:not(.charging) {
