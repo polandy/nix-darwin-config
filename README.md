@@ -26,10 +26,10 @@ On Arch Linux, two package managers coexist:
 
 | Manager | What goes here |
 |---------|---------------|
-| **home-manager** (this repo) | Configuration only — exclusively via `programs.*` modules (which handle both config generation and package install) |
+| **home-manager** (this repo) | Configuration only — via `programs.*` modules (which handle both config generation and package install), or `xdg.configFile`/`home.file` for apps without a module |
 | **yay/metapac** (config in [`modules/home-manager/linux/metapac/`](./modules/home-manager/linux/metapac/), deployed by home-manager; run `metapac sync` on the host) | All package installations — system packages, GUI apps, CLI tools, AUR packages |
 
-**Rule:** `home.packages` is never used on Linux. If a tool has a `programs.<name>` module, use that (it installs the package and generates config). If it doesn't, install it via metapac and manage any config files directly in the dotfiles repo.
+**Rule:** `home.packages` is never used on Linux. If a tool has a `programs.<name>` module, use that (it installs the package and generates config). If it doesn't, install it via metapac and manage its config files with `xdg.configFile` in this repo (writable app state such as databases stays unmanaged in `~/.config`). The [dotfiles repo](https://github.com/polandy/dotfiles) only holds root-owned system files.
 
 This keeps Nix's role focused on config generation and avoids outdated nixpkgs packages, while Arch's rolling release ensures packages are always up to date.
 
