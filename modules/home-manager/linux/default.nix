@@ -1,5 +1,9 @@
 { ... }: {
   imports = [
+    ./bash.nix
+    ./beets
+    ./darktable
+    ./digikam
     ./gtk.nix
     ./mc.nix
     ./metapac
