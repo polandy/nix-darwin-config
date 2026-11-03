@@ -5,9 +5,9 @@ return {
     opts = {
       ---@type lspconfig.options
       servers = {
-        -- pyright will be automatically installed with mason and loaded with lspconfig
-        pyright = {},
-        gopls = {},
+        -- binaries come from nix (programs.neovim.extraPackages), not Mason
+        pyright = { mason = false },
+        gopls = { mason = false },
       },
     },
   },
