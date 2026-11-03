@@ -57,6 +57,14 @@ button:hover {
   border-radius: 12px;
 }
 
+#custom-ws1:not(.active):not(.empty), #custom-ws2:not(.active):not(.empty), #custom-ws3:not(.active):not(.empty),
+#custom-ws4:not(.active):not(.empty), #custom-ws5:not(.active):not(.empty), #custom-ws6:not(.active):not(.empty),
+#custom-ws7:not(.active):not(.empty), #custom-ws8:not(.active):not(.empty), #custom-ws9:not(.active):not(.empty),
+#custom-ws10:not(.active):not(.empty) {
+  background: rgba(60, 62, 79, 0.25);
+  border-radius: 12px;
+}
+
 #custom-ws1.empty, #custom-ws2.empty, #custom-ws3.empty, #custom-ws4.empty, #custom-ws5.empty,
 #custom-ws6.empty, #custom-ws7.empty, #custom-ws8.empty, #custom-ws9.empty, #custom-ws10.empty {
   opacity: 0.5;
