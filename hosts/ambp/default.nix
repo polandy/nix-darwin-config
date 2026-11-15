@@ -3,6 +3,7 @@
 {
   imports = [
     ../../modules/macos
+    ../../modules/macos/desktop
     ../../modules/macos/devops
     ../../modules/home-manager
     home-manager.darwinModules.home-manager

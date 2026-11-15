@@ -24,7 +24,7 @@ The failure mode is easy to misdiagnose: the app keeps running but its permissio
 features stop working without any error. Concrete incident (2026-08): AeroSpace was installed
 from nixpkgs; after an update its Accessibility grant pointed at a stale store path and all
 hotkeys (`⌥+1`, `⌥+3`, …) silently stopped responding while the process itself looked healthy.
-Fix: moved it to the `nikitabobko/tap/aerospace` cask in `modules/macos/base/homebrew.nix`.
+Fix: moved it to the `nikitabobko/tap/aerospace` cask in `modules/macos/desktop/homebrew.nix`.
 
 Apps currently covered by this rule: AeroSpace (Accessibility). When adding a new app,
 check whether it will request a TCC permission — if yes, it goes in the homebrew casks list.
