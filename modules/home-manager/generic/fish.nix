@@ -27,7 +27,9 @@
     loginShellInit = ''
       # Start Hyprland via UWSM on TTY1 (Linux only)
       if test (uname) = Linux; and test (tty) = /dev/tty1
-        exec uwsm start hyprland
+        # Use the desktop entry so uwsm launches /usr/bin/start-hyprland
+        # (Hyprland >= 0.53 warns when its binary is started directly).
+        exec uwsm start -e -D Hyprland hyprland.desktop
       end
     '';
 
