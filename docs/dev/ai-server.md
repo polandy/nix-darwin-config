@@ -26,8 +26,13 @@ claude ──ANTHROPIC_BASE_URL──▶ tailscale serve :443 ──▶ LiteLLM 
 | File | Contents |
 |------|----------|
 | `hosts/amst/default.nix` | Host: hostname, memory split, default model |
+| `hosts/amst/bootstrap.sh` | Idempotent first-time setup on a fresh Mac |
 | `modules/macos/ai-server/default.nix` | `my.aiServer` options: power, SSH, Tailscale, GPU limit, launchd daemons |
+| `modules/macos/ai-server/check.sh` | `ai-server-check`: health check from FileVault to an end-to-end API request |
 | `modules/home-manager/generic/claude-code/` | Hardened Claude Code settings + PreToolUse hook (imported on `amst` only) |
+| `modules/home-manager/generic/ai-client.nix` | `claude-local` fish function for dev machines (`my.aiClient.url`) |
+
+The step-by-step setup is in [docs/user/ai-server-setup.md](../user/ai-server-setup.md).
 
 ## Memory split (256 GB)
 
@@ -56,20 +61,9 @@ The default model, `mlx-community/Qwen3-235B-A22B-4bit` (~130 GB), is a placehol
 - `amst` imports only `modules/macos` (base) and `ai-server`, not `modules/macos/desktop`: no GUI casks, UI defaults, fonts or App Store apps.
 - `uvx` downloads mlx-lm from PyPI on the first start. The model downloads from Hugging Face on the first start or request, which can take a long time for 100+ GB.
 
-## First setup on the machine
+## Setup and client
 
-1. Install Nix and Homebrew, clone the repo, then `darwin-rebuild switch --flake .#amst` (see README).
-2. `sudo tailscale up`, then expose the proxy on the tailnet:
-   `sudo tailscale serve --bg 4000` (persisted by tailscaled).
-3. Check: `sysctl iogpu.wired_limit_mb`, `pmset -g`, `tail -f ~/Library/Logs/{mlx-server,litellm}.log`.
-
-## Client setup (dev machine)
-
-```fish
-set -x ANTHROPIC_BASE_URL https://amst.<tailnet>.ts.net
-set -x ANTHROPIC_AUTH_TOKEN dummy   # LiteLLM runs without a master key
-claude
-```
+See [docs/user/ai-server-setup.md](../user/ai-server-setup.md): `bootstrap.sh` on the server, `claude-local` on the dev machine.
 
 Alternative: **OpenRouter** offers an Anthropic-compatible endpoint (`ANTHROPIC_BASE_URL=https://openrouter.ai/api`, `ANTHROPIC_AUTH_TOKEN=<key>`, `ANTHROPIC_API_KEY=""`). Prompt caching only works if requests keep going to the same provider. Claude Code can't send OpenRouter's `provider` routing field, so the provider has to be pinned in the OpenRouter account settings. Check the current OpenRouter docs before relying on this.
 

@@ -23,6 +23,18 @@ let
     }];
     litellm_settings.drop_params = true;
   };
+
+  checkScript = pkgs.writeShellApplication {
+    name = "ai-server-check";
+    runtimeInputs = [ pkgs.curl pkgs.jq pkgs.gnugrep config.services.tailscale.package ];
+    runtimeEnv = {
+      GPU_WIRED_LIMIT_MB = toString cfg.gpuWiredLimitMb;
+      MLX_PORT = toString cfg.mlx.port;
+      PROXY_PORT = toString cfg.proxy.port;
+      MODEL = cfg.model;
+    };
+    text = builtins.readFile ./check.sh;
+  };
 in
 {
   options.my.aiServer = {
@@ -98,7 +110,7 @@ in
     services.openssh.enable = true;
     services.tailscale.enable = true;
 
-    environment.systemPackages = [ pkgs.uv pkgs.litellm ];
+    environment.systemPackages = [ pkgs.uv pkgs.litellm checkScript ];
 
     # System daemons rather than user agents: user agents only start on a GUI
     # login, daemons start at boot.
