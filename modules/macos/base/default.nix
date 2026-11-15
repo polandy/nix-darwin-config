@@ -4,7 +4,6 @@
   imports = [
     ./packages.nix
     ./homebrew.nix
-    ./mas-apps.nix
     ./user.nix
   ];
 

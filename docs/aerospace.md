@@ -7,7 +7,7 @@
 ### Installation
 
 AeroSpace is installed via the Homebrew cask `nikitabobko/tap/aerospace`
-(`modules/macos/base/homebrew.nix`), **not** from nixpkgs. It needs the macOS
+(`modules/macos/desktop/homebrew.nix`), **not** from nixpkgs. It needs the macOS
 Accessibility permission, which macOS ties to the binary path — a `/nix/store`
 path changes on every update and silently breaks all hotkeys. See
 "GUI App Permissions (TCC)" in [macos.md](macos.md). The cask also provides the
