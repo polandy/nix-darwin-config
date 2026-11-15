@@ -37,22 +37,30 @@ for svc in mlx-server litellm; do
   if /bin/launchctl print "system/org.nixos.$svc" 2>/dev/null | grep -q 'state = running'; then
     pass "$svc is running"
   else
-    fail "$svc is not running" "tail ~/Library/Logs/$svc.log"
+    fail "$svc is not running" "tail ~/Library/Logs/$svc.log; sudo launchctl print system/org.nixos.$svc"
   fi
 done
 
 if curl -sf --max-time 5 "http://127.0.0.1:$MLX_PORT/v1/models" >/dev/null; then
   pass "mlx_lm.server answers on :$MLX_PORT"
 else
+  model_dir="$HOME/.cache/huggingface/hub/models--${MODEL//\//--}"
+  size=$(du -sh "$model_dir" 2>/dev/null | cut -f1 || true)
   fail "mlx_lm.server does not answer on :$MLX_PORT" \
-    "on first start it downloads $MODEL; watch ~/Library/Logs/mlx-server.log and du -sh ~/.cache/huggingface"
+    "on first start it downloads $MODEL (so far: ${size:-nothing}); watch ~/Library/Logs/mlx-server.log"
 fi
 
 # End to end: an Anthropic Messages API request through LiteLLM to the model,
 # the same path Claude Code takes.
+key=$(cat "$MASTER_KEY_FILE" 2>/dev/null || true)
+if [ -n "$key" ]; then
+  pass "LiteLLM master key exists ($MASTER_KEY_FILE)"
+else
+  fail "LiteLLM master key missing or unreadable: $MASTER_KEY_FILE" "re-run darwin-rebuild switch, it creates the key"
+fi
 reply=$(curl -sf --max-time 300 "http://127.0.0.1:$PROXY_PORT/v1/messages" \
   -H 'content-type: application/json' \
-  -H 'x-api-key: dummy' \
+  -H "authorization: Bearer $key" \
   -H 'anthropic-version: 2023-06-01' \
   -d '{"model":"claude-check","max_tokens":16,"messages":[{"role":"user","content":"Reply with OK."}]}' |
   jq -r '.content[0].text // empty' 2>/dev/null || true)
@@ -71,7 +79,7 @@ if tailscale status >/dev/null 2>&1; then
     fail "tailscale serve does not expose :$PROXY_PORT" "sudo tailscale serve --bg $PROXY_PORT"
   fi
 else
-  fail "Tailscale is not logged in" "sudo tailscale up"
+  fail "Tailscale is not logged in (or this user may not query it)" "sudo tailscale status; sudo tailscale up"
 fi
 
 if [ "$failed" -eq 0 ]; then

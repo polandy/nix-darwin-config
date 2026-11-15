@@ -19,7 +19,9 @@ claude ──ANTHROPIC_BASE_URL──▶ tailscale serve :443 ──▶ LiteLLM 
 ```
 
 - **Claude Code speaks the Anthropic Messages API, `mlx_lm.server` speaks the OpenAI API.** Pointing Claude Code straight at MLX does not work. LiteLLM translates between them.
-- Both servers listen on loopback only, and neither has authentication. They are reachable only through Tailscale.
+- Both servers listen on loopback only. Only LiteLLM is exposed, through `tailscale serve`, and it requires a master key. `mlx_lm.server` has no authentication and is never exposed.
+- **The master key** is generated on the server by the nix-darwin activation (`~/.config/ai-server/litellm-master-key`, mode 600, never in the repo). Clients send it as `ANTHROPIC_AUTH_TOKEN`. Delete the file and run `just switch` to rotate it.
+- **Tailnet access:** `tailscale serve` is reachable from every device in the tailnet. Restrict it with an ACL in addition to the key (see step 4 of the setup guide).
 
 ## What is where
 
@@ -49,15 +51,23 @@ The default model, `mlx-community/Qwen3-235B-A22B-4bit` (~130 GB), is a placehol
 - **MLX comes from PyPI via `uvx`, not nixpkgs.** nixpkgs builds `mlx` with `MLX_BUILD_METAL=false`, because the Metal compiler isn't open source, so it would run on the CPU only. The PyPI wheels include Metal. The version is pinned with `my.aiServer.mlx.version`.
 - **LiteLLM comes from nixpkgs.** It is pure Python and needs no Metal.
 - **Services are launchd daemons with `UserName`, not user agents.** User agents only start after a GUI login, which never happens on a headless machine.
+- **Daemons use nix-darwin's `command`, not `ProgramArguments`.** `command` is wrapped in `/bin/wait4path /nix/store`. With Determinate Nix, `/nix` is a separate APFS volume that mounts after launchd loads the daemons. A daemon that points straight into `/nix/store` can fail at boot and stay down.
+- **`uvx --python 3.12` with uv-managed Python only.** Without it, uv may pick Apple's `/usr/bin/python3` (3.9), which current `mlx` and `transformers` don't support.
+- **`ThrottleInterval`:** a crashing `mlx_lm.server` restarts at most once a minute, so a model that doesn't fit isn't re-read from disk every 10 seconds.
 - **Tailscale runs as nix-darwin's `services.tailscale` (root daemon), not the GUI app.** The GUI app also needs a logged-in user.
 - **Power settings use nix-darwin options** (`power.sleep.*`, `power.restartAfterPowerFailure`, `networking.wakeOnLan`) instead of raw `pmset`.
 - **There is no `switch-model.sh`.** Rewriting the launchd plist imperatively fights nix-darwin, which overwrites it on the next switch. Two ways to switch models:
   - Permanently: change `my.aiServer.model`, then `just switch`.
-  - Ad hoc: `mlx_lm.server` loads the model named in a request's `model` field. To be verified on the machine: whether this also works through LiteLLM's `"*"` route.
+  - Several models at once: add one LiteLLM `model_list` entry per model with an explicit `model_name`. Switching through the request's `model` field does **not** work with the `"*"` route: LiteLLM's pattern router keeps `litellm_params.model` when it contains no `*`, so `mlx_lm.server` always gets the configured model (checked in the LiteLLM 1.106.2 source, `pattern_match_deployments.py`).
 
 ## Caveats
 
-- **FileVault stays off.** With FileVault on, a Mac that reboots after a power cut stops at the pre-boot unlock screen, and services and SSH stay down until someone types the password at the machine. Unattended recovery wins for this machine. nix-darwin cannot manage FileVault, so make sure it's off during macOS setup (`fdesetup status`). The consequence is that the disk is unencrypted at rest. Keep no long-lived secrets on `amst` beyond what it needs: no personal SSH keys that unlock other machines, no cloud credentials. Use a Hugging Face token only if gated models require one.
+- **FileVault stays off.** With FileVault on, a Mac that reboots after a power cut stops at the pre-boot unlock screen, and services and SSH stay down until someone types the password at the machine. Unattended recovery wins for this machine. nix-darwin cannot manage FileVault, so make sure it's off during macOS setup (`fdesetup status`). The consequence is that the disk is unencrypted at rest. Whoever has the disk has:
+  - the **Tailscale node key** (in tailscaled's state directory): a working device in your tailnet. Mitigate with key expiry on and a tagged node with a restrictive ACL;
+  - the **LiteLLM master key**: only useful from inside the tailnet;
+  - a **Hugging Face token**, if one is stored in `~/.cache/huggingface/token`. Use one only if gated models require it.
+
+  Keep nothing else long-lived on `amst`: no personal SSH keys that unlock other machines, no cloud credentials. With macOS 26 on Apple silicon, FileVault can be unlocked over SSH from the LAN after a reboot; see the setup guide for the trade-off.
 - `amst` imports only `modules/macos` (base) and `ai-server`, not `modules/macos/desktop`: no GUI casks, UI defaults, fonts or App Store apps.
 - `uvx` downloads mlx-lm from PyPI on the first start. The model downloads from Hugging Face on the first start or request, which can take a long time for 100+ GB.
 
@@ -74,7 +84,7 @@ Alternative: **OpenRouter** offers an Anthropic-compatible endpoint (`ANTHROPIC_
 - **allow**: `Read`, `Glob`, `Grep`, `git status/diff/log/show`, `ls`
 - **ask**: `Edit`, `Write`, `git commit/push`, `rm`, `mv`
 - **deny**: `sudo`, `su`, `chmod`, `chown`, `sysctl`, `launchctl`, `pmset`, `diskutil`, `rm -rf`, force push, `reset --hard`, `curl`, `wget`; reading `.env*`, `*.pem`, `~/.ssh`, `~/.aws`, `~/.gnupg`, sops keys; editing its own `settings.json`
-- **PreToolUse hook** (`guard-bash.sh`): permission rules only match the *start* of a command. The hook catches `ls; sudo x`, `echo $(curl …)`, `… | bash`, `bash -c`, `eval`, `env X=1 sudo`, `rm -r -f`, and similar. Exit code 2 blocks the call.
+- **PreToolUse hook** (`guard-bash.sh`): permission rules only match the *start* of a command. The hook catches `ls; sudo x`, `echo $(curl …)`, `/usr/bin/sudo`, `"sudo"`, `find -exec sudo`, `… | bash`, `… | python3`, `bash -c`, `python3 -c`, `osascript -e`, `eval`, `ssh`, `env X=1 sudo`, `rm -r -f`, and similar. Exit code 2 blocks the call.
 
 Limits: the hook is regex-based defense in depth, not a sandbox. Base64, variables and generated scripts get past it. For real isolation, also turn on Claude Code's sandbox (`sandbox.enabled`).
 

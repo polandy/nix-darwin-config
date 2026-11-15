@@ -7,17 +7,33 @@ let
   cfg = config.my.aiClient;
 in
 {
-  options.my.aiClient.url = lib.mkOption {
-    type = lib.types.str;
-    example = "https://amst.tail1234.ts.net";
-    description = "HTTPS URL of the AI server's proxy, as shown by `tailscale serve status` on amst.";
+  options.my.aiClient = {
+    url = lib.mkOption {
+      type = lib.types.str;
+      example = "https://amst.tail1234.ts.net";
+      description = "HTTPS URL of the AI server's proxy, as shown by `tailscale serve status` on amst.";
+    };
+    tokenFile = lib.mkOption {
+      type = lib.types.str;
+      default = "${config.home.homeDirectory}/.config/ai-client/token";
+      description = ''
+        File with the LiteLLM master key from amst
+        (~/.config/ai-server/litellm-master-key there). Can also be a sops secret path.
+      '';
+    };
   };
 
   config.programs.fish.functions.claude-local = {
     description = "Claude Code against the local AI server";
-    # LiteLLM runs without a master key, but Claude Code needs some token.
     body = ''
-      ANTHROPIC_BASE_URL=${cfg.url} ANTHROPIC_AUTH_TOKEN=dummy ANTHROPIC_API_KEY= claude $argv
+      if not test -r ${lib.escapeShellArg cfg.tokenFile}
+        echo "claude-local: token file ${cfg.tokenFile} missing, see docs/user/ai-server-setup.md" >&2
+        return 1
+      end
+      set -lx ANTHROPIC_BASE_URL ${lib.escapeShellArg cfg.url}
+      set -lx ANTHROPIC_AUTH_TOKEN (cat ${lib.escapeShellArg cfg.tokenFile})
+      set -lx ANTHROPIC_API_KEY ""
+      claude $argv
     '';
   };
 }

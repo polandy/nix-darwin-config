@@ -9,6 +9,10 @@ let
   user = config.system.primaryUser;
   home = config.users.users.${user}.home;
 
+  # Generated on the server by the activation script below, never in the repo.
+  # Clients send it as ANTHROPIC_AUTH_TOKEN (see modules/home-manager/generic/ai-client.nix).
+  masterKeyFile = "${home}/.config/ai-server/litellm-master-key";
+
   # Claude Code speaks the Anthropic Messages API, mlx_lm.server speaks the OpenAI
   # API. LiteLLM translates between them; "*" routes every model name Claude Code
   # asks for (claude-sonnet-..., claude-haiku-...) to the one local model.
@@ -24,14 +28,31 @@ let
     litellm_settings.drop_params = true;
   };
 
+  # LiteLLM reads LITELLM_MASTER_KEY from the environment; launchd cannot read
+  # an env file, so a small wrapper does.
+  litellmStart = pkgs.writeShellScript "litellm-start" ''
+    LITELLM_MASTER_KEY=$(cat ${lib.escapeShellArg masterKeyFile})
+    export LITELLM_MASTER_KEY
+    exec ${lib.escapeShellArgs [
+      "${pkgs.litellm}/bin/litellm"
+      "--config"
+      "${litellmConfig}"
+      "--host"
+      cfg.proxy.host
+      "--port"
+      (toString cfg.proxy.port)
+    ]}
+  '';
+
   checkScript = pkgs.writeShellApplication {
     name = "ai-server-check";
-    runtimeInputs = [ pkgs.curl pkgs.jq pkgs.gnugrep config.services.tailscale.package ];
+    runtimeInputs = [ pkgs.coreutils pkgs.curl pkgs.jq pkgs.gnugrep config.services.tailscale.package ];
     runtimeEnv = {
       GPU_WIRED_LIMIT_MB = toString cfg.gpuWiredLimitMb;
       MLX_PORT = toString cfg.mlx.port;
       PROXY_PORT = toString cfg.proxy.port;
       MODEL = cfg.model;
+      MASTER_KEY_FILE = masterKeyFile;
     };
     text = builtins.readFile ./check.sh;
   };
@@ -79,8 +100,9 @@ in
     };
 
     proxy = {
-      # Loopback only: neither server has authentication. Expose it on the
-      # tailnet with `tailscale serve` (see docs/dev/ai-server.md).
+      # Loopback only: mlx_lm.server has no authentication, LiteLLM checks the
+      # master key. Expose LiteLLM on the tailnet with `tailscale serve`
+      # (see docs/dev/ai-server.md).
       host = lib.mkOption {
         type = lib.types.str;
         default = "127.0.0.1";
@@ -112,8 +134,20 @@ in
 
     environment.systemPackages = [ pkgs.uv pkgs.litellm checkScript ];
 
+    # Runs as root before launchd (re)loads the daemons, so the key exists when
+    # LiteLLM starts. Only created once; delete the file to rotate the key.
+    system.activationScripts.extraActivation.text = ''
+      if [ ! -s ${lib.escapeShellArg masterKeyFile} ]; then
+        echo "creating LiteLLM master key..." >&2
+        install -d -m 700 -o ${user} -g staff ${lib.escapeShellArg (builtins.dirOf masterKeyFile)}
+        (umask 077; printf 'sk-%s\n' "$(/usr/bin/openssl rand -hex 24)" > ${lib.escapeShellArg masterKeyFile})
+        chown ${user}:staff ${lib.escapeShellArg masterKeyFile}
+      fi
+    '';
+
     # System daemons rather than user agents: user agents only start on a GUI
-    # login, daemons start at boot.
+    # login, daemons start at boot. `command` (not ProgramArguments) makes
+    # nix-darwin wait for the /nix volume, which mounts after launchd loads them.
     launchd.daemons = {
       # sysctl values are not persistent, so reapply at every boot.
       gpu-wired-limit.serviceConfig = {
@@ -121,10 +155,13 @@ in
         RunAtLoad = true;
       };
 
-      mlx-server.serviceConfig = {
-        UserName = user;
-        ProgramArguments = [
+      mlx-server = {
+        # --python: without it uv may pick Apple's /usr/bin/python3 (3.9), which
+        # current mlx and transformers no longer support.
+        command = lib.escapeShellArgs ([
           "${pkgs.uv}/bin/uvx"
+          "--python"
+          "3.12"
           "--from"
           "mlx-lm==${cfg.mlx.version}"
           "mlx_lm.server"
@@ -134,30 +171,34 @@ in
           "127.0.0.1"
           "--port"
           (toString cfg.mlx.port)
-        ] ++ cfg.mlx.extraArgs;
-        EnvironmentVariables.HOME = home;
-        KeepAlive = true;
-        RunAtLoad = true;
-        StandardOutPath = "${home}/Library/Logs/mlx-server.log";
-        StandardErrorPath = "${home}/Library/Logs/mlx-server.log";
+        ] ++ cfg.mlx.extraArgs);
+        environment = {
+          HOME = home;
+          UV_PYTHON_PREFERENCE = "only-managed";
+        };
+        serviceConfig = {
+          UserName = user;
+          KeepAlive = true;
+          RunAtLoad = true;
+          # Restart at most once a minute: a model that doesn't fit would
+          # otherwise be re-read from disk every 10 seconds.
+          ThrottleInterval = 60;
+          StandardOutPath = "${home}/Library/Logs/mlx-server.log";
+          StandardErrorPath = "${home}/Library/Logs/mlx-server.log";
+        };
       };
 
-      litellm.serviceConfig = {
-        UserName = user;
-        ProgramArguments = [
-          "${pkgs.litellm}/bin/litellm"
-          "--config"
-          "${litellmConfig}"
-          "--host"
-          cfg.proxy.host
-          "--port"
-          (toString cfg.proxy.port)
-        ];
-        EnvironmentVariables.HOME = home;
-        KeepAlive = true;
-        RunAtLoad = true;
-        StandardOutPath = "${home}/Library/Logs/litellm.log";
-        StandardErrorPath = "${home}/Library/Logs/litellm.log";
+      litellm = {
+        command = "${litellmStart}";
+        environment.HOME = home;
+        serviceConfig = {
+          UserName = user;
+          KeepAlive = true;
+          RunAtLoad = true;
+          ThrottleInterval = 30;
+          StandardOutPath = "${home}/Library/Logs/litellm.log";
+          StandardErrorPath = "${home}/Library/Logs/litellm.log";
+        };
       };
     };
   };

@@ -68,27 +68,32 @@ fi
 
 step "nix-darwin: first switch to .#$HOST (power, SSH, Tailscale, GPU limit, MLX + LiteLLM daemons)"
 # Also sets the hostname, so later updates work with plain `just switch`.
+# --inputs-from: use the nix-darwin revision from flake.lock, not the registry's.
 # If this aborts with "Unexpected files in /etc", follow the rename the error
 # message suggests and run the script again.
-sudo "$NIX" run nix-darwin -- switch --flake "$REPO_DIR#$HOST"
+sudo "$NIX" run --inputs-from "$REPO_DIR" nix-darwin -- switch --flake "$REPO_DIR#$HOST"
 export PATH=/run/current-system/sw/bin:$PATH
 
 step "Tailscale login"
-if tailscale status >/dev/null 2>&1; then
+if sudo tailscale status >/dev/null 2>&1; then
   skip "Tailscale is logged in"
 else
   echo "    Open the URL printed below and log in to your tailnet."
   sudo tailscale up
 fi
 
-proxy_port=$("$NIX" eval --raw "$REPO_DIR#darwinConfigurations.$HOST.config.my.aiServer.proxy.port")
+proxy_port=$("$NIX" eval --raw "$REPO_DIR#darwinConfigurations.$HOST.config.my.aiServer.proxy.port" --apply toString)
 step "Expose the LiteLLM proxy (:$proxy_port) on the tailnet with HTTPS"
-if tailscale serve status 2>/dev/null | grep -q "127.0.0.1:$proxy_port"; then
+if sudo tailscale serve status 2>/dev/null | grep -q "127.0.0.1:$proxy_port"; then
   skip "tailscale serve"
 else
   echo "    If Tailscale asks to enable HTTPS/Serve for the tailnet, open the URL and confirm."
   sudo tailscale serve --bg "$proxy_port"
 fi
+
+step "Client access"
+echo "    URL:   $(sudo tailscale serve status 2>/dev/null | grep -Eo 'https://[^ ]+' | head -1)"
+echo "    Token: ~/.config/ai-server/litellm-master-key (copy it to the dev machine, see the setup guide)"
 
 step "Health check"
 if ai-server-check; then

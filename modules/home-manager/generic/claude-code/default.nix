@@ -42,6 +42,7 @@ in
         ];
         deny = [
           "Bash(sudo:*)"
+          "Bash(/usr/bin/sudo:*)"
           "Bash(su:*)"
           "Bash(chmod:*)"
           "Bash(chown:*)"
@@ -54,6 +55,7 @@ in
           "Bash(git push -f:*)"
           "Bash(git reset --hard:*)"
           "Bash(curl:*)"
+          "Bash(/usr/bin/curl:*)"
           "Bash(wget:*)"
           "Read(**/.env)"
           "Read(**/.env.*)"
