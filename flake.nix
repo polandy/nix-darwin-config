@@ -23,6 +23,7 @@
       darwinConfigurations = {
         "ambp" = mkDarwin { host = "ambp"; };
         "amba" = mkDarwin { host = "amba"; };
+        "amst" = mkDarwin { host = "amst"; };
       };
 
       # Standalone home-manager for Linux hosts
