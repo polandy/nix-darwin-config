@@ -84,6 +84,7 @@ packages = [
   "firefox",
   "ffmpeg",
   "geeqie",
+  "herdr-bin",
   "kitty",
   "meld",
   "mpv",

@@ -9,6 +9,7 @@
     brews = [
       "ifstat" # sketchybar network widget
       "mas" # needed for masApps
+      "herdr"
     ];
     casks = [
       # AeroSpace must come from Homebrew, not nixpkgs: macOS ties the
