@@ -13,10 +13,10 @@ Personal Nix configuration managing Linux (standalone home-manager) and macOS (n
 | Category | Linux | macOS |
 |----------|-------|-------|
 | **Terminal** | [Alacritty](https://alacritty.org/) | [Alacritty](https://alacritty.org/) |
-| **Window Manager** | [Hyprland](https://hyprland.org/) — see [docs/hyprland.md](./docs/hyprland.md) | [AeroSpace](https://nikitabobko.github.io/AeroSpace/) — see [docs/aerospace.md](./docs/aerospace.md) |
-| **Status Bar** | [Waybar](https://github.com/Alexays/Waybar) | [Sketchybar](https://felixkratz.github.io/Sketchybar/) — see [docs/aerospace.md](./docs/aerospace.md) |
+| **Window Manager** | [Hyprland](https://hyprland.org/) — see [docs/user/hyprland.md](./docs/user/hyprland.md) | [AeroSpace](https://nikitabobko.github.io/AeroSpace/) — see [docs/user/aerospace.md](./docs/user/aerospace.md) |
+| **Status Bar** | [Waybar](https://github.com/Alexays/Waybar) | [Sketchybar](https://felixkratz.github.io/Sketchybar/) — see [docs/user/aerospace.md](./docs/user/aerospace.md) |
 | **App Launcher** | [Rofi](https://github.com/davatorium/rofi) | [Raycast](https://www.raycast.com/) |
-| **UI Polish** | — | [JankyBorders](https://github.com/FelixKratz/JankyBorders) — see [docs/aerospace.md](./docs/aerospace.md) |
+| **UI Polish** | — | [JankyBorders](https://github.com/FelixKratz/JankyBorders) — see [docs/user/aerospace.md](./docs/user/aerospace.md) |
 | **Container Runtime** | Docker | [Colima](https://github.com/abiosoft/colima) (Docker Desktop alternative) |
 | **Secrets** | [sops-nix](https://github.com/Mic92/sops-nix) | [sops-nix](https://github.com/Mic92/sops-nix) |
 
@@ -91,7 +91,7 @@ Linux hosts (x1, coolermaster) run Arch Linux with standalone home-manager. Syst
    just switch
    ```
 
-5. **Set up secrets** — see [docs/sops-nix.md](./docs/sops-nix.md) for age key setup.
+5. **Set up secrets** — see [docs/dev/sops-nix.md](./docs/dev/sops-nix.md) for age key setup.
 
 ---
 
@@ -131,9 +131,9 @@ Sensitive values (e.g. Syncthing device IDs) are encrypted with [sops-nix](https
 * At activation, sops-nix decrypts secrets to files under `/run/user/<uid>/secrets/` (or similar), owned by the relevant user
 * [Home Manager](https://github.com/nix-community/home-manager) modules consume secrets via `config.sops.secrets.<name>.path`
 
-For setup instructions and key management details, see [docs/sops-nix.md](./docs/sops-nix.md).
+For setup instructions and key management details, see [docs/dev/sops-nix.md](./docs/dev/sops-nix.md).
 
-For macOS-specific setup notes (fonts, TCC permissions, Colima, troubleshooting) see [docs/macos.md](./docs/macos.md).
+For macOS-specific setup notes (fonts, TCC permissions, Colima, troubleshooting) see [docs/user/macos.md](./docs/user/macos.md).
 
 ## License
 
