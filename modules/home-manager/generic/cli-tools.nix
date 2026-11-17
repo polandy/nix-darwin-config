@@ -3,8 +3,9 @@
 #
 # Only plain CLI tools without a `programs.<name>` module belong here. Tools
 # with a module (git, tmux, neovim, fzf, zoxide, eza, mise, ...) are enabled in
-# their own file. System-level, hardware, daemon and GUI packages on Arch stay
-# in metapac (see README "Package Management Strategy").
+# their own file. Linux-only CLI tools live in linux/cli-tools.nix.
+# System-level, hardware, daemon and GUI packages on Arch stay in metapac
+# (see README "Package Management Strategy").
 { pkgs, ... }:
 
 {
@@ -24,17 +25,13 @@
 
     # Dev
     gh
-    hugo
     sops
 
     # Archives
     p7zip
 
-    # Network & sync
-    aria2
-    rclone
+    # Backup
     restic
-    yt-dlp
 
     # Media
     imagemagick
