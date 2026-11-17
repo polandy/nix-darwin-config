@@ -26,7 +26,7 @@ On Arch Linux, two package managers coexist:
 
 | Manager | What goes here |
 |---------|---------------|
-| **home-manager** (this repo) | All configuration, plus portable CLI tools from nixpkgs — via `programs.*` modules (config + package), [`generic/cli-tools.nix`](./modules/home-manager/generic/cli-tools.nix) for CLI tools without a module (shared with macOS), and `xdg.configFile`/`home.file` for config of apps installed elsewhere |
+| **home-manager** (this repo) | All configuration, plus portable CLI tools from nixpkgs — via `programs.*` modules (config + package), [`generic/cli-tools.nix`](./modules/home-manager/generic/cli-tools.nix) for CLI tools without a module (shared with macOS; Linux-only ones in [`linux/cli-tools.nix`](./modules/home-manager/linux/cli-tools.nix)), and `xdg.configFile`/`home.file` for config of apps installed elsewhere |
 | **yay/metapac** (config in [`modules/home-manager/linux/metapac/`](./modules/home-manager/linux/metapac/), deployed by home-manager; run `metapac sync` on the host) | Everything that touches the system or needs a GPU — kernel, firmware, bootloader, drivers, daemons (docker, NetworkManager, bluez, pipewire, cups), the Wayland/Hyprland stack, GUI apps, fonts, themes, AUR packages, and root/network utilities (`vim`, `wget`, `bind`, `mosh`, ...) |
 
 **Rule:** A pure user-level CLI tool comes from nixpkgs: use its `programs.<name>` module if one exists, otherwise add it to `generic/cli-tools.nix`. Anything with systemd/PAM/udev integration, OpenGL/Vulkan, or a pacman hook stays in metapac, with its config files managed by `xdg.configFile` in this repo (writable app state such as databases stays unmanaged in `~/.config`). A package is never listed in both.
