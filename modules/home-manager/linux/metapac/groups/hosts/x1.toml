@@ -3,6 +3,7 @@ packages = [
   "grub",
   "grub-btrfs",
 
+  # Drivers for HP DeskJet, OfficeJet, Photosmart, Business Inkjet and some LaserJet
   "hplip",
 
   "intel-media-driver",
@@ -14,5 +15,6 @@ packages = [
   "vulkan-intel",
   "wireguard-tools",
 
+  # driver which allows to use the fingeprint reader as usual using fprintd
   "python-validity",
 ]
