@@ -1,6 +1,5 @@
-# CLI tools from nixpkgs for the personal machines only (amba, x1, coolermaster),
-# not the work laptop (ambp). Not part of generic/default.nix: personal hosts
-# import it explicitly. Tools for every host live in generic/cli-tools.nix.
+# CLI tools from nixpkgs for personal machines only, not work machines.
+# Not part of generic/default.nix: personal hosts import it explicitly.
 { pkgs, ... }:
 
 {
