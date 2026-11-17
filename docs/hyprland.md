@@ -52,3 +52,9 @@ autostart in Hyprland — candidates for a binding or for removal:
 
 `playerctl` is bound to the media keys but only installed as a dependency, not
 listed in any metapac group.
+
+## Host-specific config
+
+The Hyprland config is shared by all Linux hosts. A host can add to or override it with a
+`hosts/<host>/hyprland.lua`, which its `home.nix` deploys as `~/.config/hypr/host.lua`; the shared
+`hyprland.lua` loads that file last if it exists. coolermaster uses it for the NVIDIA environment.

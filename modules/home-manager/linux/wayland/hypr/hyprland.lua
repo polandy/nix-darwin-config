@@ -18,13 +18,7 @@ local fileManager = "thunar"
 -- Environment variables
 hl.env("XCURSOR_SIZE", "24")
 hl.env("QT_QPA_PLATFORMTHEME", "qt6ct")
-
--- NVIDIA
-hl.env("LIBVA_DRIVER_NAME", "nvidia")
 hl.env("XDG_SESSION_TYPE", "wayland")
-hl.env("GBM_BACKEND", "nvidia-drm")
-hl.env("__GLX_VENDOR_LIBRARY_NAME", "nvidia")
-hl.env("WLR_NO_HARDWARE_CURSORS", "1")
 
 -- Autostart
 hl.on("hyprland.start", function()
@@ -382,3 +376,14 @@ bind(mod, "T", hl.dsp.submap("thinkpad"))
 hl.define_submap("thinkpad", function()
     bind("", "Escape", hl.dsp.submap("reset"))
 end)
+
+-- ─── Host overrides ───────────────────────────────────────────────────────────
+
+-- hosts/<host>/home.nix may deploy a host.lua next to this file (e.g. NVIDIA env on coolermaster).
+-- Loaded last, so it can add to or override anything above.
+local hostConfig = (os.getenv("XDG_CONFIG_HOME") or (os.getenv("HOME") .. "/.config")) .. "/hypr/host.lua"
+local f = io.open(hostConfig, "r")
+if f then
+    f:close()
+    dofile(hostConfig)
+end
