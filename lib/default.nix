@@ -1,6 +1,6 @@
 { inputs }:
 let
-  inherit (inputs) self nixpkgs nix-darwin home-manager sops-nix;
+  inherit (inputs) self nixpkgs nix-darwin home-manager sops-nix system-manager;
 in
 {
   mkDarwin = { host, system ? "aarch64-darwin", modules ? [ ] }:
@@ -23,6 +23,14 @@ in
       modules = [
         (self + "/hosts/${host}/home.nix")
         sops-nix.homeManagerModules.sops
+      ] ++ modules;
+    };
+
+  mkSystem = { host, system ? "x86_64-linux", modules ? [ ] }:
+    system-manager.lib.makeSystemConfig {
+      modules = [
+        (self + "/hosts/${host}/system.nix")
+        { nixpkgs.hostPlatform = system; }
       ] ++ modules;
     };
 }

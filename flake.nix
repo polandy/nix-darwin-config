@@ -9,12 +9,14 @@
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
     sops-nix.url = "github:Mic92/sops-nix";
     sops-nix.inputs.nixpkgs.follows = "nixpkgs";
+    system-manager.url = "github:numtide/system-manager";
+    system-manager.inputs.nixpkgs.follows = "nixpkgs";
   };
 
   outputs = inputs@{ self, nix-darwin, nixpkgs, home-manager, sops-nix, ... }:
     let
       myLib = import ./lib { inherit inputs; };
-      inherit (myLib) mkDarwin mkHome;
+      inherit (myLib) mkDarwin mkHome mkSystem;
       darwinSystem = "aarch64-darwin";
       pkgsFor = system: nixpkgs.legacyPackages.${system};
     in
@@ -27,6 +29,11 @@
       homeConfigurations = {
         "andy@x1" = mkHome { host = "x1"; };
         "andy@coolermaster" = mkHome { host = "coolermaster"; };
+      };
+
+      systemConfigs = {
+        "x1" = mkSystem { host = "x1"; };
+        "coolermaster" = mkSystem { host = "coolermaster"; };
       };
 
       formatter = {

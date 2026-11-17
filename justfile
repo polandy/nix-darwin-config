@@ -9,6 +9,7 @@ switch:
     if [[ "$(uname)" == "Darwin" ]]; then
       sudo darwin-rebuild switch --flake ".#$(hostname -s)"
     else
+      nix run --inputs-from . system-manager -- switch --flake ".#$(hostname -s)" --sudo
       home-manager switch --flake ".#andy@$(hostname -s)"
     fi
 
