@@ -1,7 +1,10 @@
 { ... }:
 
 {
-  imports = [ ../../modules/system-manager ];
+  imports = [
+    ../../modules/system-manager
+    ./ollama-firewall.nix
+  ];
 
   environment.etc."sddm.conf.d/autologin.conf".text = ''
     [Autologin]
