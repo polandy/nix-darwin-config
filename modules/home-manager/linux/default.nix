@@ -2,7 +2,7 @@
   imports = [
     ./bash.nix
     ./beets
-    ./cli-tools.nix
+    ../generic/personal-cli-tools.nix
     ./darktable
     ./digikam
     ./gtk.nix
