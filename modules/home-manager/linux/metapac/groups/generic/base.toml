@@ -22,7 +22,6 @@ packages = [
   "metapac",
   "nfs-utils",
   "nano",
-  "sops",
   "net-tools",
   "ntp",
   "nvme-cli",
@@ -46,35 +45,13 @@ packages = [
   "wireless_tools",
   "yay",
   "zram-generator",
-
-  "neovim",
   "lua-fzy",
 
-  # CLI tools
-  "aria2",
-  "bat",
+  # CLI tools that stay on Arch: system/network utilities used by root or
+  # remote logins (mosh-server must be on the system PATH). Portable CLI tools
+  # come from nixpkgs via modules/home-manager/generic/cli-tools.nix.
   "bind",
-  "dust",
-  "eza",
-  "fd",
-  "fzf",
-  "github-cli",
-  "htop",
-  "hugo",
-  "imagemagick",
-  "jq",
-  "just",
   "mc",
   "mosh",
-  "ncdu",
-  "7zip",
-  "rclone",
-  "restic",
-  "ripgrep",
   "rsync",
-  "tmux",
-  "tree",
-  "vivid",
-  "yt-dlp",
-  "zoxide",
 ]

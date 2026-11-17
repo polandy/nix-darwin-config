@@ -1,5 +1,4 @@
 [arch]
 packages = [
-  "mise",
   "intellij-idea-ultimate-edition"
 ]

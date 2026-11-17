@@ -11,4 +11,4 @@ ERR from start-hyprland]: Nix environment check failed:
 Hyprland was installed using Nix, but you're not on NixOS. This requires nixGL to be installed as well.
 ```
 
-**Fix:** Do not install `hyprland`, `hyprlock`, or `hypridle` via home-manager on this host. They are managed as system packages via metapac (`~/.dotfiles/config/metapac/groups/generic/wayland.toml`). Home-manager only manages their config files.
+**Fix:** Do not install `hyprland`, `hyprlock`, or `hypridle` via home-manager on this host. They are managed as system packages via metapac (`modules/home-manager/linux/metapac/groups/generic/wayland.toml`). Home-manager only manages their config files.
