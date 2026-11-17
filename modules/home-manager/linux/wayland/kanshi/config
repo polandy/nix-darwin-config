@@ -1,29 +1,18 @@
-# kanshi monitor profile configuration
-# See https://sr.ht/~emersion/kanshi/
-#
-# Run `kanshi` after logging into Hyprland.
-# Use `nwg-displays` or `wlr-randr` to discover output names,
-# then add named profiles below.
-#
-# kanshi picks the first profile matching the connected outputs, so the most
-# specific profiles come first.
+# First matching profile wins, so the most specific come first.
 
-# Laptop + external monitor: laptop on the left (2048 = 2560 / 1.25 scale)
+# 2048 = 2560 / 1.25 scale
 profile docked {
     output eDP-1 enable position 0,0
     output * enable position 2048,0
 }
 
-# Lid closed with an external monitor; never auto-selected because "docked"
-# matches first. Hyprland's lid switch bind runs `kanshictl switch clamshell`
-# (or clamshell-dual).
+# Never auto-selected ("docked" matches first); switched to via `kanshictl` on lid close
 profile clamshell {
     output eDP-1 disable
     output * enable position 0,0
 }
 
-# Laptop + BenQ + a second external monitor (e.g. via HDMI): laptop left, BenQ in
-# the middle (3072 = 3840 / 1.25 scale), the other monitor on the right
+# 3072 = 3840 / 1.25 scale
 profile docked-dual {
     output eDP-1 enable position 0,0
     output "BNQ BenQ PD3220U A1M00013019" enable position 2048,0

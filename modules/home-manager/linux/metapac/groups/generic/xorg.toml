@@ -46,9 +46,7 @@ packages = [
   "xfce4-weather-plugin",
   "xfce4-whiskermenu-plugin",
   "xfce4-xkb-plugin",
-  # D-Bus-based configuration storage system
   "xfconf",
-  # Xfce's desktop manager
   "xfdesktop",
   "xfwm4",
   "xfwm4-themes",
@@ -82,7 +80,6 @@ packages = [
   "xorg-xwd",
   "xorg-xwininfo",
   "xorg-xwud",
-  # Command-line program for getting and setting the contents of the X selection
   "xsel",
   "xterm",
   "xdg-utils"

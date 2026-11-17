@@ -1,15 +1,13 @@
 { pkgs, ... }:
 
 {
-  # List packages installed in system profile. To search by name, run:
-  # $ nix-env -qaP | grep wget
   environment.systemPackages = [
-    pkgs.coreutils # gnu core utilities
+    pkgs.coreutils
     pkgs.git
     pkgs.findutils
     pkgs.gnused
     pkgs.mas
-    pkgs.unrar # RAR5-Support; extract-Funktion nutzt `unrar x`
+    pkgs.unrar # RAR5; extract nutzt `unrar x`
     pkgs.unixtools.watch
     pkgs.wget
 

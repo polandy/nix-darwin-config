@@ -10,7 +10,7 @@
     settings.folders."logseq-private" = {
       path = "/Users/andy/Syncthing/logseq-private";
       ignorePerms = false;
-      # devices intentionally omitted — configured via activation script
+      # devices are configured via activation script
     };
   };
 

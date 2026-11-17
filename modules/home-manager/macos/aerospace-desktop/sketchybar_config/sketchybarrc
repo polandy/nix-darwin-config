@@ -1,19 +1,15 @@
 #!/bin/bash
 
-# Load colors and icons
 source "$CONFIG_DIR/colors.sh"
 source "$CONFIG_DIR/icons.sh"
 
-# Variable definitions
 PLUGIN_DIR="$CONFIG_DIR/plugins"
 ITEM_DIR="$CONFIG_DIR/items"
 
-# Font configuration
 FONT="SF Pro Text"
 ICON_FONT="Hack Nerd Font"
 APP_FONT="sketchybar-app-font"
 
-# Global bar configuration
 sketchybar --bar height=33 \
   y_offset=0 \
   margin=0 \
@@ -25,7 +21,6 @@ sketchybar --bar height=33 \
   sticky=on \
   topmost=window
 
-# Default item configuration
 sketchybar --default icon.font="$ICON_FONT:Regular:14.0" \
   icon.color=$WHITE \
   label.font="$FONT:Semibold:13.0" \
@@ -35,13 +30,9 @@ sketchybar --default icon.font="$ICON_FONT:Regular:14.0" \
   label.padding_left=3 \
   label.padding_right=3
 
-##### Space / Workspace Items #####
-# Register AeroSpace workspace change event (required before subscribing items)
 sketchybar --add event aerospace_workspace_change
 
-# Using AeroSpace workspaces. The display assignment is a placeholder here;
-# plugins/workspace_display.sh (called below) maps each item onto the physical
-# display its workspace lives on.
+# display=1 is a placeholder; workspace_display.sh remaps it.
 for sid in 1 2 3 4 5 6 7 8 9 10 11; do
   sketchybar --add item space.$sid left \
     --subscribe space.$sid aerospace_workspace_change \
@@ -60,7 +51,6 @@ for sid in 1 2 3 4 5 6 7 8 9 10 11; do
     script="$PLUGIN_DIR/aerospace.sh $sid"
 done
 
-##### Left Items (app context) #####
 sketchybar --add item separator left \
   --set separator icon=$CHEVRON \
   icon.color=$GREY \
@@ -73,7 +63,6 @@ sketchybar --add item separator left \
   script="$PLUGIN_DIR/front_app.sh" \
   --subscribe front_app front_app_switched
 
-##### Right Items #####
 source $ITEM_DIR/clock.sh
 source $ITEM_DIR/battery.sh
 source $ITEM_DIR/volume.sh
@@ -83,16 +72,14 @@ source $ITEM_DIR/disk.sh
 source $ITEM_DIR/wifi.sh
 source $ITEM_DIR/vpn.sh
 source $ITEM_DIR/teams.sh
-# network is sourced last so it appears closest to the notch on the right side
+# network last: closest to the notch
 source $ITEM_DIR/network.sh
 
-##### Display Change Handler #####
 sketchybar --add item display_watcher center \
   --set display_watcher drawing=off \
                script="$PLUGIN_DIR/display_change.sh" \
   --subscribe display_watcher display_change
 
-# Map workspace items onto the displays their AeroSpace workspaces live on
 "$PLUGIN_DIR/workspace_display.sh"
 
 sketchybar --update

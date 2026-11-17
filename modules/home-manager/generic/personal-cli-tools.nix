@@ -1,4 +1,3 @@
-# Imported per host, not via generic/default.nix.
 { pkgs, ... }:
 
 {

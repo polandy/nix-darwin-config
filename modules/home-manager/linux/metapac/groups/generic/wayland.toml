@@ -1,16 +1,13 @@
 [arch]
 packages = [
-  # hyprland
   "grimblast-git",
   "hypridle",
   "hyprland",
   "hyprlock",
   "hyprswitch",
   "uwsm",
-  # run X clients under wayland
   "xorg-xwayland",
 
-  # wayland tools
   "awww",
   "brightnessctl",
   "cava",

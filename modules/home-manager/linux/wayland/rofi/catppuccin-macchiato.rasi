@@ -1,5 +1,3 @@
-/* Catppuccin Macchiato — matches waybar/dunst/hyprland */
-
 * {
   base:     #24273ae6;
   mantle:   #1e2030;

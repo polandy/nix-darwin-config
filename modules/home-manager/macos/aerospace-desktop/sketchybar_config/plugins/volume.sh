@@ -18,7 +18,7 @@ update_display() {
 
 if [ "$SENDER" = "mouse.scrolled" ]; then
   CURRENT=$(osascript -e "output volume of (get volume settings)")
-  # SCROLL_DELTA is negative when scrolling up (increase) on macOS
+  # SCROLL_DELTA is negative when scrolling up on macOS
   if [ "$SCROLL_DELTA" -lt 0 ]; then
     NEW=$(( CURRENT + 5 ))
   else

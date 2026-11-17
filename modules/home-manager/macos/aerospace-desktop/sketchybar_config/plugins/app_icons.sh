@@ -1,8 +1,5 @@
 #!/usr/bin/env bash
 
-# This script uses the 'sketchybar-app-font' to provide icons.
-# https://github.com/kvndrsslr/sketchybar-app-font
-
 function get_app_icon {
   case "$1" in
     "Alacritty") echo ":terminal:" ;;

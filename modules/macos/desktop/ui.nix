@@ -8,8 +8,7 @@
       };
       controlcenter.BatteryShowPercentage = true;
       spaces = {
-        # one space spans across all physical displays. suggested for aerospace.
-        spans-displays = true;
+        spans-displays = true; # recommended by AeroSpace
       };
       WindowManager = {
         EnableStandardClickToShowDesktop = false;

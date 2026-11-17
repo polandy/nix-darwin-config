@@ -76,7 +76,6 @@ packages = [
   "xdg-user-dirs",
   "xarchiver",
 
-  # apps
   "alacritty",
   "android-tools",
   "chromium",

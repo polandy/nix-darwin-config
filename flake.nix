@@ -19,13 +19,11 @@
       pkgsFor = system: nixpkgs.legacyPackages.${system};
     in
     {
-      # $ darwin-rebuild build --flake .#ambp
       darwinConfigurations = {
         "ambp" = mkDarwin { host = "ambp"; };
         "amba" = mkDarwin { host = "amba"; };
       };
 
-      # Standalone home-manager for Linux hosts
       homeConfigurations = {
         "andy@x1" = mkHome { host = "x1"; };
         "andy@coolermaster" = mkHome { host = "coolermaster"; };

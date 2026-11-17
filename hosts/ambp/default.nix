@@ -11,7 +11,7 @@
     ./mas-apps.nix
   ];
 
-  # Hostname matches the flake config name, so `just switch` can derive it via `hostname -s`
+  # Must match the flake config name (`just switch` uses hostname -s)
   networking.hostName = "ambp";
   networking.localHostName = "ambp";
 
