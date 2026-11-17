@@ -12,9 +12,9 @@
     Session=hyprland
   '';
 
-  # Stationary host: always use the home DNS server, never the router's
-  environment.etc."NetworkManager/conf.d/dns.conf".text = ''
-    [global-dns-domain-*]
-    servers=<home-dns-ip>
-  '';
+  # Stationary host: always use the home DNS server, never the router's.
+  # The LAN address stays out of this public repo, so the file is host-local:
+  # /etc/NetworkManager/conf.d/dns-local.conf containing
+  #   [global-dns-domain-*]
+  #   servers=<home-dns-ip>
 }
