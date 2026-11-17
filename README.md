@@ -22,12 +22,13 @@ Personal Nix configuration managing Linux (standalone home-manager) and macOS (n
 
 ## Package Management Strategy (Linux)
 
-On Arch Linux, two package managers coexist:
+On Arch Linux, three tools share the work:
 
 | Manager | What goes here |
 |---------|---------------|
 | **home-manager** (this repo) | All configuration, plus portable CLI tools from nixpkgs — via `programs.*` modules (config + package), [`generic/cli-tools.nix`](./modules/home-manager/generic/cli-tools.nix) for CLI tools without a module (shared with macOS; tools not wanted on work machines in [`generic/personal-cli-tools.nix`](./modules/home-manager/generic/personal-cli-tools.nix), imported per host), and `xdg.configFile`/`home.file` for config of apps installed elsewhere |
 | **yay/metapac** (config in [`modules/home-manager/linux/metapac/`](./modules/home-manager/linux/metapac/), deployed by home-manager; run `metapac sync` on the host) | Everything that touches the system or needs a GPU — kernel, firmware, bootloader, drivers, system daemons, the Wayland stack, GUI apps, fonts, themes, AUR packages, and utilities that root or remote logins need on the system PATH |
+| **[system-manager](https://github.com/numtide/system-manager)** (config in [`modules/system-manager/`](./modules/system-manager/)) | Root-owned files in `/etc` and system services; applied by `just switch` (needs sudo) |
 
 **Rule:** A pure user-level CLI tool comes from nixpkgs: use its `programs.<name>` module if one exists, otherwise add it to `generic/cli-tools.nix`. Anything with systemd/PAM/udev integration, OpenGL/Vulkan, or a pacman hook stays in metapac, with its config files managed by `xdg.configFile` in this repo (writable app state such as databases stays unmanaged in `~/.config`). A package is never listed in both.
 
