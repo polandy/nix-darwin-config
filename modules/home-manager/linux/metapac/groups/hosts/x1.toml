@@ -17,4 +17,7 @@ packages = [
 
   # driver which allows to use the fingeprint reader as usual using fprintd
   "python-validity",
+
+  # streaming client for the desktop (Sunshine runs on coolermaster)
+  "moonlight-qt",
 ]

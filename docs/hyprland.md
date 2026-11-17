@@ -58,3 +58,22 @@ listed in any metapac group.
 The Hyprland config is shared by all Linux hosts. A host can add to or override it with a
 `hosts/<host>/hyprland.lua`, which its `home.nix` deploys as `~/.config/hypr/host.lua`; the shared
 `hyprland.lua` loads that file last if it exists. coolermaster uses it for the NVIDIA environment.
+
+## Laptop as frontend for the desktop (Sunshine + Moonlight)
+
+coolermaster runs [Sunshine](https://github.com/LizardByte/Sunshine) (`sunshine-git`, user unit
+enabled by `hosts/coolermaster/home.nix`), x1 runs [Moonlight](https://moonlight-stream.org/)
+(`moonlight-qt`).
+
+One-time setup:
+
+1. coolermaster: `systemctl --user start app-dev.lizardbyte.app.Sunshine.service`, set credentials in
+   the web UI at <https://localhost:47990>. KMS capture needs `sudo setcap cap_sys_admin+p /usr/bin/sunshine`
+   (lost on package updates).
+2. x1: add coolermaster in Moonlight and enter the PIN in the Sunshine web UI.
+3. Moonlight settings: *Capture system keyboard shortcuts* → *in fullscreen*.
+
+Keybindings: in fullscreen Moonlight inhibits the x1's shortcuts, so `Super + …` goes to
+coolermaster. `Ctrl + Alt + Shift + Z` releases keyboard and mouse back to x1, `Ctrl + Alt + Shift + Q`
+quits the stream. Volume, media, brightness and lid binds are marked `dont_inhibit` and always act
+on x1.

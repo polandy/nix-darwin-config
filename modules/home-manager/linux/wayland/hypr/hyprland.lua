@@ -244,21 +244,25 @@ bind(mod, "mouse_up",   hl.dsp.focus({ workspace = "e-1" }))
 bind(mod, "mouse:272", hl.dsp.window.drag(),   { mouse = true })
 bind(mod, "mouse:273", hl.dsp.window.resize(), { mouse = true })
 
+-- Hardware keys stay local even while a fullscreen app (Moonlight streaming another host) inhibits
+-- shortcuts: all other binds then go to the remote desktop, Ctrl+Alt+Shift+Z releases them.
+local noInhibit = { dont_inhibit = true }
+
 -- Volume
-bind("",  "XF86AudioRaiseVolume", exec("wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%+"))
-bind("",  "XF86AudioLowerVolume", exec("wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%-"))
-bind("",  "XF86AudioMute",        exec("wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle"))
+bind("",  "XF86AudioRaiseVolume", exec("wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%+"), noInhibit)
+bind("",  "XF86AudioLowerVolume", exec("wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%-"), noInhibit)
+bind("",  "XF86AudioMute",        exec("wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle"), noInhibit)
 bind(mod, "XF86AudioMute",        exec("pavucontrol"))
 
 -- Media
-bind("", "XF86AudioPlay",  exec("playerctl play-pause"))
-bind("", "XF86AudioPause", exec("playerctl play-pause"))
-bind("", "XF86AudioNext",  exec("playerctl next"))
-bind("", "XF86AudioPrev",  exec("playerctl previous"))
+bind("", "XF86AudioPlay",  exec("playerctl play-pause"), noInhibit)
+bind("", "XF86AudioPause", exec("playerctl play-pause"), noInhibit)
+bind("", "XF86AudioNext",  exec("playerctl next"), noInhibit)
+bind("", "XF86AudioPrev",  exec("playerctl previous"), noInhibit)
 
 -- Brightness
-bind("", "XF86MonBrightnessUp",   exec("brightnessctl set +5%"))
-bind("", "XF86MonBrightnessDown", exec("brightnessctl set 5%-"))
+bind("", "XF86MonBrightnessUp",   exec("brightnessctl set +5%"), noInhibit)
+bind("", "XF86MonBrightnessDown", exec("brightnessctl set 5%-"), noInhibit)
 
 -- Display / monitor management
 bind("",  "XF86Display", exec("nwg-displays"))
@@ -268,8 +272,8 @@ bind(mod, "M",           exec("kanshictl reload"))
 -- the lid switches kanshi profiles. "clamshell" only matches with one external monitor connected,
 -- "clamshell-dual" with two; reloading lets kanshi pick the first matching profile again.
 local clamshell = "kanshictl switch clamshell || kanshictl switch clamshell-dual"
-bind("", "switch:on:Lid Switch",  exec(clamshell),           { locked = true })
-bind("", "switch:off:Lid Switch", exec("kanshictl reload"), { locked = true })
+bind("", "switch:on:Lid Switch",  exec(clamshell),           { locked = true, dont_inhibit = true })
+bind("", "switch:off:Lid Switch", exec("kanshictl reload"), { locked = true, dont_inhibit = true })
 
 -- Switch binds only fire on change, so apply a lid closed at login too (once kanshi is up)
 hl.on("hyprland.start", function()
