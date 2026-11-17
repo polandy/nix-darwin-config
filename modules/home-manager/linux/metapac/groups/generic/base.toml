@@ -49,7 +49,7 @@ packages = [
 
   # CLI tools that stay on Arch: system/network utilities used by root or
   # remote logins (mosh-server must be on the system PATH). Portable CLI tools
-  # come from nixpkgs via modules/home-manager/generic/cli-tools.nix.
+  # come from nixpkgs via home-manager.
   "bind",
   "mc",
   "mosh",
