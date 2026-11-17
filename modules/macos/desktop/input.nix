@@ -11,7 +11,6 @@
         "com.apple.swipescrolldirection" = false;
       };
       trackpad = {
-        # enable trackpad tap to click
         Clicking = true;
       };
     };

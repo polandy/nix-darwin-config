@@ -1,8 +1,7 @@
 { ... }: {
   programs.ghostty = {
     enable = true;
-    # The app comes from the Homebrew cask so its path in /Applications stays
-    # stable and macOS privacy grants (e.g. Full Disk Access) survive updates.
+    # App comes from the Homebrew cask: privacy grants are tied to its path.
     package = null;
     settings = {
       font-family = "JetBrainsMono Nerd Font";

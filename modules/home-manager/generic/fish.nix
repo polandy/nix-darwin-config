@@ -25,10 +25,8 @@
     };
 
     loginShellInit = ''
-      # Start Hyprland via UWSM on TTY1 (Linux only)
       if test (uname) = Linux; and test (tty) = /dev/tty1
-        # Use the desktop entry so uwsm launches /usr/bin/start-hyprland
-        # (Hyprland >= 0.53 warns when its binary is started directly).
+        # Desktop entry: Hyprland >= 0.53 warns when its binary is started directly
         exec uwsm start -e -D Hyprland hyprland.desktop
       end
     '';
@@ -40,10 +38,8 @@
     '';
 
     interactiveShellInit = ''
-      # VI key bindings
       set -g fish_key_bindings fish_vi_key_bindings
 
-      # Theme colors
       set -g fish_color_autosuggestion \#949494
       set -g fish_color_cancel -r
       set -g fish_color_command \#ffff87
@@ -72,11 +68,9 @@
       set -g fish_pager_color_progress 'brwhite --background=cyan'
       set -g fish_pager_color_selected_background -r
 
-      # Prompt settings
       set -g fish_prompt_pwd_dir_length 0
       set -g fish_color_hostname cyan
 
-      # Git prompt settings
       set -g __fish_git_prompt_show_informative_status 1
       set -g __fish_git_prompt_showuntrackedfiles 1
       set -g __fish_git_prompt_color_branch magenta --bold
@@ -95,13 +89,12 @@
       set -g __fish_git_prompt_color_untrackedfiles $fish_color_normal
       set -g __fish_git_prompt_color_cleanstate green --bold
 
-      # Kitty keyboard protocol escape sequences (macOS)
+      # Kitty keyboard protocol sequences (macOS)
       bind \e\[102\;9u 'forward-word' # command + f
       bind \e\[46\;9u 'history-token-search-backward' # command + .
     '';
 
     functions = {
-      # macOS locale settings
       darwin_locale = {
         body = ''
           set -g LANG en_US.UTF-8
@@ -110,7 +103,6 @@
         '';
       };
 
-      # Directory navigation shortcuts
       "1.." = { body = "cd ../"; };
       "2.." = { body = "cd ../../"; };
       "3.." = { body = "cd ../../../"; };
@@ -121,7 +113,6 @@
       "8.." = { body = "cd ../../../../../../../../"; };
       "9.." = { body = "cd ../../../../../../../../../"; };
 
-      # Custom prompt
       fish_prompt = {
         description = "Write out the prompt";
         body = ''
@@ -155,7 +146,6 @@
         '';
       };
 
-      # Custom pwd display
       prompt_pwd = {
         description = "Print the current working directory, shortened to fit the prompt";
         body = ''
@@ -167,7 +157,6 @@
         '';
       };
 
-      # User key bindings
       fish_user_key_bindings = {
         body = ''
           bind \ce 'accept-autosuggestion execute'
@@ -178,7 +167,6 @@
         '';
       };
 
-      # Git branch cleanup
       git_clean_branches = {
         body = ''
           set base_branch develop
@@ -205,7 +193,6 @@
         '';
       };
 
-      # File growth speed monitor
       speed = {
         body = ''
           while true
@@ -219,7 +206,6 @@
         '';
       };
 
-      # Archive extractor
       x = {
         body = ''
           if test -z "$argv"

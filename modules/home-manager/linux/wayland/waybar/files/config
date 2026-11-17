@@ -1,17 +1,4 @@
-// =============================================================================
-//
-// Waybar configuration
-//
-// Configuration reference: https://github.com/Alexays/Waybar/wiki/Configuration
-// requires cantarell-fonts, noto-fonts-emoji
-//
-// =============================================================================
-
 {
-    // -------------------------------------------------------------------------
-    // Global configuration
-    // -------------------------------------------------------------------------
-
     "layer": "top",
     "position": "top",
     "height": 15,
@@ -35,10 +22,6 @@
         "sway/language",
         "clock#datetime",
     ],
-
-    // -------------------------------------------------------------------------
-    // Modules
-    // -------------------------------------------------------------------------
 
     "sway/language": {
       "format": "{short}",
@@ -74,9 +57,7 @@
             "warning": 12,
             "critical": 7
         },
-        // Connected to AC
         "format": "  {icon}  {capacity}%", // Icon: bolt
-        // Not connected to AC
         "format-discharging": "{icon}  {capacity}%",
         "format-icons": [
             "", // Icon: battery-full

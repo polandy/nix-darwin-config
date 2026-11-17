@@ -1,22 +1,18 @@
 #!/usr/bin/env bash
 
-# AeroSpace PATH
 USER_NAME=$(id -un)
 export PATH="/run/current-system/sw/bin:/etc/profiles/per-user/$USER_NAME/bin:/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"
 
-# Sourcing colors and icons
 source "$CONFIG_DIR/colors.sh"
 source "$CONFIG_DIR/icons.sh"
 source "$CONFIG_DIR/plugins/icon_map.sh"
 
-# Determine IDs
 CURRENT_SID=$(echo "$1" | tr -d '[:space:]')
 FOCUSED_WS=$(echo "$FOCUSED_WORKSPACE" | tr -d '[:space:]')
 if [ -z "$FOCUSED_WS" ]; then
     FOCUSED_WS=$(aerospace list-workspaces --focused | tr -d '[:space:]')
 fi
 
-# Query apps
 APPS=$(aerospace list-windows --workspace "$CURRENT_SID" --format "%{app-name}")
 ICON_STR=""
 if [ -n "$APPS" ]; then
@@ -28,7 +24,6 @@ fi
 
 WHITE_CLEAN=${WHITE#0x??}
 
-# Per-workspace default icon (ghost when empty)
 DEFAULT_ICON=""
 DEFAULT_ICON_FONT="sketchybar-app-font:Regular:14.0"
 if [ -z "$ICON_STR" ]; then
@@ -53,7 +48,6 @@ fi
 
 if [ "$CURRENT_SID" = "$FOCUSED_WS" ]; then
     if [ -n "$ICON_STR" ]; then
-        # Focused + apps: white pill, black icons
         sketchybar --set "$NAME" background.drawing=on \
                                 background.color=0xffffffff \
                                 background.border_width=0 \
@@ -66,7 +60,6 @@ if [ "$CURRENT_SID" = "$FOCUSED_WS" ]; then
                                 icon.color="$BLACK" \
                                 label="$ICON_STR"
     elif [ -n "$DEFAULT_ICON" ]; then
-        # Focused + empty + default: white pill, ghost icon (dimmed)
         sketchybar --set "$NAME" background.drawing=on \
                                 background.color=0xffffffff \
                                 background.border_width=0 \
@@ -79,7 +72,6 @@ if [ "$CURRENT_SID" = "$FOCUSED_WS" ]; then
                                 icon.color="$BLACK" \
                                 label="$DEFAULT_ICON"
     else
-        # Focused + truly empty: white pill, zero label padding for centered number
         sketchybar --set "$NAME" background.drawing=on \
                                 background.color=0xffffffff \
                                 background.border_width=0 \
@@ -94,7 +86,6 @@ if [ "$CURRENT_SID" = "$FOCUSED_WS" ]; then
     fi
 else
     if [ -n "$ICON_STR" ]; then
-        # Unfocused + apps: subtle background, grey icons
         sketchybar --set "$NAME" background.drawing=on \
                                 background.color="0x20$WHITE_CLEAN" \
                                 background.border_width=0 \
@@ -105,7 +96,6 @@ else
                                 icon.color="$GREY" \
                                 label="$ICON_STR"
     elif [ -n "$DEFAULT_ICON" ]; then
-        # Unfocused + empty + default: no background, very dimmed ghost
         sketchybar --set "$NAME" background.drawing=off \
                                 background.padding_left=2 \
                                 background.padding_right=2 \
@@ -114,7 +104,6 @@ else
                                 icon.color="$GREY" \
                                 label="$DEFAULT_ICON"
     else
-        # Unfocused + truly empty: transparent, no label
         sketchybar --set "$NAME" background.drawing=off \
                                 background.padding_left=2 \
                                 background.padding_right=2 \

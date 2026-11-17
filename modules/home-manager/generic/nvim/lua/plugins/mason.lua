@@ -2,7 +2,7 @@ return {
   {
     "mason-org/mason.nvim",
     opts = {
-      -- tools managed via nix (programs.neovim.extraPackages)
+      -- tools come from nix, not Mason
       ensure_installed = {},
     },
   },

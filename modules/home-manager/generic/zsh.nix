@@ -1,7 +1,6 @@
 { config, pkgs, lib, ... }:
 
 {
-  # Zsh integrations for tools already enabled in fish.nix
   programs.zoxide.enableZshIntegration = true;
   programs.mise.enableZshIntegration = true;
 
@@ -25,7 +24,7 @@
     };
 
     plugins = [
-      # fzf-tab must be loaded after compinit and before other completion plugins
+      # fzf-tab: after compinit, before other completion plugins
       {
         name = "fzf-tab";
         src = pkgs.zsh-fzf-tab;
@@ -48,7 +47,7 @@
       }
     ];
 
-    # Numeric directory navigation — function names can't start with digits in zsh
+    # Function names can't start with digits in zsh
     shellAliases = {
       "1.." = "cd ../";
       "2.." = "cd ../../";
@@ -62,46 +61,35 @@
     };
 
     initContent = lib.mkMerge [
-      # Before compinit (order 550)
       (lib.mkOrder 550 ''
-        # Homebrew (macOS only)
         if [[ -d /opt/homebrew ]]; then
           eval "$(/opt/homebrew/bin/brew shellenv)"
         fi
       '')
 
-      # After compinit (default order)
       ''
-        # fzf-tab: use fzf for all tab completions
         zstyle ':fzf-tab:*' fzf-min-height 15
         zstyle ':fzf-tab:*' switch-group '<' '>'
-        # Show file preview when completing cd
         zstyle ':fzf-tab:complete:cd:*' fzf-preview 'eza --tree --color=always --icons $realpath 2>/dev/null || ls $realpath'
-        # Substring matching for all completions
         zstyle ':completion:*' matcher-list ''' 'm:{a-zA-Z}={A-Za-z}' 'r:|[._-]=* r:|=*' 'l:|=* r:|=*'
 
-        # VI mode
         bindkey -v
         export KEYTIMEOUT=1
 
-        # Autosuggestion config (matches fish autosuggestion colour)
         ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE='fg=#949494'
         ZSH_AUTOSUGGEST_STRATEGY=(history completion)
 
-        # Key bindings (matching fish config)
         bindkey '^E' autosuggest-execute    # Ctrl+E: accept suggestion and execute
         bindkey '^H' backward-kill-word     # Ctrl+Backspace
         bindkey '^[[1;5D' backward-word     # Ctrl+Left
         bindkey '^[[1;5C' forward-word      # Ctrl+Right
 
-        # macOS locale
         function darwin_locale() {
           export LANG=en_US.UTF-8
           export LC_ALL=en_US.UTF-8
           export LC_CTYPE=en_US.UTF-8
         }
 
-        # Archive extractor (ported from fish)
         function x() {
           if [[ -z "$1" ]]; then
             echo "Error: No file specified."
@@ -129,7 +117,6 @@
           done
         }
 
-        # File growth speed monitor (ported from fish)
         function speed() {
           while true; do
             local old new spd size
@@ -142,7 +129,6 @@
           done
         }
 
-        # Git branch cleanup (ported from fish)
         function git_clean_branches() {
           local base_branch=develop
           git checkout "$base_branch"
@@ -159,8 +145,7 @@
     ];
   };
 
-  # Abbreviations for zsh-abbr (same as fish shellAbbrs).
-  # This file is nix-managed (read-only). Add new abbreviations here, not via `abbr add`.
+  # Nix-managed (read-only): add abbreviations here, not via `abbr add`.
   home.file.".config/zsh-abbr/user-abbreviations".text = ''
     abbr nrs='darwin-rebuild switch --flake .'
     abbr nrb='darwin-rebuild build --flake .'

@@ -1,5 +1,3 @@
-# Catppuccin Macchiato — matches waybar/style.css
-
 [global]
     follow = mouse
     origin = top-right

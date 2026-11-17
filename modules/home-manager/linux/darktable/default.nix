@@ -1,6 +1,5 @@
 { ... }: {
-  # darktable itself is installed via metapac; darktablerc, shortcutsrc and the
-  # library databases stay as writable state in ~/.config/darktable
+  # darktablerc, shortcutsrc and databases stay writable in ~/.config/darktable
   xdg.configFile = {
     "darktable/luarc".source = ./luarc;
     "darktable/lua/rate_group.lua".source = ./lua/rate_group.lua;

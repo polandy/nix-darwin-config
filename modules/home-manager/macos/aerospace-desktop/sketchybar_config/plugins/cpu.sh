@@ -1,7 +1,6 @@
 #!/bin/bash
 source "$CONFIG_DIR/colors.sh"
 
-# Normalize to 0-100% across all cores so thresholds are meaningful
 CORES=$(sysctl -n hw.logicalcpu)
 CPU=$(ps -A -o %cpu | awk -v cores="$CORES" '{s+=$1} END {printf "%.0f", s/cores}')
 

@@ -1,7 +1,6 @@
 { config, ... }:
 
-# Qt apps go through qt6ct (QT_QPA_PLATFORMTHEME in hyprland.lua): Breeze
-# widgets with a Catppuccin Macchiato palette.
+# Qt apps go through qt6ct (QT_QPA_PLATFORMTHEME set in hyprland.lua)
 {
   xdg.configFile."qt6ct/colors/catppuccin-macchiato.conf".source = ./catppuccin-macchiato.conf;
   xdg.configFile."qt6ct/qt6ct.conf".text = ''

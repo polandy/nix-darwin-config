@@ -47,7 +47,6 @@ packages = [
   "zram-generator",
   "lua-fzy",
 
-  # CLI tools
   "bind",
   "mc",
   "mosh",

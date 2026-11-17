@@ -6,9 +6,6 @@
     enableZshIntegration = true;
     enableFishIntegration = true;
     settings = {
-      # Two-line prompt:
-      # ~/project  main ●2 …1   2s
-      # ❯
       format = ''
         $time$hostname$directory$git_branch$git_status$nix_shell$cmd_duration
         $character'';

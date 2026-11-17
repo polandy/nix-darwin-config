@@ -1,8 +1,6 @@
 { config, pkgs, ... }:
 
 let
-  # Catppuccin Macchiato on top of adw-gtk3 / libadwaita named colors,
-  # matches waybar/dunst/hyprland.
   catppuccinCss = ''
     @define-color accent_color #8aadf4;
     @define-color accent_bg_color #8aadf4;

@@ -1,11 +1,3 @@
-# Nerd Font / FontAwesome icon definitions
-# Used by waybar scripts for consistent icon mapping.
-#
-# FontAwesome (FA) range:  U+F000–U+F2FF  (fa-*)
-# Nerd Font MDI range:     U+F0000–U+FFFFF (nf-md-*)
-
-# ── Workspace placeholders ────────────────────────────────────────────────────
-
 WS_1  = "\uf086"   # fa-comment
 WS_2  = "\uf0e0"   # fa-envelope
 WS_3  = "\uf135"   # fa-rocket
@@ -29,8 +21,6 @@ WORKSPACE_PLACEHOLDERS = {
     9: WS_9,
     10: WS_10,
 }
-
-# ── App icons ─────────────────────────────────────────────────────────────────
 
 APP_TERMINAL     = "\uf120"      # fa-terminal          (alacritty, kitty, …)
 APP_FILES        = "\uf07b"      # fa-folder-open       (thunar, nautilus)
@@ -70,15 +60,11 @@ APP_ICONS = {
     "homebank":         APP_BANK,
 }
 
-# ── System / status bar ───────────────────────────────────────────────────────
-
 CPU              = "\U000f0ee0"  # nf-md-cpu_64_bit
 RAM              = "\U000f035b"  # nf-md-memory
 DISK             = "\U000f02ca"  # nf-md-harddisk
 CLOCK            = "\U000f0954"  # nf-md-clock_outline
 CALENDAR         = "\uf073"      # fa-calendar
-
-# ── Network ───────────────────────────────────────────────────────────────────
 
 NET_WIFI_FULL    = "\U000f092f"  # nf-md-wifi_strength_4
 NET_WIFI_MED     = "\U000f092b"  # nf-md-wifi_strength_2
@@ -88,16 +74,12 @@ NET_DISCONNECTED = "\U000f092e"  # nf-md-wifi_strength_off_outline
 VPN_ON           = "\U000f0582"  # nf-md-shield_lock
 VPN_OFF          = "\U000f0584"  # nf-md-shield_off
 
-# ── Volume ────────────────────────────────────────────────────────────────────
-
 VOLUME_HIGH      = "\U000f057e"  # nf-md-volume_high
 VOLUME_MED       = "\U000f0580"  # nf-md-volume_medium
 VOLUME_LOW       = "\U000f057f"  # nf-md-volume_low
 VOLUME_MUTE      = "\U000f0581"  # nf-md-volume_off
 VOLUME_HEADPHONE = "\U000f02cb"  # nf-md-headphones
 VOLUME_HEADSET   = "\U000f02cc"  # nf-md-headset
-
-# ── Battery ───────────────────────────────────────────────────────────────────
 
 BATTERY_FULL     = "\U000f0079"  # nf-md-battery
 BATTERY_75       = "\U000f007a"  # nf-md-battery_70

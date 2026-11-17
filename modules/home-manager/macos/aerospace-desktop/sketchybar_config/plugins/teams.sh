@@ -1,13 +1,11 @@
 #!/bin/bash
 source "$CONFIG_DIR/colors.sh"
 
-# Hide if Teams is not running
 if ! pgrep -q "Teams"; then
   sketchybar --set teams drawing=off
   exit 0
 fi
 
-# Read the Dock badge for Teams (unread count)
 BADGE=$(osascript -e '
   tell application "System Events"
     tell process "Dock"
