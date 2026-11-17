@@ -26,7 +26,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        host: [ambp, amba]
+        host: [ambp, amba, amst]
     name: ${{ matrix.host }}
     steps:
       - uses: actions/checkout@v7

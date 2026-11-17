@@ -24,6 +24,7 @@
       darwinConfigurations = {
         "ambp" = mkDarwin { host = "ambp"; };
         "amba" = mkDarwin { host = "amba"; };
+        "amst" = mkDarwin { host = "amst"; };
       };
 
       homeConfigurations = {
