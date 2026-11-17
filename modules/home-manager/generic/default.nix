@@ -2,6 +2,7 @@
   imports = [
     ./base.nix
     ./alacritty.nix
+    ./cli-tools.nix
     ./fish.nix
     ./git.nix
     ./mise.nix

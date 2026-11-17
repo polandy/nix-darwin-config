@@ -26,12 +26,12 @@ On Arch Linux, two package managers coexist:
 
 | Manager | What goes here |
 |---------|---------------|
-| **home-manager** (this repo) | Configuration only — via `programs.*` modules (which handle both config generation and package install), or `xdg.configFile`/`home.file` for apps without a module |
-| **yay/metapac** (config in [`modules/home-manager/linux/metapac/`](./modules/home-manager/linux/metapac/), deployed by home-manager; run `metapac sync` on the host) | All package installations — system packages, GUI apps, CLI tools, AUR packages |
+| **home-manager** (this repo) | All configuration, plus portable CLI tools from nixpkgs — via `programs.*` modules (config + package), [`generic/cli-tools.nix`](./modules/home-manager/generic/cli-tools.nix) for CLI tools without a module (shared with macOS), and `xdg.configFile`/`home.file` for config of apps installed elsewhere |
+| **yay/metapac** (config in [`modules/home-manager/linux/metapac/`](./modules/home-manager/linux/metapac/), deployed by home-manager; run `metapac sync` on the host) | Everything that touches the system or needs a GPU — kernel, firmware, bootloader, drivers, daemons (docker, NetworkManager, bluez, pipewire, cups), the Wayland/Hyprland stack, GUI apps, fonts, themes, AUR packages, and root/network utilities (`vim`, `wget`, `bind`, `mosh`, ...) |
 
-**Rule:** `home.packages` is never used on Linux. If a tool has a `programs.<name>` module, use that (it installs the package and generates config). If it doesn't, install it via metapac and manage its config files with `xdg.configFile` in this repo (writable app state such as databases stays unmanaged in `~/.config`). The [dotfiles repo](https://github.com/polandy/dotfiles) only holds root-owned system files.
+**Rule:** A pure user-level CLI tool comes from nixpkgs: use its `programs.<name>` module if one exists, otherwise add it to `generic/cli-tools.nix`. Anything with systemd/PAM/udev integration, OpenGL/Vulkan, or a pacman hook stays in metapac, with its config files managed by `xdg.configFile` in this repo (writable app state such as databases stays unmanaged in `~/.config`). A package is never listed in both.
 
-This keeps Nix's role focused on config generation and avoids outdated nixpkgs packages, while Arch's rolling release ensures packages are always up to date.
+This gives all hosts (Arch and macOS) one CLI tool list pinned by `flake.lock`, while system and graphics packages keep Arch's native integration and rolling updates.
 
 This split is permanent for as long as the Linux hosts run Arch. On NixOS, metapac would go away entirely.
 
@@ -39,7 +39,7 @@ This split is permanent for as long as the Linux hosts run Arch. On NixOS, metap
 
 ### Linux (standalone home-manager)
 
-Linux hosts (x1, coolermaster) run Arch Linux with standalone home-manager. All packages are managed by yay/metapac; home-manager handles configuration only via `programs.*` modules.
+Linux hosts (x1, coolermaster) run Arch Linux with standalone home-manager. System, GUI and AUR packages are managed by yay/metapac; home-manager handles configuration and the portable CLI tools (see [Package Management Strategy](#package-management-strategy-linux)).
 
 1. **Install Nix** using the [Determinate Systems installer](https://github.com/DeterminateSystems/nix-installer):
    ```bash
