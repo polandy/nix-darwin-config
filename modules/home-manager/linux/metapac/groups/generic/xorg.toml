@@ -1,7 +1,6 @@
 [arch]
 packages = [
   "arandr",
-  "autorandr",
   "dmenu",
   "exo",
   "garcon",
