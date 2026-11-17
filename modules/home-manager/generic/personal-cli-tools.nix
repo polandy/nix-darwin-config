@@ -1,5 +1,4 @@
-# CLI tools from nixpkgs for personal machines only, not work machines.
-# Not part of generic/default.nix: personal hosts import it explicitly.
+# Imported per host, not via generic/default.nix.
 { pkgs, ... }:
 
 {
