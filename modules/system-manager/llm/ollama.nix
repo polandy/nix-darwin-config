@@ -22,8 +22,9 @@ in
     };
 
     environment.etc =
-      # The sandbox Caddy of the Docker sandbox and LAN hosts reach Ollama only
-      # through firewall.nix. Once the Docker sandbox is gone, 127.0.0.1 is enough.
+      # Hosts other than localhost (host-local allow files, see firewall.nix)
+      # need 0.0.0.0. Once the Docker sandbox is gone and none is left,
+      # 127.0.0.1 is enough.
       dropIn "override" ''
         Environment="OLLAMA_HOST=0.0.0.0:${toString cfg.ports.ollama}"
       ''
