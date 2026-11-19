@@ -158,7 +158,7 @@ in
         local-128k = {
           id = "ollama/bench-gemma4-26b-128k";
           context = 131072;
-          label = "Gemma 4 26B-A4B (128k, nur t5-artige Aufgaben)";
+          label = "Gemma 4 26B-A4B (128k, t5-like tasks only)";
         };
       };
       description = "Model classes of the policy, also used by the job configs and the sandbox (allowed models, default = cloud).";

@@ -1,25 +1,25 @@
-# Arbeitsumgebung: Sandbox
+# Working environment: sandbox
 
-Du läufst in einer abgeschotteten Sandbox. Das Repo liegt unter `/work`.
+You run in an isolated sandbox. The repo is at `/work`.
 
-- Kein Netz außer der Modell-API. Uploads, Downloads, `curl`, Paket-Registries, Web-Suche
-  und das Veröffentlichen von Dateien (Pastebins, Gists, Artifacts, base64 im Chat) gehen
-  nicht. Versuche es nicht und suche keine Umwege.
-- **Ergebnisse immer als Datei im Repo ablegen** und danach den Pfad nennen, dann bist du
-  fertig. andy sieht sich die Dateien selbst an und veröffentlicht sie bei Bedarf.
-  - Mockups und Konzepte: `docs/dev/mockups/<name>.html`, eine einzige Datei, ohne externe
-    Fonts, CDNs oder Bilder aus dem Netz (sie laden beim Ansehen nicht).
+- No network except the model API. Uploads, downloads, `curl`, package registries, web search
+  and publishing files (pastebins, gists, artifacts, base64 in the chat) do not work. Do not
+  try, and do not look for workarounds.
+- **Always store results as a file in the repo**, then name the path, and you are done.
+  andy looks at the files and publishes them if needed.
+  - Mockups and concepts: `docs/dev/mockups/<name>.html`, a single file, without external
+    fonts, CDNs or images from the web (they do not load when viewed).
   - Screenshots: `docs/dev/mockups/screenshots/<name>.png`.
-- Die App lokal ansehen (nur in diesem Repo, nur auf 127.0.0.1):
-  - `oc-preview start` startet die Vorschau mit Beispieldaten und nennt die URL.
+- Viewing the app locally (only in this repo, only on 127.0.0.1):
+  - `oc-preview start` starts the preview with sample data and prints the URL.
     `oc-preview status|log|stop`.
-  - `oc-shot <url-oder-datei> <out.png>` macht einen Screenshot. Optionen: `--full` (ganze
-    Seite), `--mobile` (390 px, Touch), `--width N --height N`, `--dark` / `--light`,
-    `--click '<css-selector>'` (mehrfach möglich, z. B. um eine Zeile aufzuklappen),
-    `--wait <ms>`. Das eigene Mockup prüfst du mit
-    `oc-shot docs/dev/mockups/<name>.html /tmp/check.png`. Bilder kannst du mit dem
-    Read-Tool ansehen.
-  - skipper-cd startet in der Deploys-Ansicht. Für die Stacks-Ansicht zuerst
-    `--click 'button[data-view="stacks"]'`, eine Zeile mit
-    `--click '.roster-row[data-stack="<name>"]'` aufklappen.
-- Vor dem Ende `oc-preview stop`.
+  - `oc-shot <url-or-file> <out.png>` takes a screenshot. Options: `--full` (whole
+    page), `--mobile` (390 px, touch), `--width N --height N`, `--dark` / `--light`,
+    `--click '<css-selector>'` (repeatable, e.g. to expand a row),
+    `--wait <ms>`. Check your own mockup with
+    `oc-shot docs/dev/mockups/<name>.html /tmp/check.png`. You can view images with the
+    Read tool.
+  - skipper-cd starts in the Deploys view. For the Stacks view, first
+    `--click 'button[data-view="stacks"]'`; expand a row with
+    `--click '.roster-row[data-stack="<name>"]'`.
+- Before you finish, `oc-preview stop`.

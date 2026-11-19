@@ -4,7 +4,7 @@
   "provider": {
     "ollama": {
       "npm": "@ai-sdk/openai-compatible",
-      "name": "Ollama (lokal, nur Chat-API)"
+      "name": "Ollama (local, chat API only)"
     }
   },
   "permissions": [
