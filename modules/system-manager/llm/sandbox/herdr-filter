@@ -1,12 +1,12 @@
 #!/usr/bin/python3 -I
-"""herdr-Filter-Proxy für die opencode-Sandbox (läuft als andy, gestartet von `oc`).
+"""herdr filter proxy for the opencode sandbox (runs as andy, started by `oc`).
 
     herdr-filter <listen-socket> <herdr-socket> <pane-id>
 
-Nimmt pro Verbindung eine JSON-Zeile an und leitet nur `pane.report_agent` und
-`pane.report_agent_session` für die eigene pane_id an den echten herdr-Socket
-weiter. Die Anfrage wird aus geprüften Feldern neu gebaut; alles andere wird
-mit einem Fehler beantwortet und verworfen.
+Accepts one JSON line per connection and forwards only `pane.report_agent` and
+`pane.report_agent_session` for its own pane_id to the real herdr socket. The
+request is rebuilt from checked fields; everything else is answered with an
+error and dropped.
 """
 import json
 import os
@@ -89,7 +89,7 @@ def main():
         sys.exit(__doc__)
     listen, herdr_socket, pane_id = sys.argv[1:]
     if not TOKEN.match(pane_id):
-        sys.exit("herdr-filter: ungültige pane_id")
+        sys.exit("herdr-filter: invalid pane_id")
     old = os.umask(0o177)
     srv = Server(listen, Handler)
     os.umask(old)

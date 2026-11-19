@@ -1,10 +1,10 @@
 #!/bin/bash
-# oc-net – Registries für die opencode-Sandbox zeitlich begrenzt freischalten.
-#   sudo oc-net open <npm|crates|go|packagist> [minuten]   (Default 10, max 120)
+# oc-net – open package registries for the opencode sandbox for a limited time.
+#   sudo oc-net open <npm|crates|go|packagist> [minutes]   (default 10, max 120)
 #   sudo oc-net close <name> | status | reset
-# Erzeugt @sandboxNetDir@/proxy.filter aus base.filter + aktiven Freigaben und
-# lädt tinyproxy neu. Schließen per systemd-Timer. Jede Aktion geht ins Journal (-t oc-net).
-# Hinweis: Bereits offene Tunnel bleiben nach `close` bestehen, bis sie enden.
+# Builds @sandboxNetDir@/proxy.filter from base.filter + active grants and
+# reloads tinyproxy. Closing via systemd timer. Every action goes to the journal (-t oc-net).
+# Note: tunnels already open stay up after `close` until they end.
 set -euo pipefail
 
 readonly NET=@sandboxNetDir@
@@ -19,10 +19,10 @@ declare -A HOSTS=(
 )
 
 die() { echo "oc-net: $*" >&2; exit 1; }
-log() { logger -t oc-net -- "$* (von ${SUDO_USER:-root})"; echo "oc-net: $*"; }
-(( EUID == 0 )) || die "braucht root: sudo oc-net …"
+log() { logger -t oc-net -- "$* (by ${SUDO_USER:-root})"; echo "oc-net: $*"; }
+(( EUID == 0 )) || die "needs root: sudo oc-net …"
 
-check_name() { [[ -n ${1:-} && -v HOSTS[$1] ]] || die "unbekannt: ${1:-} (erlaubt: ${!HOSTS[*]})"; }
+check_name() { [[ -n ${1:-} && -v HOSTS[$1] ]] || die "unknown: ${1:-} (allowed: ${!HOSTS[*]})"; }
 
 render() {
   local tmp name
@@ -41,12 +41,12 @@ mkdir -p -m 0755 "$GRANTS"
 case ${1:-} in
   open)
     check_name "${2:-}"; name=$2; min=${3:-10}
-    [[ $min =~ ^[0-9]+$ ]] && (( min >= 1 && min <= 120 )) || die "Minuten: 1–120"
+    [[ $min =~ ^[0-9]+$ ]] && (( min >= 1 && min <= 120 )) || die "minutes: 1–120"
     systemctl stop "oc-net-close-$name.timer" 2>/dev/null || true
     date -d "+$min min" +%s > "$GRANTS/$name"
     render; reload
     systemd-run -q --unit="oc-net-close-$name" --on-active="${min}m" "$SELF" close "$name"
-    log "open $name (${HOSTS[$name]}) für $min min"
+    log "open $name (${HOSTS[$name]}) for $min min"
     ;;
   close)
     check_name "${2:-}"; name=$2
@@ -59,14 +59,14 @@ case ${1:-} in
     rm -f "$GRANTS"/*
     render
     [[ ${2:-} == --no-reload ]] || reload
-    log "reset (nur base.filter)"
+    log "reset (base.filter only)"
     ;;
   status)
     echo "Allowlist ($NET/proxy.filter):"; sed 's/^/  /' "$NET/proxy.filter"
     for name in "${!HOSTS[@]}"; do
-      [[ -e $GRANTS/$name ]] && echo "offen: $name bis $(date -d "@$(<"$GRANTS/$name")" '+%F %T')"
+      [[ -e $GRANTS/$name ]] && echo "open: $name until $(date -d "@$(<"$GRANTS/$name")" '+%F %T')"
     done
     true
     ;;
-  *) die "Aufruf: oc-net open <${!HOSTS[*]}> [minuten] | close <name> | status | reset" ;;
+  *) die "usage: oc-net open <${!HOSTS[*]}> [minutes] | close <name> | status | reset" ;;
 esac
