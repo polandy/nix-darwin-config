@@ -1,0 +1,58 @@
+#!/bin/bash
+# oc-outbox [<repo>] [--days N]   Ergebnisse der Sandbox-Agenten auflisten
+# oc-outbox open <datei>          Datei offline im Browser ansehen
+#
+# Läuft als @ownerUser@. Listet Mockups, Screenshots und Berichte (html, png, svg, md),
+# die in den Klonen unter @agentDir@/<repo> neu oder geändert sind (git status).
+#
+# `open` startet ein eigenes Chromium-Profil ohne Netz: Alle Anfragen gehen an
+# einen toten Proxy, DNS ist abgeschaltet. Eine vom Agenten geschriebene Seite
+# kann so nichts nach draußen senden (z. B. Repo-Inhalte per Bild-URL), was
+# sonst ein Weg aus der Sandbox heraus wäre. Externe Fonts und CDN-Skripte
+# laden deshalb nicht, das ist Absicht.
+#
+# Veröffentlichen (z. B. als claude.ai-Artifact) nur nach Durchsicht, außerhalb
+# der Sandbox.
+set -euo pipefail
+
+readonly SRV=@agentDir@
+readonly REPOS=(@repos@)
+
+die() { echo "oc-outbox: $*" >&2; exit 1; }
+
+if [[ ${1:-} == open ]]; then
+  f=$(realpath -e -- "${2:?Datei fehlt}") || die "Datei fehlt: $2"
+  [[ $f == "$SRV"/* ]] || die "nur Dateien unter $SRV"
+  profile=$(mktemp -d /tmp/oc-outbox.XXXXXXXX)
+  trap 'rm -rf "$profile"' EXIT
+  chromium --user-data-dir="$profile" --no-first-run --no-default-browser-check \
+    --disable-extensions --disable-sync --disable-background-networking \
+    --proxy-server=http://127.0.0.1:9 --proxy-bypass-list='<-loopback>' \
+    --host-resolver-rules='MAP * ~NOTFOUND' \
+    --force-webrtc-ip-handling-policy=disable_non_proxied_udp \
+    --new-window "file://$f" >/dev/null 2>&1
+  exit 0
+fi
+
+days=7 repos=()
+while (( $# )); do
+  case $1 in
+    --days) [[ ${2:-} =~ ^[0-9]{1,3}$ ]] || die "--days braucht eine Zahl"; days=$2; shift ;;
+    -h|--help) sed -n '2,15p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
+    *) [[ " ${REPOS[*]} " == *" $1 "* ]] || die "unbekanntes Repo: $1"; repos+=("$1") ;;
+  esac
+  shift
+done
+(( ${#repos[@]} )) || repos=("${REPOS[@]}")
+
+# Nur, was gegenüber dem Commit neu oder geändert ist (git status), nicht der ganze Checkout.
+for r in "${repos[@]}"; do
+  d=$SRV/$r
+  [[ -d $d/.git ]] || continue
+  git -c safe.directory="$d" -C "$d" status --porcelain=v1 -z --untracked-files=all 2>/dev/null \
+    | while IFS= read -r -d '' line; do
+        f=${line:3}
+        [[ $f =~ \.(html|png|svg|md)$ && -f $d/$f ]] || continue
+        find "$d/$f" -mtime "-$days" -printf '%TY-%Tm-%Td %TH:%TM  %8s  %p\n'
+      done
+done | sort -r

@@ -1,0 +1,163 @@
+#!/usr/bin/node
+// oc-shot <url> <out.png> [--width N] [--height N] [--mobile] [--dark|--light]
+//         [--full] [--click <css>]... [--wait <ms>]
+//
+// Screenshot mit headless Chromium, gedacht für die opencode-Sandbox (liegt in
+// @binDir@, das die Sandbox read-only sieht). Steuert Chromium über
+// --remote-debugging-pipe (fd 3/4), öffnet also keinen Port. Erlaubt sind nur
+// Seiten auf localhost und Dateien unter /work bzw. /tmp; die Ausgabe muss eine
+// .png unter /work oder /tmp sein. Nach draußen kommt Chromium in der Sandbox
+// ohnehin nicht (eigener Netz-Namespace, --no-proxy-server).
+//
+// --click klickt nacheinander auf die Elemente (z. B. eine Zeile, um sie
+// aufzuklappen), mit einer kurzen Pause dazwischen.
+'use strict';
+const { spawn } = require('node:child_process');
+const { mkdtempSync, rmSync, writeFileSync, realpathSync, existsSync } = require('node:fs');
+const path = require('node:path');
+const os = require('node:os');
+
+const CHROMIUM = '/usr/bin/chromium';
+
+function die(msg) { process.stderr.write(`oc-shot: ${msg}\n`); process.exit(2); }
+
+const argv = process.argv.slice(2);
+const opt = { width: 1440, height: 900, mobile: false, scheme: null, full: false, clicks: [], wait: 500 };
+const pos = [];
+for (let i = 0; i < argv.length; i++) {
+  const a = argv[i];
+  const val = () => { if (i + 1 >= argv.length) die(`${a} braucht einen Wert`); return argv[++i]; };
+  const num = (v) => { const n = Number(v); if (!Number.isInteger(n) || n < 1 || n > 20000) die(`ungültige Zahl: ${v}`); return n; };
+  switch (a) {
+    case '--width': opt.width = num(val()); break;
+    case '--height': opt.height = num(val()); break;
+    case '--mobile': opt.mobile = true; opt.width = 390; opt.height = 844; break;
+    case '--dark': opt.scheme = 'dark'; break;
+    case '--light': opt.scheme = 'light'; break;
+    case '--full': opt.full = true; break;
+    case '--click': opt.clicks.push(val()); break;
+    case '--wait': opt.wait = num(val()); break;
+    case '-h': case '--help':
+      process.stdout.write(require('node:fs').readFileSync(__filename, 'utf8').split('\n').slice(1, 13).map((l) => l.replace(/^\/\/ ?/, '')).join('\n') + '\n');
+      process.exit(0);
+    default:
+      if (a.startsWith('--')) die(`unbekannte Option: ${a}`);
+      pos.push(a);
+  }
+}
+if (pos.length !== 2) die('Aufruf: oc-shot <url> <out.png> [Optionen], siehe --help');
+let [url, out] = pos;
+
+// Ziel prüfen: localhost oder lokale Datei unter /work, /tmp.
+const allowedDirs = ['/work', '/tmp'];
+const under = (p) => allowedDirs.some((d) => p === d || p.startsWith(d + '/'));
+if (!/^[a-z]+:/i.test(url)) url = 'file://' + path.resolve(url);
+let u;
+try { u = new URL(url); } catch { die(`ungültige URL: ${url}`); }
+if (u.protocol === 'http:' || u.protocol === 'https:') {
+  if (!['127.0.0.1', 'localhost', '[::1]'].includes(u.hostname)) die('nur localhost-URLs erlaubt');
+} else if (u.protocol === 'file:') {
+  let p;
+  try { p = realpathSync(decodeURIComponent(u.pathname)); } catch { die(`Datei fehlt: ${u.pathname}`); }
+  if (!under(p)) die('nur Dateien unter /work oder /tmp erlaubt');
+} else die(`Protokoll nicht erlaubt: ${u.protocol}`);
+
+out = path.resolve(out);
+if (!out.endsWith('.png')) die('Ausgabe muss auf .png enden');
+const outDir = path.dirname(out);
+if (!existsSync(outDir)) die(`Verzeichnis fehlt: ${outDir}`);
+if (!under(realpathSync(outDir))) die('Ausgabe nur unter /work oder /tmp');
+
+// Chromium starten, CDP über Pipe.
+const profile = mkdtempSync(path.join(os.tmpdir(), 'oc-shot-'));
+const chrome = spawn(CHROMIUM, [
+  '--headless=new', '--no-sandbox', '--disable-gpu', '--disable-dev-shm-usage',
+  '--no-proxy-server', '--no-first-run', '--no-default-browser-check',
+  '--disable-extensions', '--disable-background-networking', '--disable-sync',
+  '--mute-audio', '--hide-scrollbars', '--remote-debugging-pipe',
+  `--user-data-dir=${profile}`, 'about:blank',
+], { stdio: ['ignore', 'ignore', 'pipe', 'pipe', 'pipe'] });
+
+let stderr = '';
+chrome.stdio[2].on('data', (d) => { stderr = (stderr + d).slice(-4000); });
+const cleanup = () => { try { chrome.kill('SIGKILL'); } catch {} try { rmSync(profile, { recursive: true, force: true }); } catch {} };
+const fail = (msg) => { cleanup(); process.stderr.write(`oc-shot: ${msg}\n`); if (process.env.OC_SHOT_DEBUG) process.stderr.write(stderr); process.exit(1); };
+chrome.on('error', (e) => fail(`Chromium startet nicht: ${e.message}`));
+chrome.on('exit', (code) => { if (!done) fail(`Chromium beendet (${code}). OC_SHOT_DEBUG=1 zeigt die Ausgabe.`); });
+let done = false;
+setTimeout(() => fail('Zeitüberschreitung (60 s)'), 60000).unref();
+
+const writer = chrome.stdio[3], reader = chrome.stdio[4];
+let nextId = 1, buf = '';
+const pending = new Map(), listeners = [];
+reader.on('data', (d) => {
+  buf += d;
+  let i;
+  while ((i = buf.indexOf('\0')) >= 0) {
+    const msg = JSON.parse(buf.slice(0, i)); buf = buf.slice(i + 1);
+    if (msg.id && pending.has(msg.id)) {
+      const { resolve, reject } = pending.get(msg.id); pending.delete(msg.id);
+      msg.error ? reject(new Error(msg.error.message)) : resolve(msg.result);
+    } else if (msg.method) {
+      for (const l of listeners.slice()) l(msg);
+    }
+  }
+});
+function send(method, params = {}, sessionId) {
+  const id = nextId++;
+  writer.write(JSON.stringify({ id, method, params, ...(sessionId && { sessionId }) }) + '\0');
+  return new Promise((resolve, reject) => pending.set(id, { resolve, reject }));
+}
+function once(method, sessionId) {
+  return new Promise((resolve) => {
+    const l = (m) => { if (m.method === method && m.sessionId === sessionId) { listeners.splice(listeners.indexOf(l), 1); resolve(m.params); } };
+    listeners.push(l);
+  });
+}
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+(async () => {
+  const { targetInfos } = await send('Target.getTargets');
+  const page = targetInfos.find((t) => t.type === 'page');
+  if (!page) throw new Error('keine Seite');
+  const { sessionId: s } = await send('Target.attachToTarget', { targetId: page.targetId, flatten: true });
+  await send('Page.enable', {}, s);
+  await send('Emulation.setDeviceMetricsOverride', {
+    width: opt.width, height: opt.height, deviceScaleFactor: opt.mobile ? 2 : 1, mobile: opt.mobile,
+  }, s);
+  if (opt.mobile) await send('Emulation.setTouchEmulationEnabled', { enabled: true, maxTouchPoints: 5 }, s);
+  if (opt.scheme) await send('Emulation.setEmulatedMedia', { features: [{ name: 'prefers-color-scheme', value: opt.scheme }] }, s);
+
+  const loaded = once('Page.loadEventFired', s);
+  const nav = await send('Page.navigate', { url: u.href }, s);
+  if (nav.errorText) throw new Error(`Seite lädt nicht: ${nav.errorText}`);
+  await Promise.race([loaded, sleep(15000)]);
+  await sleep(opt.wait);
+
+  for (const sel of opt.clicks) {
+    const r = await send('Runtime.evaluate', {
+      expression: `(() => { const el = document.querySelector(${JSON.stringify(sel)}); if (!el) return false; el.scrollIntoView({block:'center'}); el.click(); return true; })()`,
+      returnByValue: true,
+    }, s);
+    if (!r.result.value) throw new Error(`Element nicht gefunden: ${sel}`);
+    await sleep(Math.max(opt.wait, 300));
+  }
+
+  if (opt.full) {
+    // Viewport auf die Seitenhöhe ziehen statt captureBeyondViewport: so reicht
+    // auch der Hintergrund (100vh, fixed) bis unten.
+    const m = await send('Page.getLayoutMetrics', {}, s);
+    const size = m.cssContentSize || m.contentSize;
+    await send('Emulation.setDeviceMetricsOverride', {
+      width: opt.width, height: Math.min(Math.ceil(size.height), 16000),
+      deviceScaleFactor: opt.mobile ? 2 : 1, mobile: opt.mobile,
+    }, s);
+    await sleep(300);
+  }
+  const { data } = await send('Page.captureScreenshot', { format: 'png' }, s);
+  writeFileSync(out, Buffer.from(data, 'base64'));
+  done = true;
+  cleanup();
+  process.stdout.write(`${out}\n`);
+  process.exit(0);
+})().catch((e) => fail(e.message));

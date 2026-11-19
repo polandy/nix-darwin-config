@@ -37,7 +37,7 @@ in
     systemd.tmpfiles.rules = [
       "f ${cfg.gpuLock} 0660 root ${cfg.group} -"
       # Bench, pilot (as the agent user) and the orchestrator (ssh) call it by name.
-      "L+ /usr/local/bin/llm-gpu - - - - ${llm-gpu}/bin/llm-gpu"
+      "L+ ${cfg.binDir}/llm-gpu - - - - ${llm-gpu}/bin/llm-gpu"
     ];
 
     systemd.services."llm-job@" = {

@@ -1,0 +1,72 @@
+#!/bin/bash
+# oc-net – Registries für die opencode-Sandbox zeitlich begrenzt freischalten.
+#   sudo oc-net open <npm|crates|go|packagist> [minuten]   (Default 10, max 120)
+#   sudo oc-net close <name> | status | reset
+# Erzeugt @sandboxNetDir@/proxy.filter aus base.filter + aktiven Freigaben und
+# lädt tinyproxy neu. Schließen per systemd-Timer. Jede Aktion geht ins Journal (-t oc-net).
+# Hinweis: Bereits offene Tunnel bleiben nach `close` bestehen, bis sie enden.
+set -euo pipefail
+
+readonly NET=@sandboxNetDir@
+readonly GRANTS=/run/oc-net
+readonly SELF=@binDir@/oc-net
+
+declare -A HOSTS=(
+  [npm]="registry.npmjs.org"
+  [crates]="index.crates.io static.crates.io"
+  [go]="proxy.golang.org sum.golang.org"
+  [packagist]="repo.packagist.org codeload.github.com"
+)
+
+die() { echo "oc-net: $*" >&2; exit 1; }
+log() { logger -t oc-net -- "$* (von ${SUDO_USER:-root})"; echo "oc-net: $*"; }
+(( EUID == 0 )) || die "braucht root: sudo oc-net …"
+
+check_name() { [[ -n ${1:-} && -v HOSTS[$1] ]] || die "unbekannt: ${1:-} (erlaubt: ${!HOSTS[*]})"; }
+
+render() {
+  local tmp name
+  tmp=$(mktemp "$NET/.proxy.filter.XXXXXX")
+  grep -v '^[[:space:]]*\(#\|$\)' "$NET/base.filter" > "$tmp"
+  for name in "${!HOSTS[@]}"; do
+    [[ -e $GRANTS/$name ]] && tr ' ' '\n' <<<"${HOSTS[$name]}" >> "$tmp"
+  done
+  chmod 0644 "$tmp"
+  mv -f "$tmp" "$NET/proxy.filter"
+}
+
+reload() { systemctl is-active -q tinyproxy && systemctl reload tinyproxy || true; }
+
+mkdir -p -m 0755 "$GRANTS"
+case ${1:-} in
+  open)
+    check_name "${2:-}"; name=$2; min=${3:-10}
+    [[ $min =~ ^[0-9]+$ ]] && (( min >= 1 && min <= 120 )) || die "Minuten: 1–120"
+    systemctl stop "oc-net-close-$name.timer" 2>/dev/null || true
+    date -d "+$min min" +%s > "$GRANTS/$name"
+    render; reload
+    systemd-run -q --unit="oc-net-close-$name" --on-active="${min}m" "$SELF" close "$name"
+    log "open $name (${HOSTS[$name]}) für $min min"
+    ;;
+  close)
+    check_name "${2:-}"; name=$2
+    rm -f "$GRANTS/$name"
+    render; reload
+    systemctl stop "oc-net-close-$name.timer" 2>/dev/null || true
+    log "close $name"
+    ;;
+  reset)
+    rm -f "$GRANTS"/*
+    render
+    [[ ${2:-} == --no-reload ]] || reload
+    log "reset (nur base.filter)"
+    ;;
+  status)
+    echo "Allowlist ($NET/proxy.filter):"; sed 's/^/  /' "$NET/proxy.filter"
+    for name in "${!HOSTS[@]}"; do
+      [[ -e $GRANTS/$name ]] && echo "offen: $name bis $(date -d "@$(<"$GRANTS/$name")" '+%F %T')"
+    done
+    true
+    ;;
+  *) die "Aufruf: oc-net open <${!HOSTS[*]}> [minuten] | close <name> | status | reset" ;;
+esac

@@ -73,10 +73,9 @@ in
         '';
       };
       # On start only the base allowlist (open grants do not survive a restart).
-      # oc-net is still installed by ai-sandbox install.sh.
       "systemd/system/tinyproxy.service.d/oc-sandbox.conf".text = ''
         [Service]
-        ExecStartPre=/usr/local/bin/oc-net reset --no-reload
+        ExecStartPre=${cfg.binDir}/oc-net reset --no-reload
       '';
       # Always allowed (fnmatch, exact host). `oc-net open` grants registries for a while.
       "${etcPath cfg.sandboxNetDir}/base.filter" = {

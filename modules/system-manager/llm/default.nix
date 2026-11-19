@@ -5,15 +5,15 @@ let
   cfg = config.llm;
 in
 {
-  # Local LLM setup on coolermaster: Ollama limits, the bwrap sandbox's network
-  # access (egress proxy, chat-only Ollama socket), the GPU lock and the jobs
-  # (bench, pilot) that run as the agent user. The sandbox tool itself
-  # (oc-sandbox, oc-net, its opencode config) is still installed by ai-sandbox
-  # install.sh. Values shared between the files below are the options here.
+  # Local LLM setup on coolermaster: Ollama limits, the bwrap sandbox tool
+  # (oc-sandbox, its opencode config) and its network access (egress proxy,
+  # chat-only Ollama socket), the GPU lock and the jobs (bench, pilot) that run
+  # as the agent user. Values shared between the files below are the options here.
   imports = [
     ./ollama.nix
     ./firewall.nix
     ./filter.nix
+    ./sandbox.nix
     ./sandbox-net.nix
     ./gpu-job.nix
     ./jobs.nix
@@ -35,6 +35,13 @@ in
       description = "Existing account that runs the sandbox, bench and pilot. Not created here.";
     };
 
+    agentHome = mkOption {
+      type = types.str;
+      default = "/home/${cfg.agentUser}";
+      defaultText = lib.literalExpression ''"/home/''${config.llm.agentUser}"'';
+      description = "Agent user's home; the sandbox mounts its per-repo state and the opencode config below it.";
+    };
+
     group = mkOption {
       type = types.str;
       default = "llm";
@@ -51,6 +58,15 @@ in
       type = types.str;
       default = "/srv/llm-pilot";
       description = "Pilot results, written by the agent user, readable for the group.";
+    };
+
+    binDir = mkOption {
+      type = types.str;
+      default = "/usr/local/bin";
+      description = ''
+        Stable paths (links into the store) for tools called by name: by sudoers
+        rules, by the jobs, by the orchestrator over ssh and inside the sandbox.
+      '';
     };
 
     jobsDir = mkOption {
@@ -75,6 +91,26 @@ in
       type = types.str;
       default = "/etc/oc-sandbox/net";
       description = "oc-net's directory: base.filter here, oc-net writes proxy.filter next to it.";
+    };
+
+    sandbox = {
+      keyFile = mkOption {
+        type = types.str;
+        example = "/home/aiagent/.openrouter-apikey";
+        description = ''
+          Host-local file with the OpenRouter key, readable only by the agent user.
+          Only its path is configured; the key never enters the Nix store.
+        '';
+      };
+
+      repos = mkOption {
+        type = types.listOf types.str;
+        default = [ "skipper-cd" "Stella" "framehive" "honeycomb" ];
+        description = ''
+          Fixed clones under agentDir the sandbox accepts (oc-sandbox, oc-outbox).
+          Throwaway clones bench-* and stella-* are added by oc-sandbox itself.
+        '';
+      };
     };
 
     ports = {
@@ -105,6 +141,11 @@ in
             type = types.nullOr types.int;
             default = null;
           };
+          label = mkOption {
+            type = types.nullOr types.str;
+            default = null;
+            description = "Display name in opencode (local models).";
+          };
         };
       });
       default = {
@@ -112,13 +153,15 @@ in
         local = {
           id = "ollama/bench-gemma4-26b";
           context = 65536;
+          label = "Gemma 4 26B-A4B (64k)";
         };
         local-128k = {
           id = "ollama/bench-gemma4-26b-128k";
           context = 131072;
+          label = "Gemma 4 26B-A4B (128k, nur t5-artige Aufgaben)";
         };
       };
-      description = "Model classes of the policy, also used by the job configs.";
+      description = "Model classes of the policy, also used by the job configs and the sandbox (allowed models, default = cloud).";
     };
   };
 
