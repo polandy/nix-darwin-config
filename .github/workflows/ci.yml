@@ -6,17 +6,30 @@ on:
   pull_request:
 
 jobs:
-  flake-check:
+  format:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
-
       - uses: DeterminateSystems/nix-installer-action@main
-
-      # Eval-only: catches breakage in any host configuration (darwin and Linux)
-      # without building anything.
-      - name: Evaluate all configurations
-        run: nix flake check --all-systems --no-build
-
       - name: Check formatting
         run: nix run .#formatter.x86_64-linux -- --check .
+
+  # `nix flake check` skips darwin/home/system configurations, so evaluate each one explicitly.
+  evaluate:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { name: "ambp", os: macos-latest, attr: 'darwinConfigurations.ambp.system' }
+          - { name: "amba", os: macos-latest, attr: 'darwinConfigurations.amba.system' }
+          - { name: "andy@x1", os: ubuntu-latest, attr: 'homeConfigurations."andy@x1".activationPackage' }
+          - { name: "andy@coolermaster", os: ubuntu-latest, attr: 'homeConfigurations."andy@coolermaster".activationPackage' }
+          - { name: "system x1", os: ubuntu-latest, attr: 'systemConfigs.x1' }
+          - { name: "system coolermaster", os: ubuntu-latest, attr: 'systemConfigs.coolermaster' }
+    name: ${{ matrix.name }}
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: DeterminateSystems/nix-installer-action@main
+      - name: Evaluate
+        run: nix eval --raw '.#${{ matrix.attr }}.drvPath'
