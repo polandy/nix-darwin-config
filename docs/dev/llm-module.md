@@ -17,15 +17,15 @@ system-manager module: `hosts/coolermaster/system.nix` imports it and turns it o
 - **Network guard.** The sandbox reaches the outside only through an egress proxy with an
   allowlist, enforced by nftables for the agent user. With a local model it gets no key and no
   egress at all, so private data stays on the host.
-- **Model classes.** Models are defined once and grouped into classes: `cloud` (the default for
-  workers), `local` and `local-128k`. The module publishes them as a policy file that the
-  orchestrator reads to pick a model. `local-nodraft` is not a policy class: it is the 64k Gemma
-  without the base model's MTP draft model, because Ollama 0.40.11 does not plan the draft's memory
-  and runs out of CUDA memory on the 16 GB card. `oc-sandbox --model` and the sandbox's
-  `opencode.json` offer it like the other local models; the Stella pilot picks it per run (model
-  argument of its `stella-task.sh`), while the `pilot-gemma4` job still uses `local`. The Ollama model
-  `bench-gemma4-26b-nodraft` itself is created by hand on the host (`ollama show --modelfile
-  bench-gemma4-26b` minus the `DRAFT` and `draft_num_predict` lines).
+- **Model classes.** Models are defined once (`llm.models`); the policy groups three of them into
+  classes: `cloud` (the default for workers), `local` and `local-128k`. The module publishes them as
+  a policy file that the orchestrator reads to pick a model. `local-nodraft` is not a policy class:
+  it is the 64k Gemma without the base model's MTP draft model, because Ollama 0.40.11 does not plan
+  the draft's memory and runs out of CUDA memory on the 16 GB card. `oc-sandbox --model` and the
+  sandbox's `opencode.json` offer it like the other local models; the Stella pilot picks it per run
+  (model argument of its `stella-task.sh`), while the `pilot-gemma4` job still uses `local`. The
+  Ollama model `bench-gemma4-26b-nodraft` itself is created by hand on the host (`ollama show
+  --modelfile bench-gemma4-26b` minus the `DRAFT` and `draft_num_predict` lines).
 - **Jobs, GPU lock, slices.** Long runs (pilot, bench) are systemd jobs that take a shared GPU
   lock, so only one local model run uses the GPU at a time; a run that cannot get it is
   deferred. Slices give LLM work priority over e2e containers.
