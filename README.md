@@ -5,6 +5,7 @@ Personal Nix configuration managing Linux (standalone home-manager) and macOS (n
 ## Quick Start
 
 * Apply configuration (Linux or macOS): `just switch`
+* Upgrade Homebrew formulae and casks (macOS only): `just upgrade`
 * Build without activating (macOS only): `just build-darwin`
 * Update flake dependencies: `nix flake update`
 

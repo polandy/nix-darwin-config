@@ -13,6 +13,11 @@ switch:
       home-manager switch --flake ".#andy@$(hostname -s)"
     fi
 
+# Upgrade Homebrew formulae and casks; `just switch` installs but never upgrades them (macOS only)
+upgrade:
+    brew update
+    brew upgrade
+
 # Build without activating (macOS only)
 build-darwin:
     darwin-rebuild build --flake ".#$(hostname -s)"
