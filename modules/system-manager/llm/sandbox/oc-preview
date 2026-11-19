@@ -1,0 +1,46 @@
+#!/bin/bash
+# oc-preview start|stop|status|log
+#
+# Starts the repo's app preview in the opencode sandbox in the background, only
+# on 127.0.0.1 in the sandbox's own network namespace (not visible to andy,
+# not reachable from outside). Take screenshots of it with oc-shot.
+# OC_REPO (set by oc-sandbox) selects the preview.
+set -euo pipefail
+
+readonly RUN=/tmp/oc-preview
+readonly PIDFILE=$RUN/pid LOG=$RUN/log
+
+die() { echo "oc-preview: $*" >&2; exit 1; }
+
+case ${OC_REPO:-} in
+  skipper-cd) cmd=(node scripts/ui-preview.mjs) port=3000 ready='UI ready:' ;;
+  '') die "OC_REPO is not set (only usable in the sandbox)" ;;
+  *) die "no preview is set up for $OC_REPO" ;;
+esac
+url=http://127.0.0.1:$port/
+
+running() { [[ -f $PIDFILE ]] && kill -0 "$(<"$PIDFILE")" 2>/dev/null; }
+
+case ${1:-status} in
+  start)
+    if running; then echo "already running: $url"; exit 0; fi
+    mkdir -p "$RUN"
+    cd /work
+    PORT=$port setsid "${cmd[@]}" >"$LOG" 2>&1 </dev/null &
+    echo $! >"$PIDFILE"
+    # The first start builds the binary, which can take a while.
+    for _ in $(seq 1 300); do
+      if ! running; then tail -n 30 "$LOG" >&2; die "preview exited (log above)"; fi
+      if grep -qF "$ready" "$LOG"; then echo "ready: $url"; exit 0; fi
+      sleep 1
+    done
+    die "not ready after 300 s, see: oc-preview log" ;;
+  stop)
+    if running; then kill -TERM -- "-$(<"$PIDFILE")" 2>/dev/null || kill "$(<"$PIDFILE")"; fi
+    rm -f "$PIDFILE"; echo "stopped" ;;
+  status)
+    if running; then echo "running: $url"; else echo "not running"; fi ;;
+  log)
+    [[ -f $LOG ]] && tail -n 50 "$LOG" || echo "no log" ;;
+  *) die "usage: oc-preview start|stop|status|log" ;;
+esac

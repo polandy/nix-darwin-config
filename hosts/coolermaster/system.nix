@@ -3,8 +3,14 @@
 {
   imports = [
     ../../modules/system-manager
-    ./ollama-firewall.nix
+    ../../modules/system-manager/llm
   ];
+
+  llm = {
+    enable = true;
+    # Created by hand, owned by the agent user, mode 0400; never read by Nix.
+    sandbox.keyFile = "/home/aiagent/.openrouter-apikey";
+  };
 
   environment.etc."sddm.conf.d/autologin.conf".text = ''
     [Autologin]

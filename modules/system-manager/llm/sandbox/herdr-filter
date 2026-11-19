@@ -1,0 +1,102 @@
+#!/usr/bin/python3 -I
+"""herdr filter proxy for the opencode sandbox (runs as andy, started by `oc`).
+
+    herdr-filter <listen-socket> <herdr-socket> <pane-id>
+
+Accepts one JSON line per connection and forwards only `pane.report_agent` and
+`pane.report_agent_session` for its own pane_id to the real herdr socket. The
+request is rebuilt from checked fields; everything else is answered with an
+error and dropped.
+"""
+import json
+import os
+import re
+import socket
+import socketserver
+import sys
+import threading
+
+MAX_LINE = 16 * 1024
+METHODS = {"pane.report_agent", "pane.report_agent_session"}
+STATES = {"idle", "working", "blocked", "done"}
+TOKEN = re.compile(r"^[A-Za-z0-9:_.\-]{1,128}$")
+SLOTS = threading.BoundedSemaphore(8)
+
+
+def clean(req, pane_id):
+    if not isinstance(req, dict) or req.get("method") not in METHODS:
+        return None
+    p = req.get("params")
+    if not isinstance(p, dict) or p.get("pane_id") != pane_id:
+        return None
+    out = {"pane_id": pane_id, "source": "herdr:opencode", "agent": "opencode"}
+    sid = p.get("agent_session_id")
+    if sid is not None:
+        if not isinstance(sid, str) or not TOKEN.match(sid):
+            return None
+        out["agent_session_id"] = sid
+    if req["method"] == "pane.report_agent":
+        if p.get("state") not in STATES:
+            return None
+        out["state"] = p["state"]
+        seq = p.get("seq")
+        if seq is not None:
+            if not isinstance(seq, int) or isinstance(seq, bool) or not 0 <= seq < 2**63:
+                return None
+            out["seq"] = seq
+    elif p.get("session_start_source") == "select":
+        out["session_start_source"] = "select"
+    rid = req.get("id")
+    rid = rid if isinstance(rid, str) and TOKEN.match(rid) else "oc-filter"
+    return {"id": rid, "method": req["method"], "params": out}
+
+
+class Handler(socketserver.StreamRequestHandler):
+    timeout = 2
+
+    def handle(self):
+        if not SLOTS.acquire(blocking=False):
+            return
+        try:
+            line = self.rfile.readline(MAX_LINE + 1)
+            if not line or len(line) > MAX_LINE:
+                return
+            try:
+                req = clean(json.loads(line), self.server.pane_id)
+            except ValueError:
+                req = None
+            if req is None:
+                self.wfile.write(b'{"error":{"code":"denied","message":"oc-sandbox herdr filter"}}\n')
+                return
+            with socket.socket(socket.AF_UNIX, socket.SOCK_STREAM) as up:
+                up.settimeout(2)
+                up.connect(self.server.herdr_socket)
+                up.sendall(json.dumps(req).encode() + b"\n")
+                resp = up.makefile("rb").readline(MAX_LINE)
+            self.wfile.write(resp or b"\n")
+        except OSError:
+            pass
+        finally:
+            SLOTS.release()
+
+
+class Server(socketserver.ThreadingMixIn, socketserver.UnixStreamServer):
+    daemon_threads = True
+
+
+def main():
+    if len(sys.argv) != 4:
+        sys.exit(__doc__)
+    listen, herdr_socket, pane_id = sys.argv[1:]
+    if not TOKEN.match(pane_id):
+        sys.exit("herdr-filter: invalid pane_id")
+    old = os.umask(0o177)
+    srv = Server(listen, Handler)
+    os.umask(old)
+    srv.herdr_socket = herdr_socket
+    srv.pane_id = pane_id
+    srv.serve_forever()
+
+
+if __name__ == "__main__":
+    main()

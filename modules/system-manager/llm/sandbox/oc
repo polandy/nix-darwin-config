@@ -1,0 +1,26 @@
+#!/bin/bash
+# oc <repo> [-c|--continue] [-s|--session <id>]
+#
+# Starts opencode in the sandbox (as @agentUser@). In a herdr pane, a filter proxy
+# runs as the caller and forwards only status messages for this pane to herdr.
+# The real herdr socket never enters the sandbox.
+set -euo pipefail
+
+readonly FILTER=@herdrFilter@
+
+herdr_args=()
+if [[ ${HERDR_ENV:-} == 1 && -S ${HERDR_SOCKET_PATH:-} && -n ${HERDR_PANE_ID:-} ]]; then
+  dir=$(mktemp -d /tmp/oc-herdr.XXXXXXXX)
+  sock=$dir/sock
+  "$FILTER" "$sock" "$HERDR_SOCKET_PATH" "$HERDR_PANE_ID" &
+  filter_pid=$!
+  trap 'kill "$filter_pid" 2>/dev/null; rm -rf "$dir"' EXIT
+  for _ in {1..50}; do [[ -S $sock ]] && break; sleep 0.05; done
+  [[ -S $sock ]] || { echo "oc: herdr filter does not start" >&2; exit 1; }
+  # Only @agentUser@ may enter (directory x, socket rw); no other user.
+  setfacl -m u:@agentUser@:x "$dir"
+  setfacl -m u:@agentUser@:rw "$sock"
+  herdr_args=(--herdr "$sock" "$HERDR_PANE_ID")
+fi
+
+sudo -u @agentUser@ @binDir@/oc-sandbox "$@" "${herdr_args[@]}"

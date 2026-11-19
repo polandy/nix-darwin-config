@@ -1,0 +1,5 @@
+# Intended constructs in the reviewed scripts (moved here from ai-sandbox with them).
+#   SC1007  `a= b=` sets both to empty (oc-sandbox)
+#   SC2054  commas in bwrap arguments are intended (oc-sandbox)
+#   SC2174  mkdir -p -m: only the deepest directory is new (oc-net)
+disable=SC1007,SC2054,SC2174

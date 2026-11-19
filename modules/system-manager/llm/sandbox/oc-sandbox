@@ -1,0 +1,227 @@
+#!/bin/bash
+# oc-sandbox <repo> [-c|--continue] [-s|--session <id>] [--model <id>] [--herdr <socket> <pane-id>]
+# oc-sandbox <repo> --run [--model <id>] [-s|--session <id>] [--title <text>]  < prompt
+# oc-sandbox <repo> --script  < bash-script
+#
+# Starts opencode as user aiagent in a bwrap sandbox. Called by andy
+# via `oc <repo>` (starts the herdr filter if needed) or directly:
+#   sudo -u @agentUser@ @binDir@/oc-sandbox <repo>
+# Plan: ai-sandbox docs/dev/opencode-sandbox-plan.md (phases 2, 5)
+#
+# Visible in the sandbox: /usr, /nix/store, selected /etc files (all ro),
+# the clone @agentDir@/<repo> as /work (rw), separate state per repo as
+# ~/.local/share, ~/.local/state, ~/.cache (rw) and the opencode config (ro).
+# Own network namespace: the only way out is the Unix socket of the
+# egress proxy (@socketDir@/proxy.sock), which socat offers in the sandbox as
+# 127.0.0.1:@proxyPort@. This also hides abstract Unix sockets (X11 etc.) and
+# the host's localhost services.
+#
+# Model (--model, default from the global opencode.json): cloud models get the key and
+# egress proxy, local ones (ollama/…) only @socketDir@/ollama.sock (-> ollama-filter, chat
+# API only) and neither key nor egress. Private data thus stays on the host.
+#
+# --run: headless (`opencode run --auto --format json`), prompt from stdin, JSON events on
+# stdout. Only here --auto applies: "ask" rules are allowed, "deny" stays. For bench and
+# pilot (caller runs as aiagent; GPU lock and timeout are the caller's job).
+#
+# --script: bash script from stdin in the same sandbox, without key, without sockets (no network).
+# For everything that runs agent code or touches the agent's .git (evaluation: build, test,
+# git diff), so that it never runs unprotected as aiagent. Output on stdout.
+set -euo pipefail
+
+readonly AGENT=@agentUser@
+readonly AGENT_HOME=@agentHome@
+readonly SRV=@agentDir@
+# opencode config, repo profiles and inner live in the Nix store (ro, also in the sandbox).
+readonly OPENCODE=@opencode@ OPENCODE_MOUNT=@opencodeMount@
+readonly REPOS=@repoProfiles@
+readonly INNER=@inner@
+readonly KEYFILE=@keyFile@
+readonly PROXY_DIR=@socketDir@
+readonly DEFAULT_MODEL=@defaultModel@
+
+die() { echo "oc-sandbox: $*" >&2; exit 1; }
+
+[[ $(id -un) == "$AGENT" ]] || die "must run as $AGENT: sudo -u $AGENT $0 <repo>"
+(( $# >= 1 )) || die "usage: oc-sandbox <repo> [-c|--continue] [-s|--session <id>]"
+repo=$1; shift
+# Fixed repos plus throwaway clones for bench (bench-*, clone of skipper-cd) and pilot (stella-*).
+case $repo in
+  @repoCase@) profile=$repo ;;
+  *)
+    if [[ $repo =~ ^bench-[a-z0-9-]{1,48}$ ]]; then profile=skipper-cd
+    elif [[ $repo =~ ^stella-[a-z0-9-]{1,48}$ ]]; then profile=Stella repo_json=stella-pilot
+    else die "unknown repo: $repo"; fi ;;
+esac
+
+# Let only a few opencode arguments through (no --auto, --server, --standalone=false …).
+oc_args=()
+herdr_sock= herdr_pane=
+model= run=0 script=0 title=
+while (( $# )); do
+  case $1 in
+    -c|--continue) oc_args+=(--continue) ;;
+    -s|--session)
+      [[ ${2:-} =~ ^[A-Za-z0-9_-]{1,64}$ ]] || die "invalid session ID"
+      oc_args+=(--session "$2"); shift ;;
+    --model)
+      case ${2:-} in
+        @modelCase@) model=$2 ;;
+        *) die "model not allowed: ${2:-}" ;;
+      esac
+      shift ;;
+    --run) run=1 ;;
+    --script) script=1 ;;
+    --title)
+      [[ ${2:-} =~ ^[A-Za-z0-9\ ._:/-]{1,80}$ ]] || die "invalid title"
+      title=$2; shift ;;
+    --herdr)
+      # Socket of the herdr filter (started by `oc` as andy), never the real herdr socket.
+      [[ ${2:-} =~ ^/tmp/oc-herdr\.[A-Za-z0-9]{8}/sock$ && -S $2 && ! -L $2 ]] || die "invalid herdr socket"
+      [[ ${3:-} =~ ^[A-Za-z0-9:_.-]{1,64}$ ]] || die "invalid pane_id"
+      herdr_sock=$2 herdr_pane=$3; shift 2 ;;
+    *) die "argument not allowed: $1" ;;
+  esac
+  shift
+done
+
+if (( script )); then
+  (( ! run )) && [[ -z $herdr_sock$model$title && ${#oc_args[@]} == 0 ]] || die "--script takes no other options"
+  [[ ! -t 0 ]] || die "--script: expected a script on stdin"
+  prompt=$(head -c 262144)
+  exec 0</dev/null
+elif (( run )); then
+  [[ -z $herdr_sock ]] || die "--run without --herdr"
+  [[ " ${oc_args[*]} " != *" --continue "* ]] || die "--run: use --session instead of --continue"
+  [[ ! -t 0 ]] || die "--run: expected a prompt on stdin"
+  prompt=$(head -c 262144)
+  [[ -n ${prompt//[[:space:]]/} ]] || die "--run: empty prompt"
+  exec 0</dev/null  # otherwise opencode run appends a stdin pipe to the prompt
+elif [[ -n $title ]]; then
+  die "--title only with --run"
+fi
+local_model=0 net=1
+[[ ${model:-$DEFAULT_MODEL} == ollama/* ]] && local_model=1
+(( script )) && net=0
+
+work=$SRV/$repo
+[[ -d $work/.git && ! -L $work ]] || die "not a clone: $work"
+# Project configs would override the global rules (last rule wins).
+for f in opencode.json opencode.jsonc .opencode; do
+  [[ -e $work/$f || -L $work/$f ]] && die "$work/$f present: project config, aborting"
+done
+if (( ! net )); then
+  :
+elif (( local_model )); then
+  [[ -S $PROXY_DIR/ollama.sock ]] || die "$PROXY_DIR/ollama.sock missing (oc-ollama.socket)"
+else
+  [[ -r $KEYFILE ]] || die "key missing: $KEYFILE"
+  [[ -S $PROXY_DIR/proxy.sock ]] || echo "oc-sandbox: warning: $PROXY_DIR/proxy.sock missing, no network" >&2
+fi
+# No --new-session (breaks SIGWINCH/resize of the TUI). Protection against TTY injection
+# comes instead from legacy_tiocsti=0 and sudo's own PTY (use_pty).
+[[ $(</proc/sys/dev/tty/legacy_tiocsti) == 0 ]] || die "dev.tty.legacy_tiocsti is not 0"
+
+# State per repo, so sessions and caches are not shared between repos.
+state=$AGENT_HOME/oc-state/$repo
+umask 077
+mkdir -p "$state/share" "$state/state" "$state/cache"
+
+term=${TERM:-xterm-256color}
+[[ $term =~ ^[A-Za-z0-9._+-]{1,64}$ ]] || term=xterm-256color
+
+args=(
+  --unshare-all --unshare-user --disable-userns --die-with-parent --cap-drop ALL
+  --hostname oc-sandbox
+  --ro-bind /usr /usr
+  --symlink usr/bin /bin --symlink usr/bin /sbin
+  --symlink usr/lib /lib --symlink usr/lib /lib64
+  --proc /proc --dev /dev --tmpfs /tmp
+)
+# fonts: for headless Chromium (oc-shot), otherwise screenshots lack fonts.
+for f in passwd group hosts nsswitch.conf ld.so.cache localtime ssl ca-certificates fonts; do
+  [[ -e /etc/$f ]] && args+=(--ro-bind "/etc/$f" "/etc/$f")
+done
+[[ -d /nix/store ]] && args+=(--ro-bind /nix/store /nix/store)
+# Only the socket the model needs: local never gets egress, cloud never Ollama.
+if (( ! net )); then
+  :
+elif (( local_model )); then
+  args+=(--dir "$PROXY_DIR" --ro-bind "$PROXY_DIR/ollama.sock" "$PROXY_DIR/ollama.sock")
+elif [[ -S $PROXY_DIR/proxy.sock ]]; then
+  args+=(--dir "$PROXY_DIR" --ro-bind "$PROXY_DIR/proxy.sock" "$PROXY_DIR/proxy.sock")
+fi
+
+args+=(
+  --dir "$AGENT_HOME"
+  --bind "$state/share" "$AGENT_HOME/.local/share"
+  --bind "$state/state" "$AGENT_HOME/.local/state"
+  --bind "$state/cache" "$AGENT_HOME/.cache"
+  --ro-bind "$OPENCODE" "$OPENCODE_MOUNT"
+  --bind "$work" /work
+  --chdir /work
+)
+fds=()
+(( local_model || ! net )) || { args+=(--ro-bind-data 3 /run/oc/openrouter-key); fds+=(3); }
+# Other model: lay an opencode.json with changed "model" over the global one
+# (the v2 TUI has no -m).
+if [[ -n $model ]]; then
+  args+=(--ro-bind-data 4 "$OPENCODE_MOUNT/opencode.json"); fds+=(4)
+fi
+if (( run )); then
+  args+=(--ro-bind-data 5 /run/oc/prompt); fds+=(5)
+elif (( script )); then
+  args+=(--ro-bind-data 5 /run/oc/script); fds+=(5)
+fi
+
+args+=(
+  --clearenv
+  --setenv HOME "$AGENT_HOME" --setenv USER "$AGENT" --setenv LOGNAME "$AGENT"
+  --setenv PATH @binDir@:/usr/bin --setenv SHELL /bin/bash
+  --setenv TERM "$term" --setenv COLORTERM truecolor --setenv LANG C.UTF-8
+  --setenv HTTPS_PROXY http://127.0.0.1:@proxyPort@ --setenv HTTP_PROXY http://127.0.0.1:@proxyPort@
+  --setenv https_proxy http://127.0.0.1:@proxyPort@ --setenv http_proxy http://127.0.0.1:@proxyPort@
+  --setenv NO_PROXY localhost,127.0.0.1,::1 --setenv no_proxy localhost,127.0.0.1,::1
+  --setenv OPENCODE_DISABLE_PROJECT_CONFIG 1
+  --setenv OPENCODE_DISABLE_AUTOUPDATE 1 --setenv OPENCODE_DISABLE_MODELS_FETCH 1
+  --setenv OPENCODE_DISABLE_CLAUDE_CODE_SKILLS 1
+  --setenv GIT_CONFIG_NOSYSTEM 1
+  --setenv OC_REPO "$repo" --setenv OC_MODEL "${model:-$DEFAULT_MODEL}"
+)
+if [[ -n $herdr_sock ]]; then
+  args+=(--ro-bind "$herdr_sock" /run/oc/herdr.sock
+         --setenv HERDR_ENV 1 --setenv HERDR_SOCKET_PATH /run/oc/herdr.sock
+         --setenv HERDR_PANE_ID "$herdr_pane")
+fi
+# Throwaway clones can have their own repo config (pilot: stella-pilot.json with pilot rules).
+if [[ -f $REPOS/${repo_json:-$profile}.json ]]; then
+  args+=(--ro-bind "$REPOS/${repo_json:-$profile}.json" /run/oc/repo.json --setenv OPENCODE_CONFIG /run/oc/repo.json)
+fi
+
+# Toolchain environment per repo (offline).
+case $profile in
+  skipper-cd)
+    args+=(--setenv GOFLAGS -mod=vendor --setenv GOPROXY off --setenv GOTOOLCHAIN local
+           --setenv GOSUMDB off --setenv GOTELEMETRY off) ;;
+  framehive)
+    args+=(--setenv CARGO_NET_OFFLINE true) ;;
+esac
+
+if (( run )); then
+  oc_args=(run --standalone --auto --format json -m "${model:-$DEFAULT_MODEL}" ${title:+--title "$title"} "${oc_args[@]}")
+else
+  oc_args=(--standalone "${oc_args[@]}")
+fi
+
+# Open fds 3 (key), 4 (config), 5 (prompt) only where they are needed.
+for fd in "${fds[@]}"; do
+  case $fd in
+    3) exec 3<"$KEYFILE" ;;
+    4) exec 4< <(jq --arg m "$model" '.model = $m' "$OPENCODE/opencode.json") ;;
+    5) exec 5< <(printf '%s' "$prompt") ;;
+  esac
+done
+if (( script )); then
+  exec bwrap "${args[@]}" /bin/bash /run/oc/script
+fi
+exec bwrap "${args[@]}" "$INNER" "${oc_args[@]}"

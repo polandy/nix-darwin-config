@@ -1,0 +1,20 @@
+#!/bin/sh
+# Runs in the bwrap sandbox (started by oc-sandbox): key into the environment (only
+# present for cloud models), bridges 127.0.0.1:@proxyPort@ -> proxy.sock (egress) and
+# 127.0.0.1:@ollamaPort@ -> ollama.sock (local model, chat API only), then opencode.
+# In --run mode the prompt is in /run/oc/prompt and is passed as the last argument.
+set -eu
+if [ -r /run/oc/openrouter-key ]; then
+  OPENROUTER_API_KEY=$(cat /run/oc/openrouter-key)
+  export OPENROUTER_API_KEY
+fi
+if [ -S @socketDir@/proxy.sock ]; then
+  socat TCP-LISTEN:@proxyPort@,bind=127.0.0.1,fork,reuseaddr UNIX-CONNECT:@socketDir@/proxy.sock &
+fi
+if [ -S @socketDir@/ollama.sock ]; then
+  socat TCP-LISTEN:@ollamaPort@,bind=127.0.0.1,fork,reuseaddr UNIX-CONNECT:@socketDir@/ollama.sock &
+fi
+if [ -r /run/oc/prompt ]; then
+  exec opencode "$@" "$(cat /run/oc/prompt)"
+fi
+exec opencode "$@"
