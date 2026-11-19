@@ -25,5 +25,6 @@ build-darwin:
 fmt:
     nix fmt -- .
 
+# Delete generations older than 14 days and collect garbage (keeps recent rollbacks)
 clean:
-    sudo nix-collect-garbage -d
+    sudo nix-collect-garbage --delete-older-than 14d
