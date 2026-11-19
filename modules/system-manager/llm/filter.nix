@@ -8,8 +8,9 @@ let
   # Path filter in front of Ollama for the bwrap sandbox
   # (oc-ollama.socket -> oc-ollama@ -> here). Only the chat API: no /api/pull,
   # /api/delete, /api/create, /api/generate and so on. Which model gets loaded
-  # is in the body and not filtered here. tests/ollama-filter.sh checks it at
-  # build time.
+  # is in the body and not filtered here. The site matches any Host header: the
+  # sandbox client sets it freely, and an unmatched Host would get Caddy's empty
+  # 200 instead of the filter. tests/ollama-filter.sh checks it at build time.
   caddyfile = pkgs.writeTextFile {
     name = "ollama-filter.Caddyfile";
     text = ''
@@ -19,7 +20,7 @@ let
       	persist_config off
       }
 
-      http://${filter} {
+      http://:${toString cfg.ports.filter} {
       	bind 127.0.0.1
       	@chat {
       		method POST
