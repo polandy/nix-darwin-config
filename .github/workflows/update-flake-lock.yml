@@ -16,6 +16,13 @@ jobs:
 
       - uses: DeterminateSystems/nix-installer-action@main
 
-      - uses: DeterminateSystems/update-flake-lock@main
+      - run: nix flake update
+
+      - uses: peter-evans/create-pull-request@v8.1.3
         with:
-          pr-title: 'chore(flake): update inputs'
+          branch: update_flake_lock_action
+          sign-commits: true
+          commit-message: 'chore(flake): update inputs'
+          title: 'chore(flake): update inputs'
+          body: Automated `nix flake update`.
+          delete-branch: true
