@@ -6,7 +6,6 @@
     pkgs.git
     pkgs.findutils
     pkgs.gnused
-    pkgs.mas
     pkgs.unrar # RAR5; extract nutzt `unrar x`
     pkgs.unixtools.watch
     pkgs.wget
