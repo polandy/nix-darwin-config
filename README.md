@@ -66,7 +66,7 @@ Linux hosts (x1, coolermaster) run Arch Linux with standalone home-manager. Syst
 
 5. **Set up secrets** — copy your age key to `~/.config/sops/age/keys.txt`.
 
-6. **coolermaster only:** create the host-local files with the LAN addresses, see [docs/user/coolermaster-host-local-files.md](./docs/user/coolermaster-host-local-files.md).
+6. **coolermaster only:** create the host-local files (LAN addresses, sandbox user, key and sudoers), see [docs/user/coolermaster-host-local-files.md](./docs/user/coolermaster-host-local-files.md).
 
 ### macOS (nix-darwin)
 
