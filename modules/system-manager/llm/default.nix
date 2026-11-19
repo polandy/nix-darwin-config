@@ -167,7 +167,7 @@ in
           label = "Gemma 4 26B-A4B (64k, no draft model)";
         };
       };
-      description = "Model classes of the policy, also used by the job configs and the sandbox (allowed models, default = cloud).";
+      description = "Models offered by the sandbox (allowed models, default = cloud); policy.nix and the job configs pick their classes from them by name.";
     };
   };
 
