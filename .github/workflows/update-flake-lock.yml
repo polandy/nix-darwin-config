@@ -24,6 +24,7 @@ jobs:
         with:
           branch: update_flake_lock_action
           sign-commits: true
+          add-paths: flake.lock
           commit-message: 'chore(flake): update inputs'
           title: 'chore(flake): update inputs'
           body: Automated `nix flake update`.
