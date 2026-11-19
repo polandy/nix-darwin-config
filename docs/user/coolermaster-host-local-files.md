@@ -7,7 +7,7 @@ hand on a fresh install, before the first `just switch`.
 | File | Read by | Without it |
 |---|---|---|
 | `/etc/NetworkManager/conf.d/dns-local.conf` | NetworkManager | DNS comes from the router instead of the home DNS server |
-| `/etc/ollama-lan/allowed.nft` | `ollama-lan-firewall.service` ([firewall.nix](../../modules/system-manager/llm/firewall.nix)) | Ollama (port 11434) is reachable only from localhost and the sandbox Caddy (no LAN host needs it today) |
+| `/etc/ollama-lan/allowed.nft` | `ollama-lan-firewall.service` ([firewall.nix](../../modules/system-manager/llm/firewall.nix)) | Ollama (port 11434) is reachable only from localhost and the addresses in `/etc/ollama-lan/*.nft`; without a file, localhost only (no other host needs it today) |
 
 ## Network
 
@@ -19,13 +19,19 @@ printf '[global-dns-domain-*]\nservers=<home-dns-ip>\n' \
   | sudo tee /etc/NetworkManager/conf.d/dns-local.conf
 sudo nmcli general reload conf
 
-# Only if a LAN host needs Ollama (comma-separated, CIDR ranges work too). Since 2026-11-19
+# Only if another host needs Ollama (comma-separated, CIDR ranges work too). Since 2026-11-19
 # none does: the nuc monitors through the exporters, not the Ollama port.
 sudo mkdir -p /etc/ollama-lan
-echo 'add element inet ollama_lan allowed { <lan-ip> }' \
+echo 'add element inet ollama_lan allowed { <ip> }' \
   | sudo tee /etc/ollama-lan/allowed.nft
 sudo systemctl restart ollama-lan-firewall   # skip before the first switch, the unit does not exist yet
+journalctl -u ollama-lan-firewall -n 3 --no-pager   # lists the loaded allow files, or "localhost only"
 ```
+
+The same applies to the Caddy of the Docker sandbox (path B), if it is used again: put the fixed
+address of its container into its own file, e.g. `/etc/ollama-lan/docker-caddy.nft`. Add only
+that single address, not a Docker range such as 172.16.0.0/12, or agent containers reach Ollama
+past Caddy's filter through their bridge gateway.
 
 NetworkManager does not pick up config changes by itself, so reload it after editing the DNS file.
 The firewall rules include every `/etc/ollama-lan/*.nft`, so more files can sit next to
