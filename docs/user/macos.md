@@ -41,13 +41,3 @@ Start a Colima instance with optimized settings for Apple Silicon:
   * `--cpu 2`: Allocates 2 CPU cores to the virtual machine.
   * `--memory 2`: Allocates 2 GB of RAM to the virtual machine.
   * `--disk 20`: Allocates 20 GB of disk space.
-
-## Troubleshooting
-
-### Alacritty: "Apple could not verify..." Error
-
-If you get a security warning when opening Alacritty (e.g., via `Option + Enter`), it's likely because macOS has quarantined the application. Run the following command to remove the quarantine attribute:
-
-```bash
-sudo xattr -rd com.apple.quarantine /Applications/Alacritty.app
-```

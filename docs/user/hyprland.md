@@ -25,7 +25,7 @@ by metapac (`modules/home-manager/linux/metapac/groups/`), config lives in
 | Brightness | [brightnessctl](https://github.com/Hummer12007/brightnessctl) | Brightness keys | — |
 | Bluetooth tray | `blueman-applet` | Autostart | — |
 | File sync | Nextcloud client | Autostart | — |
-| Terminal | [Alacritty](https://alacritty.org/) | `Super + Enter` | `modules/home-manager/generic/alacritty.nix` |
+| Terminal | [Alacritty](https://alacritty.org/) | `Super + Enter` | `modules/home-manager/linux/alacritty.nix` |
 | File manager | Thunar | `Super + E` | — |
 
 ## Theming

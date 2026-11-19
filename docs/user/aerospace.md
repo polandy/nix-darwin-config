@@ -25,7 +25,7 @@ On startup, AeroSpace launches sketchybar and JankyBorders via `after-startup-co
 
 | Key | Action |
 |-----|--------|
-| `Alt + Enter` | Open Alacritty |
+| `Alt + Enter` | Open Ghostty |
 | `Alt + h/j/k/l` | Focus window (left/down/up/right) |
 | `Alt + Shift + h/j/k/l` | Move window |
 | `Alt + 1–9, 0, -, =` | Switch to workspace 1–12 |

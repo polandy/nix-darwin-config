@@ -1,5 +1,6 @@
 { ... }: {
   imports = [
+    ./alacritty.nix
     ./bash.nix
     ./beets
     ../generic/personal-cli-tools.nix

@@ -16,10 +16,7 @@
         dynamic_padding = false;
         opacity = 0.98;
         padding = { x = 5; y = 5; };
-      } // (if pkgs.stdenv.hostPlatform.isDarwin then {
-        decorations = "buttonless";
-        option_as_alt = "Both";
-      } else { });
+      };
       # Catppuccin Macchiato — https://github.com/catppuccin/alacritty
       colors = {
         primary = {
