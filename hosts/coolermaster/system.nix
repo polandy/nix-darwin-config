@@ -3,8 +3,10 @@
 {
   imports = [
     ../../modules/system-manager
-    ./ollama-firewall.nix
+    ../../modules/system-manager/llm
   ];
+
+  llm.enable = true;
 
   environment.etc."sddm.conf.d/autologin.conf".text = ''
     [Autologin]

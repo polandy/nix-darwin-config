@@ -7,7 +7,7 @@ first `just switch`.
 | File | Read by | Without it |
 |---|---|---|
 | `/etc/NetworkManager/conf.d/dns-local.conf` | NetworkManager | DNS comes from the router instead of the home DNS server |
-| `/etc/ollama-lan/allowed.nft` | `ollama-lan-firewall.service` ([ollama-firewall.nix](../../hosts/coolermaster/ollama-firewall.nix)) | Ollama (port 11434) is reachable only from localhost and Docker |
+| `/etc/ollama-lan/allowed.nft` | `ollama-lan-firewall.service` ([firewall.nix](../../modules/system-manager/llm/firewall.nix)) | Ollama (port 11434) is reachable only from localhost and the sandbox Caddy (no LAN host needs it today) |
 
 ## Setup
 
@@ -19,9 +19,10 @@ printf '[global-dns-domain-*]\nservers=<home-dns-ip>\n' \
   | sudo tee /etc/NetworkManager/conf.d/dns-local.conf
 sudo nmcli general reload conf
 
-# LAN hosts allowed to reach Ollama (comma-separated, CIDR ranges work too)
+# Only if a LAN host needs Ollama (comma-separated, CIDR ranges work too). Since 2026-11-19
+# none does: the nuc monitors through the exporters, not the Ollama port.
 sudo mkdir -p /etc/ollama-lan
-echo 'add element inet ollama_lan allowed { <nuc-ip> }' \
+echo 'add element inet ollama_lan allowed { <lan-ip> }' \
   | sudo tee /etc/ollama-lan/allowed.nft
 sudo systemctl restart ollama-lan-firewall   # skip before the first switch, the unit does not exist yet
 ```
@@ -34,6 +35,6 @@ The firewall rules include every `/etc/ollama-lan/*.nft`, so more files can sit 
 
 ```bash
 grep -v '^#' /etc/resolv.conf                       # only the home DNS server
-sudo nft list set inet ollama_lan allowed           # elements = { <nuc-ip> }
-ssh nuc curl -s http://coolermaster:11434/api/version
+sudo nft list set inet ollama_lan allowed           # empty unless a LAN host was added
+ssh nuc curl -s -m 5 http://coolermaster:11434/api/version   # times out: LAN is blocked
 ```
