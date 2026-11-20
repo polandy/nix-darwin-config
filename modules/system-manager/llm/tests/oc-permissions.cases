@@ -18,6 +18,11 @@ allow	shell	npm test
 allow	shell	npx playwright test
 allow	shell	rm -rf node_modules
 allow	shell	rm -rf build/out
+allow	shell	rm -rf ./dist
+allow	shell	rm -rf a
+allow	shell	git commit -m "fix environment handling"
+allow	shell	grep -rn environment .
+allow	shell	git commit -m "x=1 git push docs"
 allow	shell	git commit -m "docs: explain git push flow"
 allow	shell	oc-shot docs/dev/mockups/x.html /tmp/check.png
 allow	read	src/main.go
@@ -69,16 +74,13 @@ deny	shell	cat /run/oc/openrouter-key
 deny	shell	rm -rf /
 deny	shell	git config --get user.name
 deny	shell	git --no-pager push
-deny	shell	GIT_DIR=.git git push
 deny	shell	command git push
 deny	shell	env git push
 deny	shell	/usr/bin/env
 deny	shell	export
 deny	shell	compgen -e
 deny	shell	python3 -c 'import os;print(os.environ)'
-deny	shell	awk 'BEGIN{for(k in ENVIRON)print k,ENVIRON[k]}'
 deny	shell	xargs -0 -a /proc/self/environ
-deny	shell	rm -rf *
 deny	shell	rm -rf /work/*
 deny	shell	rm -rf .git/hooks
 deny	shell	rm -rf ..

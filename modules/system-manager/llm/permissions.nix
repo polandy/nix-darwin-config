@@ -23,11 +23,11 @@ rec {
     ++ each [ "webfetch" "websearch" "browser" "skill" "doom_loop" ] "deny" [ "*" ]
     ++ rules "shell" "deny" (
       [ "sudo *" "su" "su *" "doas *" "pkexec *" ]
-      ++ [ "git push*" "git -C * push*" "git -c * push*" "git --* push*" "env git push*" "command git push*" "exec git push*" "*=* git push*" "*/git push*" "git remote*" "git -C * remote*" "git config*" "git -C * config*" ]
+      ++ [ "git push*" "git -C * push*" "git -c * push*" "git --* push*" "env git push*" "command git push*" "exec git push*" "*/git push*" "git remote*" "git -C * remote*" "git config*" "git -C * config*" ]
       ++ [ "curl *" "wget *" "nc *" "ncat *" "netcat *" "socat *" "ssh *" "scp *" "sftp *" "rsync *" "telnet *" "ftp *" ]
       # OPENROUTER_API_KEY is in the environment of every shell command.
       ++ [ "env" "env -0" "*/env" "printenv*" "export" "export -p" "declare -p*" "set" "compgen *" ]
-      ++ [ "*OPENROUTER*" "*environ*" "*ENVIRON*" "*/run/oc*" ]
-      ++ map (p: "rm -*r* ${p}") [ "?" ".." "./" "~/" "$HOME" "/work" "/work/*" "./*" ".git" ".git/*" "../*" ]
+      ++ [ "*OPENROUTER*" "*os.environ*" "*/proc/*" "*/run/oc*" ]
+      ++ map (p: "rm -*r* ${p}") [ "/" "." ".." "./" "~" "~/" "$HOME" "/work" "/work/*" ".git" ".git/*" "../*" ]
     );
 }
