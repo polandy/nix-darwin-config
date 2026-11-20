@@ -213,6 +213,16 @@ in
           context = 65536;
           label = "Gemma 4 26B-A4B (64k, no draft model)";
         };
+        local-128k-nodraft = {
+          id = "ollama/bench-gemma4-26b-128k-nodraft";
+          context = 131072;
+          label = "Gemma 4 26B-A4B (128k, no draft model)";
+        };
+        local-qwen3-coder-next-128k = {
+          id = "ollama/bench-qwen3-coder-next-128k";
+          context = 131072;
+          label = "Qwen3-Coder-Next 80B-A3B (128k)";
+        };
       };
       description = "Models offered by the sandbox (allowed models, default = cloud); policy.nix and the job configs pick their classes from them by name.";
     };

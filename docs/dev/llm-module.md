@@ -33,6 +33,10 @@ system-manager module: `hosts/coolermaster/system.nix` imports it and turns it o
   ollama create bench-gemma4-26b-nodraft -f nodraft.Modelfile
   ```
 
+  Pilot stage b also offers `bench-gemma4-26b-128k-nodraft` (the same without the draft model, 128k)
+  and `bench-qwen3-coder-next-128k` (Qwen3-Coder-Next 80B-A3B, 128k); both are Ollama models created
+  by hand on the host and, like `local-nodraft`, no policy classes.
+
 - **OpenRouter data policy.** The sandbox's `opencode.json` comes in two variants that differ
   only in OpenRouter's provider routing: ZDR endpoints with `data_collection: deny`, or, for the
   repos in `llm.sandbox.publicRepos` (public on GitHub), providers that may collect data.
