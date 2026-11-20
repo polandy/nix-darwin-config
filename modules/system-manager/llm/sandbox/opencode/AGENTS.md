@@ -23,3 +23,9 @@ You run in an isolated sandbox. The repo is at `/work`.
     `--click 'button[data-view="stacks"]'`; expand a row with
     `--click '.roster-row[data-stack="<name>"]'`.
 - Before you finish, `oc-preview stop`.
+- GitHub: `git push` is blocked; push, open and merge your PR with `oc-pr` instead (the token stays
+  on the host):
+  - `oc-pr push` pushes the current feature branch (never `main`/`master`, no force push, no tags).
+  - `oc-pr pr-create [--title <text>] [--body-file <file>]` opens the PR (default: from the commits).
+  - `oc-pr merge <pr>` squash-merges only when all checks pass and the latest "PR quality review"
+    says ready and is newer than the head. Otherwise it names the reason; do not retry in a loop.

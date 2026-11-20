@@ -1,0 +1,93 @@
+#!/usr/bin/python3 -I
+"""oc-pr: push, open and merge this repo's PR through the host broker (no token in the sandbox).
+
+    oc-pr push [<branch>]                                  default: the current branch
+    oc-pr pr-create [--title <text>] [--body-file <file>] [<branch>]
+                                                           default title/body: the branch's commits
+    oc-pr merge <pr-number>                                squash, only when CI and the review are green
+
+Never main/master, never a force push, never tags. A refused merge names the reason
+(checks running, review missing or older than the head); fix it or wait, then ask again.
+"""
+import json
+import os
+import socket
+import subprocess
+import sys
+
+SOCKET = os.environ.get("OC_PR_SOCKET", "/run/oc/pr.sock")
+
+
+def die(msg):
+    sys.exit(f"oc-pr: {msg}")
+
+
+def git(*args, input=None):
+    p = subprocess.run(("git",) + args, input=input, capture_output=True)
+    if p.returncode != 0:
+        die(f"git {args[0]}: {p.stderr.decode(errors='replace').strip()}")
+    return p.stdout
+
+
+def current_branch():
+    return git("symbolic-ref", "--short", "HEAD").decode().strip()
+
+
+def bundle(branch, have):
+    git("rev-parse", "--verify", "-q", f"refs/heads/{branch}^{{commit}}")
+    if have:
+        known = git("cat-file", "--batch-check=%(objectname) %(objecttype)", input="\n".join(have).encode() + b"\n")
+        have = [line.split()[0] for line in known.decode().splitlines() if line.endswith(" commit")]
+    if git("rev-list", "--count", f"refs/heads/{branch}", *(f"^{h}" for h in have)).strip() == b"0":
+        return b""
+    return git("bundle", "create", "-q", "-", f"refs/heads/{branch}", *(f"^{h}" for h in have))
+
+
+def main(argv):
+    if not argv or argv[0] in ("-h", "--help"):
+        print(__doc__.strip())
+        return 0 if argv else 2
+    verb, args = argv[0], argv[1:]
+    req = {"verb": verb}
+    if verb == "push":
+        if len(args) > 1:
+            die("usage: oc-pr push [<branch>]")
+        req["branch"] = args[0] if args else current_branch()
+    elif verb == "pr-create":
+        while args and args[0].startswith("--"):
+            if len(args) < 2 or args[0] not in ("--title", "--body-file"):
+                die("usage: oc-pr pr-create [--title <text>] [--body-file <file>] [<branch>]")
+            if args[0] == "--title":
+                req["title"] = args[1]
+            else:
+                with open(args[1]) as f:
+                    req["body"] = f.read()
+            args = args[2:]
+        if len(args) > 1:
+            die("usage: oc-pr pr-create [--title <text>] [--body-file <file>] [<branch>]")
+        req["branch"] = args[0] if args else current_branch()
+    elif verb == "merge":
+        if len(args) != 1 or not args[0].lstrip("#").isdigit():
+            die("usage: oc-pr merge <pr-number>")
+        req["pr"] = int(args[0].lstrip("#"))
+    else:
+        die(f"unknown command {verb!r} (push, pr-create, merge)")
+
+    with socket.socket(socket.AF_UNIX, socket.SOCK_STREAM) as s:
+        try:
+            s.connect(SOCKET)
+        except OSError as e:
+            die(f"broker not reachable ({SOCKET}): {e}")
+        r = s.makefile("rb")
+        s.sendall(json.dumps(req).encode() + b"\n")
+        resp = json.loads(r.readline() or b"{}")
+        if verb == "push" and "have" in resp:
+            data = bundle(req["branch"], resp["have"])
+            s.sendall(f"{len(data)}\n".encode() + data)
+            resp = json.loads(r.readline() or b"{}")
+    print(resp.get("message", "no answer from the broker"))
+    return 0 if resp.get("ok") else 1
+
+
+if __name__ == "__main__":
+    sys.exit(main(sys.argv[1:]))

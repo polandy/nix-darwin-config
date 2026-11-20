@@ -25,6 +25,12 @@ allow	shell	grep -rn environment .
 allow	shell	git commit -m "x=1 git push docs"
 allow	shell	git commit -m "docs: explain git push flow"
 allow	shell	oc-shot docs/dev/mockups/x.html /tmp/check.png
+# GitHub only through the host broker (pr-broker.nix); raw git push stays denied below.
+allow	shell	oc-pr push
+allow	shell	oc-pr push feat/x
+allow	shell	oc-pr pr-create --title "feat: x" --body-file /tmp/body.md
+allow	shell	oc-pr merge 12
+allow	shell	/usr/local/bin/oc-pr merge 12
 allow	read	src/main.go
 allow	read	.env.example
 allow	edit	src/main.go
@@ -45,6 +51,7 @@ ask	some_new_tool	*
 # Must never happen: denied, not asked.
 deny	shell	git push
 deny	shell	git push origin main
+deny	shell	git push origin feat/x
 deny	shell	git push --force origin feat/x
 deny	shell	git -C /work push
 deny	shell	git -c credential.helper= push

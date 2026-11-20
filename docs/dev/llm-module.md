@@ -38,8 +38,8 @@ system-manager module: `hosts/coolermaster/system.nix` imports it and turns it o
   repos in `llm.sandbox.publicRepos` (public on GitHub), providers that may collect data.
   `oc-config` picks the variant per run by the repo's profile (throwaway clones count as their
   base repo: bench-* as skipper-cd, stella-* as Stella); anything not listed gets ZDR. The
-  list is declared, not looked up, because the clones have no remote and the sandbox has no
-  GitHub access; keep it in sync with the GitHub visibility. Both variants share quantizations
+  list is declared, not looked up, because the clones have no remote and the sandbox reaches
+  GitHub only through the broker below; keep it in sync with the GitHub visibility. Both variants share quantizations
   (fp4, nvfp4, fp8), the price cap and the limits (context 200k, output 16k). All routing sits in
   the provider-level `body`, so no model-level `body` can shadow the data policy.
   `tests/oc-config.sh` checks the choice at build time. The OpenRouter block must use the v2 key
@@ -72,6 +72,34 @@ system-manager module: `hosts/coolermaster/system.nix` imports it and turns it o
   - `tests/oc-permissions.sh` checks both variants and every profile against
     `tests/oc-permissions.cases` at build time, including a probe profile that allows everything.
     The test mirrors opencode's matcher; re-check it against the binary when opencode is upgraded.
+- **GitHub broker (`oc-pr`).** The worker pushes its branch, opens its PR and merges it like the
+  Claude workers, but the token never enters the sandbox (`pr-broker.nix`). Each fixed repo has a
+  socket (`/run/oc-proxy/pr-<repo>.sock`, group aiagent) that `oc-sandbox` binds as
+  `/run/oc/pr.sock` into that repo's sandbox only (not into throwaway clones or `--script`); per
+  connection systemd starts `oc-pr-broker` as the dynamic user `oc-pr`, with the token from
+  `llm.sandbox.github.tokenFile` as a credential. It knows three verbs, everything else is refused
+  and logged to the journal (`journalctl -u 'oc-pr-*'`):
+  - `oc-pr push [<branch>]`: never `main`, `master` or the default branch, fast-forward only, no
+    tags. The broker never runs git in the agent's clone (its `.git` config and hooks are the
+    agent's): the client sends a git bundle of just that branch, the broker checks and fetches it
+    (fsck) into its own mirror and pushes from there.
+  - `oc-pr pr-create`: base is the default branch; title and body from the branch's commits unless
+    given.
+  - `oc-pr merge <pr>`: squash and delete the branch, only on a green gate with the semantics of
+    herdr-orchestrator's `pr-gate.sh` (open, mergeable, all checks pass, the last "PR quality
+    review" comment says ready and is newer than the head), stricter in three points: the comment
+    must come from `llm.sandbox.github.reviewers`; the head time is the later of the commit date and
+    the broker's own push of that commit (the agent sets the commit date); the merge is pinned to
+    the checked head (`--match-head-commit`). Pending counts as refused; the agent asks again later.
+  - Raw `git push` stays denied in opencode (`permissions.nix`); `oc-pr` is an ordinary shell
+    command. The token: fine-grained, only the repos in `llm.sandbox.repos`, Contents and Pull
+    requests read/write (Metadata read is implied), no Workflows, so a push that changes
+    `.github/workflows` is rejected by GitHub. The owner creates the file (root, 0600), see
+    `docs/user/coolermaster-host-local-files.md`. Without the file the broker
+    fails to start and `oc-pr` prints "no answer from the broker".
+  - `tests/oc-pr-broker.py` runs client and broker at build time against a local bare repo and a
+    fake `gh`: the refusals (protected branches, bad names, unknown verbs, non-fast-forward, tags or
+    another branch in the bundle, every red or pending gate reason) and the green paths.
 - **Jobs, GPU lock, slices.** Long runs (pilot, bench) are systemd jobs that take a shared GPU
   lock, so only one local model run uses the GPU at a time; a run that cannot get it is
   deferred. Slices give LLM work priority over e2e containers.

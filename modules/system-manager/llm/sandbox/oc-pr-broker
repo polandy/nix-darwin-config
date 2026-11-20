@@ -1,0 +1,321 @@
+#!/usr/bin/python3 -I
+"""GitHub broker for the opencode sandbox (one connection per process, socket-activated).
+
+    oc-pr-broker <owner/repo>
+
+stdin/stdout is the connection (systemd Accept=yes), the token is
+$CREDENTIALS_DIRECTORY/github-token. One JSON line per request; the only verbs:
+  push      {"branch"}                 feature branch, fast-forward only, from a git bundle
+  pr-create {"branch", "title"?, "body"?}
+  merge     {"pr"}                     squash, only when the gate is green
+Everything else is refused and logged. Design: docs/dev/llm-module.md.
+"""
+import datetime
+import fcntl
+import json
+import os
+import re
+import socket
+import subprocess
+import sys
+import tempfile
+
+MAX_LINE = 128 * 1024
+MAX_BUNDLE = 256 * 1024 * 1024
+MAX_TITLE = 256
+MAX_BODY = 60000
+HAVE_DEPTH = 500
+PROTECTED = {"main", "master", "HEAD"}
+BRANCH = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._/-]{0,99}$")
+SHA = re.compile(r"^[0-9a-f]{40}$")
+REVIEW_MARK = "PR quality review"
+CRED_HELPER = '!f() { test "$1" = get && echo username=x-access-token && echo "password=$GH_TOKEN"; }; f'
+
+
+class Refused(Exception):
+    pass
+
+
+class Broker:
+    def __init__(self, slug, state, reviewers, conn):
+        self.slug = slug
+        self.state = state
+        self.reviewers = reviewers
+        self.conn = conn
+        self.rfile = conn.makefile("rb")
+        self.mirror = os.path.join(state, "mirror.git")
+        self.remote = os.environ.get("OC_PR_REMOTE") or f"https://github.com/{slug}.git"
+        with open(os.path.join(os.environ["CREDENTIALS_DIRECTORY"], "github-token")) as f:
+            token = f.read().strip()
+        self.env = {
+            "PATH": os.environ.get("PATH", "/usr/bin"),
+            "HOME": state,
+            "GH_CONFIG_DIR": os.path.join(state, "gh"),
+            "GH_TOKEN": token,
+            "GH_PROMPT_DISABLED": "1",
+            "GH_NO_UPDATE_NOTIFIER": "1",
+            "GIT_TERMINAL_PROMPT": "0",
+            "GIT_CONFIG_NOSYSTEM": "1",
+            "GIT_CONFIG_GLOBAL": "/dev/null",
+            "LANG": "C.UTF-8",
+        }
+        for k in ("SSL_CERT_FILE", "GIT_SSL_CAINFO"):
+            if k in os.environ:
+                self.env[k] = os.environ[k]
+
+    def send(self, obj):
+        self.conn.sendall(json.dumps(obj).encode() + b"\n")
+
+    def run(self, cmd, label, input=None, check=True):
+        p = subprocess.run(cmd, input=input, capture_output=True, env=self.env, cwd=self.state)
+        if check and p.returncode != 0:
+            err = p.stderr.decode(errors="replace").replace(self.env["GH_TOKEN"] or "\0", "***")
+            raise Refused(f"{label} failed: {err.strip()[-400:]}")
+        return p.stdout.decode(errors="replace").strip()
+
+    def git(self, *args, **kw):
+        cmd = ("git", "-C", self.mirror, "-c", "core.hooksPath=/dev/null",
+               "-c", "credential.helper=", "-c", "credential.helper=" + CRED_HELPER) + args
+        return self.run(cmd, "git " + args[0], **kw)
+
+    def gh(self, *args, **kw):
+        return self.run(("gh",) + args, "gh " + " ".join(args[:2]), **kw)
+
+    def pr(self, *args, **kw):
+        return self.gh("pr", *args, "-R", self.slug, **kw)
+
+    def default_branch(self):
+        name = self.gh("repo", "view", self.slug, "--json", "defaultBranchRef", "--jq", ".defaultBranchRef.name")
+        if not BRANCH.match(name):
+            raise Refused("no default branch")
+        return name
+
+    def check_branch(self, branch, default):
+        if not isinstance(branch, str) or not BRANCH.match(branch) or ".." in branch or "//" in branch \
+                or branch.endswith((".lock", "/", ".")) or "/." in branch:
+            raise Refused("invalid branch name")
+        if branch in PROTECTED or branch == default:
+            raise Refused(f"branch {branch} is protected")
+
+    def fetch(self):
+        if not os.path.isdir(self.mirror):
+            self.run(("git", "init", "-q", "--bare", self.mirror), "git init")
+            self.git("remote", "add", "origin", self.remote)
+        self.git("fetch", "-q", "--prune", "--no-tags", "origin", "+refs/heads/*:refs/remotes/origin/*")
+
+    def remote_sha(self, branch):
+        return self.git("rev-parse", "-q", "--verify", f"refs/remotes/origin/{branch}^{{commit}}", check=False) or None
+
+    def read_bundle(self):
+        line = self.rfile.readline(32)
+        if not re.fullmatch(rb"\d{1,10}\n", line or b""):
+            raise Refused("expected bundle length")
+        n = int(line)
+        if n > MAX_BUNDLE:
+            raise Refused("bundle too large")
+        data = self.rfile.read(n)
+        if len(data) != n:
+            raise Refused("short bundle")
+        return data
+
+    def push(self, req):
+        branch = req.get("branch")
+        default = self.default_branch()
+        self.check_branch(branch, default)
+        self.fetch()
+        old = self.remote_sha(branch)
+        base = self.remote_sha(default)
+        have = ([old] if old else []) + (self.git("rev-list", "--first-parent", f"--max-count={HAVE_DEPTH}", base).split() if base else [])
+        self.send({"have": have})
+        data = self.read_bundle()
+        if not data:
+            return "up to date" if old else "nothing to push"
+        with tempfile.NamedTemporaryFile(dir=self.state, suffix=".bundle") as f:
+            f.write(data)
+            f.flush()
+            heads = self.git("bundle", "list-heads", f.name).splitlines()
+            if len(heads) != 1 or heads[0].split(" ", 1)[1:] != [f"refs/heads/{branch}"]:
+                raise Refused("bundle must hold exactly the branch")
+            self.git("bundle", "verify", "-q", f.name)
+            self.git("update-ref", "-d", "refs/oc-pr/incoming", check=False)
+            self.git("-c", "transfer.fsckObjects=true", "fetch", "-q", "--no-tags", f.name,
+                     f"refs/heads/{branch}:refs/oc-pr/incoming")
+        new = self.git("rev-parse", "--verify", "refs/oc-pr/incoming^{commit}")
+        if new == old:
+            return "up to date"
+        if old and not self.is_ancestor(old, new):
+            raise Refused("not a fast-forward (no force push)")
+        self.git("push", "-q", "--no-follow-tags", "--no-verify", "origin", f"{new}:refs/heads/{branch}")
+        os.makedirs(os.path.join(self.state, "pushed"), exist_ok=True)
+        with open(os.path.join(self.state, "pushed", new), "w") as f:
+            f.write(now())
+        return f"pushed {branch} {new[:12]}"
+
+    def is_ancestor(self, a, b):
+        try:
+            self.git("merge-base", "--is-ancestor", a, b)
+            return True
+        except Refused:
+            return False
+
+    def pr_create(self, req):
+        branch = req.get("branch")
+        default = self.default_branch()
+        self.check_branch(branch, default)
+        self.fetch()
+        if not self.remote_sha(branch):
+            raise Refused(f"branch {branch} is not pushed")
+        existing = self.pr("list", "--head", branch, "--state", "open", "--json", "url", "--jq", ".[0].url // empty")
+        if existing:
+            return f"exists {existing}"
+        title, body = req.get("title"), req.get("body")
+        if title is None or body is None:
+            log = self.git("log", "--reverse", "--format=%s%x1f%b%x1e", f"refs/remotes/origin/{default}..refs/remotes/origin/{branch}")
+            commits = [c.strip("\n").split("\x1f", 1) for c in log.split("\x1e") if c.strip()]
+            if not commits:
+                raise Refused("no commits ahead of " + default)
+            if title is None:
+                title = commits[0][0]
+            if body is None:
+                body = commits[0][1].strip() if len(commits) == 1 else "\n".join(f"- {c[0]}" for c in commits)
+        if not isinstance(title, str) or not title.strip() or len(title) > MAX_TITLE or "\n" in title:
+            raise Refused("invalid title")
+        if not isinstance(body, str) or len(body) > MAX_BODY:
+            raise Refused("invalid body")
+        url = self.pr("create", "--base", default, "--head", branch, "--title", title, "--body-file", "-",
+                      input=body.encode())
+        return f"created {url.splitlines()[-1] if url else ''}"
+
+    def gate(self, pr, default):
+        view = json.loads(self.pr("view", str(pr), "--json",
+                                  "state,isDraft,mergeable,title,comments,commits,headRefName,headRefOid,baseRefName,isCrossRepository"))
+        reasons, review_reasons, pending = [], [], []
+        if view.get("state") != "OPEN":
+            reasons.append("not open")
+        if view.get("isDraft"):
+            reasons.append("draft")
+        if view.get("isCrossRepository"):
+            reasons.append("head is a fork")
+        head = view.get("headRefName")
+        if head in PROTECTED or head == default:
+            reasons.append(f"head branch {head} is protected")
+        if view.get("baseRefName") != default:
+            reasons.append(f"base is not {default}")
+        oid = view.get("headRefOid") or ""
+        if not SHA.match(oid):
+            reasons.append("no head commit")
+        mergeable = view.get("mergeable")
+        if mergeable == "UNKNOWN":
+            pending.append("mergeable=UNKNOWN")
+        elif mergeable != "MERGEABLE":
+            reasons.append(f"mergeable={mergeable}")
+
+        # gh exits 8 while checks run and 1 when one fails, but prints the JSON either way.
+        out = self.pr("checks", str(pr), "--json", "name,bucket", check=False)
+        checks = json.loads(out) if out.startswith("[") else []
+        if not checks:
+            pending.append("no checks yet")
+        running = [c["name"] for c in checks if c.get("bucket") == "pending"]
+        if running:
+            pending.append("checks running: " + ", ".join(running))
+        bad = [f'{c["name"]}={c.get("bucket")}' for c in checks if c.get("bucket") not in ("pass", "skipping", "pending")]
+        if bad:
+            reasons.append("checks: " + ", ".join(bad))
+
+        reviews = [c for c in view.get("comments", []) if REVIEW_MARK in (c.get("body") or "")
+                   and (c.get("author") or {}).get("login") in self.reviewers]
+        if not reviews:
+            review_reasons.append("review none yet")
+        else:
+            review = reviews[-1]
+            lines = review["body"].splitlines()
+            start = next((i for i, l in enumerate(lines) if re.search(r"[Mm]erge readiness", l)), None)
+            readiness = "\n".join(lines[start:start + 5]).lower() if start is not None else ""
+            if "not ready" in readiness:
+                review_reasons.append("review not ready")
+            elif "ready" not in readiness:
+                review_reasons.append("review no readiness verdict")
+            # /pr-review edits its comment, so its update time counts. The commit date is the
+            # agent's to choose, so the broker's own push time of that head counts too.
+            reviewed = self.gh("api", "graphql", "-f", f"id={review.get('id', '')}", "-f",
+                               "query=query($id: ID!) { node(id: $id) { ... on IssueComment { updatedAt } } }",
+                               "-q", ".data.node.updatedAt")
+            head_at = max([(view.get("commits") or [{}])[-1].get("committedDate") or "", self.pushed_at(oid)])
+            if not reviewed or not head_at or reviewed <= head_at:
+                review_reasons.append("review older than head commit")
+        if reasons:
+            return "RED: " + "; ".join(reasons + review_reasons), oid
+        if pending:
+            return "PENDING: " + "; ".join(pending), oid
+        if review_reasons:
+            return "RED: " + "; ".join(review_reasons), oid
+        return "GREEN", oid
+
+    def pushed_at(self, oid):
+        try:
+            with open(os.path.join(self.state, "pushed", oid)) as f:
+                return f.read().strip()
+        except (OSError, ValueError):
+            return ""
+
+    def merge(self, req):
+        pr = req.get("pr")
+        if not isinstance(pr, int) or isinstance(pr, bool) or not 0 < pr < 10**7:
+            raise Refused("invalid PR number")
+        verdict, oid = self.gate(pr, self.default_branch())
+        if verdict != "GREEN":
+            raise Refused(f"gate {verdict}")
+        self.pr("merge", str(pr), "--squash", "--delete-branch", "--match-head-commit", oid)
+        return f"merged #{pr}"
+
+    def handle(self):
+        line = self.rfile.readline(MAX_LINE + 1)
+        try:
+            req = json.loads(line) if line and len(line) <= MAX_LINE else None
+        except ValueError:
+            req = None
+        verbs = {"push": self.push, "pr-create": self.pr_create, "merge": self.merge}
+        verb = req.get("verb") if isinstance(req, dict) else None
+        desc = f"{verb!r} branch={req.get('branch')!r} pr={req.get('pr')!r}" if isinstance(req, dict) else "malformed"
+        try:
+            if verb not in verbs:
+                raise Refused("unknown verb")
+            with open(os.path.join(self.state, "lock"), "w") as lock:
+                fcntl.flock(lock, fcntl.LOCK_EX)
+                msg = verbs[verb](req)
+            log(f"{desc}: ok: {msg}")
+            self.send({"ok": True, "message": msg})
+        except Refused as e:
+            log(f"{desc}: refused: {e}")
+            self.send({"ok": False, "message": f"refused: {e}"})
+
+
+def now():
+    return datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+
+def log(msg):
+    print(f"oc-pr-broker {SLUG}: {msg}", file=sys.stderr, flush=True)
+
+
+SLUG = "?"
+
+
+def main():
+    global SLUG
+    if len(sys.argv) != 2 or not re.fullmatch(r"[A-Za-z0-9-]+/[A-Za-z0-9._-]+", sys.argv[1]):
+        sys.exit(__doc__)
+    SLUG = sys.argv[1]
+    state = os.path.join(os.environ["STATE_DIRECTORY"], SLUG.split("/")[1])
+    os.makedirs(state, mode=0o700, exist_ok=True)
+    reviewers = set(os.environ.get("OC_PR_REVIEWERS", "").split())
+    conn = socket.socket(fileno=os.dup(0))
+    conn.settimeout(300)
+    try:
+        Broker(SLUG, state, reviewers, conn).handle()
+    except (OSError, ValueError, KeyError) as e:
+        log(f"error: {e!r}")
+
+
+if __name__ == "__main__":
+    main()
