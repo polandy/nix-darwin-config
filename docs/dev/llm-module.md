@@ -48,20 +48,28 @@ system-manager module: `hosts/coolermaster/system.nix` imports it and turns it o
   `/work` writable (plus `/tmp` and the per-repo opencode state), no network but the model's
   endpoint, no secrets but the read-only key. So opencode's rules (`permissions.nix`) allow normal
   work without prompts: read, edit and any shell command; outside `/work` only `/tmp`, `/usr`,
-  `/nix/store` and `/etc`. Only unknown future actions still ask. Denied, never asked: things that
-  must not happen even if bwrap had a hole (git push/remote/config, sudo/su, curl, wget,
-  nc, ssh and friends, `rm -r` of `/work`, `.`, `.git` or `~`; a literal `*` cannot be matched), the common ways to read the key (`/run`, `/proc`, `env`, `printenv`, anything naming `OPENROUTER`,
-  `os.environ` or `process.env`; best effort only: inner exports the key into opencode's environment,
-  which every shell command inherits, and `perl`/`awk`/`bash -c` can still print it; #17 moves the key out of the environment), `.env` files (read tool only; `cat .env` is a shell command), other paths outside `/work`,
-  edits of the agent's own config, `.git/`, CI workflows and `.envrc`, and web fetch/search. opencode
-  2.2.7 concatenates the rules of all config files and takes the last match, with `*` as a
-  wildcard over the whole command text, so the shell denies are pattern matches, not a parser:
-  defense in depth on top of bwrap. `AGENTS.md`/`CLAUDE.md` stay editable: they are repo
-  content and reach the owner's repo only through a reviewed PR. Per-repo profiles (`OPENCODE_CONFIG`) may add rules, but the
-  denies are appended again after them, so a profile can only narrow. A new repo works without
-  a profile. `tests/oc-permissions.sh` checks both variants and every profile against
-  `tests/oc-permissions.cases` at build time, including a probe profile that allows everything. The test mirrors opencode's matcher;
-  re-check it against the binary when opencode is upgraded.
+  `/nix/store` and `/etc`. Only unknown future actions still ask.
+  - Denied, never asked, even if bwrap had a hole: git push/remote/config (with any global
+    options), sudo/su, curl, wget, nc, ssh and friends, `rm -r` of `/work`, `.`, `.git` or `~`
+    (a literal `*` cannot be matched, so `rm -rf *` is not denied), other paths outside `/work`,
+    edits of the agent's own config, `.git/`, CI workflows and `.envrc`, web fetch/search, and
+    `doom_loop` (an unattended run has nobody to answer the prompt, so a repeating call stops).
+  - The key, best effort: `/run`, `/proc`, `env`, `printenv`, anything naming `OPENROUTER`,
+    `os.environ` or `process.env`. inner exports the key into opencode's environment, which every
+    shell command inherits, and `perl`, `awk` or `bash -c` can still print it; issue #17 (host
+    broker) moves the key out of the environment. `*OPENROUTER*` also blocks grepping for the
+    name; accepted. The `.env` deny covers the read tool only (`cat .env` is a shell command).
+  - opencode 2.2.7 concatenates the rules of all config files and takes the last match, with `*`
+    as a wildcard over the whole command text. The shell denies are pattern matches, not a parser:
+    wrappers (`bash -c`, `timeout`, `xargs`) get past them, so they are defense in depth on top of
+    bwrap. A `git -C` command whose message contains `push`, `remote` or `config` is denied too.
+  - `AGENTS.md`, `CLAUDE.md`, `flake.nix` and other repo files stay editable: they reach the
+    owner's repo only through a reviewed PR; review `flake.nix` changes before `nix develop`.
+  - Per-repo profiles (`OPENCODE_CONFIG`) may add rules, but the denies are appended again after
+    them, so a profile can only narrow. A new repo works without a profile.
+  - `tests/oc-permissions.sh` checks both variants and every profile against
+    `tests/oc-permissions.cases` at build time, including a probe profile that allows everything.
+    The test mirrors opencode's matcher; re-check it against the binary when opencode is upgraded.
 - **Jobs, GPU lock, slices.** Long runs (pilot, bench) are systemd jobs that take a shared GPU
   lock, so only one local model run uses the GPU at a time; a run that cannot get it is
   deferred. Slices give LLM work priority over e2e containers.

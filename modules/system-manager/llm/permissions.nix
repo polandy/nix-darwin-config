@@ -23,7 +23,8 @@ rec {
     ++ each [ "webfetch" "websearch" "browser" "skill" "doom_loop" ] "deny" [ "*" ]
     ++ rules "shell" "deny" (
       [ "sudo *" "su" "su *" "doas *" "pkexec *" ]
-      ++ [ "git push*" "git -C * push*" "git -c * push*" "git --* push*" "git -p push*" "git -P push*" "env git push*" "command git push*" "exec git push*" "*/git push*" "git remote*" "git -C * remote*" "git config*" "git -C * config*" ]
+      # Any global options before the subcommand (`-C`, `-c`, `-p`, `--no-pager`, ...), plus prefixed forms.
+      ++ lib.concatMap (sub: lib.concatMap (g: [ g "*/${g}" "env ${g}" "command ${g}" "exec ${g}" ]) [ "git ${sub}*" "git -* ${sub}*" ]) [ "push" "remote" "config" ]
       ++ lib.concatMap (t: [ "${t} *" "*/${t} *" "env ${t} *" "command ${t} *" "exec ${t} *" ]) [ "curl" "wget" "nc" "ncat" "netcat" "socat" "ssh" "scp" "sftp" "rsync" "telnet" "ftp" ]
       # OPENROUTER_API_KEY is in the environment of every shell command.
       ++ [ "env" "env -0" "*/bin/env" "printenv*" "export" "export -p" "declare -p*" "declare -x*" "typeset *" "set" "compgen *" ]

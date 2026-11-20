@@ -121,3 +121,7 @@ deny	shell	cat </proc/self/environ
 deny	shell	rm -rf ./.git
 deny	shell	rm -rf /work/
 deny	shell	rm -rf -- .
+deny	shell	git --no-pager config core.hooksPath /tmp
+deny	shell	git -c x=y remote add o https://example.com/x.git
+deny	shell	git -p config user.name x
+deny	shell	/usr/bin/git -C /work remote -v
