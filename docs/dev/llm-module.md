@@ -47,19 +47,21 @@ system-manager module: `hosts/coolermaster/system.nix` imports it and turns it o
 - **Permissions (auto mode).** bwrap is the security boundary: user aiagent, only the clone as
   `/work` writable (plus `/tmp` and the per-repo opencode state), no network but the model's
   endpoint, no secrets but the read-only key. So opencode's rules (`permissions.nix`) allow normal
-  work without prompts: read, edit and any shell command, paths outside `/work` such as `/tmp`,
-  `/usr` and `/nix/store`. Only unknown future actions still ask. Denied, never asked: things that
-  must not happen even if bwrap had a hole (git push/remote/config writes, sudo/su, curl, wget,
-  nc, ssh and friends, `rm -r` of `/work`, `.git` or `~`), reading the key (`/run/*`, `/proc/*`,
-  `env`, `printenv`, anything naming `OPENROUTER`; inner exports the key into opencode's
-  environment, which every shell command inherits), `.env` files, other parts of `$HOME`, edits
-  of the agent's own config, `.git/`, CI workflows and `.envrc`, and web fetch/search. opencode
+  work without prompts: read, edit and any shell command; outside `/work` only `/tmp`, `/usr`,
+  `/nix/store` and `/etc`. Only unknown future actions still ask. Denied, never asked: things that
+  must not happen even if bwrap had a hole (git push/remote/config, sudo/su, curl, wget,
+  nc, ssh and friends, `rm -r` of `/work`, `*`, `.git` or `~`), reading the key (`/run`, `/proc`, `env`,
+  `printenv`, anything naming `OPENROUTER` or `environ`; inner exports the key into opencode's
+  environment, which every shell command inherits), `.env` files, other paths outside `/work`,
+  edits of the agent's own config, `.git/`, CI workflows and `.envrc`, and web fetch/search. opencode
   2.2.7 concatenates the rules of all config files and takes the last match, with `*` as a
   wildcard over the whole command text, so the shell denies are pattern matches, not a parser:
-  defense in depth on top of bwrap. Per-repo profiles (`OPENCODE_CONFIG`) may add rules, but the
+  defense in depth on top of bwrap. `AGENTS.md`/`CLAUDE.md` stay editable: they are repo
+  content and reach the owner's repo only through a reviewed PR. Per-repo profiles (`OPENCODE_CONFIG`) may add rules, but the
   denies are appended again after them, so a profile can only narrow. A new repo works without
   a profile. `tests/oc-permissions.sh` checks both variants and every profile against
-  `tests/oc-permissions.cases` at build time, including a probe profile that allows everything.
+  `tests/oc-permissions.cases` at build time, including a probe profile that allows everything. The test mirrors opencode's matcher;
+  re-check it against the binary when opencode is upgraded.
 - **Jobs, GPU lock, slices.** Long runs (pilot, bench) are systemd jobs that take a shared GPU
   lock, so only one local model run uses the GPU at a time; a run that cannot get it is
   deferred. Slices give LLM work priority over e2e containers.
