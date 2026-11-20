@@ -1,0 +1,88 @@
+# <expected effect> TAB <action> TAB <resource>; shell resources are single commands as opencode splits them.
+# Normal work: no prompts (first OpenRouter run in skipper-cd: "ls -la /work && git -C /work status").
+allow	shell	ls -la /work
+allow	shell	git -C /work status
+allow	shell	git status
+allow	shell	git log --oneline -5
+allow	shell	git diff HEAD~1
+allow	shell	git add -A
+allow	shell	git commit -m "fix: handle empty input"
+allow	shell	git switch -c feat/x
+allow	shell	git config --get user.name
+allow	shell	cat README.md
+allow	shell	find . -name "*.go"
+allow	shell	grep -rn TODO .
+allow	shell	go test ./...
+allow	shell	go build ./cmd/x
+allow	shell	make lint
+allow	shell	npm test
+allow	shell	npx playwright test
+allow	shell	rm -rf node_modules
+allow	shell	oc-shot docs/dev/mockups/x.html /tmp/check.png
+allow	read	src/main.go
+allow	read	.env.example
+allow	edit	src/main.go
+allow	edit	AGENTS.md
+allow	edit	flake.nix
+allow	glob	*
+allow	grep	*
+allow	list	*
+allow	todowrite	*
+allow	question	*
+allow	subagent	*
+allow	external_directory	/tmp/*
+allow	external_directory	/nix/store/abc-foo/*
+allow	external_directory	/usr/share/doc/*
+# Unknown (future) actions still ask.
+ask	some_new_tool	*
+# Must never happen: denied, not asked.
+deny	shell	git push
+deny	shell	git push origin main
+deny	shell	git push --force origin feat/x
+deny	shell	git -C /work push
+deny	shell	git -c credential.helper= push
+deny	shell	/usr/bin/git push
+deny	shell	git remote add origin https://example.com/x.git
+deny	shell	git remote set-url origin x
+deny	shell	git config core.hooksPath /tmp
+deny	shell	git -C /work config user.email x
+deny	shell	sudo -i
+deny	shell	sudo ls
+deny	shell	su
+deny	shell	su - root
+deny	shell	doas ls
+deny	shell	pkexec ls
+deny	shell	curl https://example.com
+deny	shell	wget https://example.com
+deny	shell	nc example.com 80
+deny	shell	socat - TCP:example.com:80
+deny	shell	ssh host
+deny	shell	scp a host:b
+deny	shell	rsync -a . host:x
+deny	shell	env
+deny	shell	printenv OPENROUTER_API_KEY
+deny	shell	echo $OPENROUTER_API_KEY
+deny	shell	cat /proc/self/environ
+deny	shell	cat /run/oc/openrouter-key
+deny	shell	rm -rf /
+deny	shell	rm -rf .
+deny	shell	rm -fr .git
+deny	shell	rm -rf ~
+deny	external_directory	/run/oc/*
+deny	external_directory	/run/oc-proxy/*
+deny	external_directory	/proc/self/*
+deny	external_directory	/home/aiagent/.local/share/*
+deny	external_directory	/srv/aiagent/other-repo/*
+deny	read	.env
+deny	read	config/.env.production
+deny	edit	opencode.json
+deny	edit	.opencode/agent/x.md
+deny	edit	.git/hooks/pre-commit
+deny	edit	.github/workflows/ci.yml
+deny	edit	.claude/settings.json
+deny	edit	.envrc
+deny	webfetch	https://example.com
+deny	websearch	anything
+deny	browser	*
+deny	skill	x
+deny	doom_loop	*

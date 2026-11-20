@@ -8,6 +8,7 @@ let
   mount = "${cfg.agentHome}/.config/opencode";
   localModels = lib.filterAttrs (_: m: lib.hasPrefix "ollama/" m.id) cfg.models;
   cloudModels = lib.filterAttrs (_: m: lib.hasPrefix "openrouter/" m.id) cfg.models;
+  permissions = import ./permissions.nix { inherit lib; };
 
   # OpenRouter provider routing, in one body so no per-model body can shadow the data policy.
   # allow_fallbacks: other endpoints of the same model only, never another model.
@@ -28,9 +29,10 @@ let
     public.data_collection = "allow";
   };
 
-  # Permissions and the rest come from sandbox/opencode/opencode.json; the models
+  # The rest comes from sandbox/opencode/opencode.json; the models
   # and the sandbox's Ollama bridge (inner) come from the llm options.
   settings = data: lib.recursiveUpdate (lib.importJSON ./sandbox/opencode/opencode.json) {
+    permissions = permissions.base ++ permissions.deny;
     model = cfg.models.cloud.id;
     provider.ollama = {
       options.baseURL = "http://127.0.0.1:${toString cfg.ports.ollama}/v1";
@@ -59,14 +61,10 @@ let
     };
   };
 
-  # Per-repo config (OPENCODE_CONFIG), named after the profile in oc-sandbox.
-  repoProfiles = {
-    skipper-cd.permissions = map (cmd: { action = "shell"; resource = cmd; effect = "allow"; }) [
-      "go build *"
-      "go test *"
-      "go vet *"
-      "make lint"
-    ];
+  # Per-repo config (OPENCODE_CONFIG), named after the profile in oc-sandbox; opencode appends
+  # its permissions to the global ones, and the global denies are appended again after them.
+  withDenies = p: p // { permissions = (p.permissions or [ ]) ++ permissions.deny; };
+  repoProfiles = lib.mapAttrs (_: withDenies) {
     # Pilot clones stella-*: pilot rules before the repo's own instructions.
     stella-pilot.instructions = [
       "${mount}/pilot-rules.md"
@@ -74,6 +72,7 @@ let
       "/work/CLAUDE.md"
     ];
   };
+  probe = withDenies { permissions = [{ action = "*"; resource = "*"; effect = "allow"; }]; };
   json = name: value: pkgs.writeText "${name}.json" (builtins.toJSON value);
 in
 {
@@ -92,10 +91,20 @@ in
     jq . ${json "opencode" (settings "public")} > $out
   '';
 
-  repos = pkgs.runCommand "oc-sandbox-repos" { nativeBuildInputs = [ pkgs.jq ]; } (
+  # Checks the permissions of both variants and of every profile on top (tests/oc-permissions.sh);
+  # the probe profile allows everything and must still get every deny.
+  repos = pkgs.runCommand "oc-sandbox-repos" { nativeBuildInputs = [ pkgs.bash pkgs.jq ]; } (
     lib.concatStrings (
       [ "mkdir $out\n" ]
       ++ lib.mapAttrsToList (n: v: "jq . ${json n v} > $out/${n}.json\n") repoProfiles
+      ++ map (args: "bash ${./tests/oc-permissions.sh} ${./tests/oc-permissions.cases} ${args}\n") (
+        [ (json "opencode" (settings "zdr")) (json "opencode-public" (settings "public")) ]
+        ++ lib.mapAttrsToList (n: _: "${json "opencode" (settings "zdr")} $out/${n}.json") repoProfiles
+      )
+      ++ [
+        "grep '^deny' ${./tests/oc-permissions.cases} > deny.cases\n"
+        "bash ${./tests/oc-permissions.sh} deny.cases ${json "opencode" (settings "zdr")} ${json "probe" probe}\n"
+      ]
     )
   );
 }
