@@ -53,7 +53,8 @@ system-manager module: `hosts/coolermaster/system.nix` imports it and turns it o
     options), sudo/su, curl, wget, nc, ssh and friends, `rm -r` of `/work`, `.`, `.git` or `~`
     (a literal `*` cannot be matched, so `rm -rf *` is not denied), other paths outside `/work`,
     edit-tool writes to the agent's own config, `.git/`, CI workflows and `.envrc` (shell writes
-    to them are not caught; PR review is the guard), web fetch/search, and
+    to them are not caught; PR review is the guard, and the owner must not run git on the host
+    in a sandbox clone, whose `.git/hooks` the agent controls), web fetch/search, and
     `doom_loop` (an unattended run has nobody to answer the prompt, so a repeating call stops).
   - The key, best effort: `/run`, `/proc`, `env`, `printenv`, anything naming `OPENROUTER`,
     `os.environ`. inner exports the key into opencode's environment, which every

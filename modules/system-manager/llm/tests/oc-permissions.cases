@@ -81,7 +81,7 @@ deny	shell	export
 deny	shell	compgen -e
 deny	shell	python3 -c 'import os;print(os.environ)'
 deny	shell	xargs -0 -a /proc/self/environ
-deny	shell	rm -rf /work/*
+deny	shell	rm -rf /work/.git
 deny	shell	rm -rf .git/hooks
 deny	shell	rm -rf ..
 deny	shell	rm -rf $HOME
@@ -132,3 +132,8 @@ deny	edit	sub/.envrc
 deny	edit	/work/.git/hooks/pre-commit
 deny	edit	pkg/.github/workflows/ci.yml
 allow	edit	src/envrc.go
+allow	shell	rm -rf /work/node_modules
+allow	shell	rm -rf /work/build
+deny	shell	rm -rf /work/.
+deny	shell	/usr/bin/sudo ls
+deny	shell	env sudo ls
