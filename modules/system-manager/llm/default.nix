@@ -160,8 +160,14 @@ in
           context = 131072;
           label = "Gemma 4 26B-A4B (128k, t5-like tasks only)";
         };
+        # Same 64k without the base's MTP draft model, which Ollama 0.40.11 does not fit into 16 GB.
+        local-nodraft = {
+          id = "ollama/bench-gemma4-26b-nodraft";
+          context = 65536;
+          label = "Gemma 4 26B-A4B (64k, no draft model)";
+        };
       };
-      description = "Model classes of the policy, also used by the job configs and the sandbox (allowed models, default = cloud).";
+      description = "Models offered by the sandbox (allowed models, default = cloud); policy.nix and the job configs pick their classes from them by name.";
     };
   };
 
