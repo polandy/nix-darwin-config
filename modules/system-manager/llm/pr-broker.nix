@@ -36,6 +36,7 @@ in
         path = [ pkgs.git pkgs.gh ];
         environment = {
           OC_PR_REVIEWERS = lib.concatStringsSep " " gh.reviewers;
+          OC_PR_BRANCH_PREFIXES = lib.concatStringsSep " " gh.branchPrefixes;
           SSL_CERT_FILE = "/etc/ssl/certs/ca-certificates.crt";
           GIT_SSL_CAINFO = "/etc/ssl/certs/ca-certificates.crt";
         };
@@ -52,7 +53,7 @@ in
           LoadCredential = "github-token:${gh.tokenFile}";
           RuntimeMaxSec = 600;
           MemoryMax = "1G";
-          TasksMax = 64;
+          TasksMax = 256;
           LimitFSIZE = "1G";
           UMask = "0077";
           NoNewPrivileges = true;

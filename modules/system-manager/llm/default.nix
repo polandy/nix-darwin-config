@@ -144,6 +144,12 @@ in
           default = [ "polandy" ];
           description = "GitHub logins whose \"PR quality review\" comment counts for the broker's merge gate.";
         };
+
+        branchPrefixes = mkOption {
+          type = types.listOf types.str;
+          default = [ "feat/" "fix/" "chore/" "docs/" "ci/" "refactor/" "test/" "perf/" "build/" ];
+          description = "Branch prefixes the broker pushes and merges; anything else (gh-pages, release/*) is refused.";
+        };
       };
     };
 

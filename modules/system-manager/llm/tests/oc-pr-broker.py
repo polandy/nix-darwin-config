@@ -85,18 +85,18 @@ def calls(log):
         return [json.loads(line) if log == GH_LOG else line for line in f]
 
 
-def broker_env(fake_git):
-    return {"PATH": (FAKE_GIT_BIN if fake_git else BIN) + ":" + os.environ["PATH"],
+def broker_env(fake_git, **extra):
+    return {**extra, "PATH": (FAKE_GIT_BIN if fake_git else BIN) + ":" + os.environ["PATH"],
             "STATE_DIRECTORY": os.path.join(TMP, "state"), "CREDENTIALS_DIRECTORY": os.path.join(TMP, "creds"),
-            "OC_PR_REMOTE": REMOTE, "OC_PR_REVIEWERS": "polandy"}
+            "OC_PR_REMOTE": REMOTE, "OC_PR_REVIEWERS": "polandy", "OC_PR_BRANCH_PREFIXES": "feat/ fix/"}
 
 
-def serve(fake_git):
+def serve(fake_git, **extra):
     """Accept one connection like systemd (Accept=yes) and run the broker on it."""
     srv.settimeout(30)
     conn, _ = srv.accept()
     p = subprocess.Popen([sys.executable, BROKER, "polandy/r"], stdin=conn, stdout=conn,
-                         stderr=subprocess.PIPE, env=broker_env(fake_git), text=True)
+                         stderr=subprocess.PIPE, env=broker_env(fake_git, **extra), text=True)
     conn.close()
     return p
 
@@ -121,13 +121,13 @@ def answer(r):
         return {"ok": None, "message": f"no JSON answer: {line!r}"}
 
 
-def raw(lines, fake_git=False, bundle=None, upload=None):
+def raw(lines, fake_git=False, bundle=None, upload=None, **extra):
     """Talk to the broker directly (requests the client never sends); upload is the raw bundle stream."""
     if bundle is not None:
         upload = f"{len(bundle)}\n".encode() + bundle
     with socket.socket(socket.AF_UNIX) as s:
         s.connect(SOCK)
-        b = serve(fake_git)
+        b = serve(fake_git, **extra)
         s.sendall(lines)
         r = s.makefile("rb")
         resp = answer(r)
@@ -161,7 +161,8 @@ srv.listen(4)
 
 # Refused before git or the network is touched (fake git logs and fails).
 for branch in ("main", "master", "HEAD", "Main", "MASTER", "main\n", "feat/x\n", "-f", "a..b", "x.lock",
-               "refs/../main", "feat/.x", "feat//x", "feat/x/", "feat/x.", "a" * 101, "", None, 1):
+               "refs/../main", "feat/.x", "feat//x", "feat/x/", "feat/x.", "feat/" + "a" * 100, "", None, 1,
+               "gh-pages", "release/1", "production", "dependabot/npm/x", "feat", "feat/"):
     scenario()
     resp = raw(json.dumps({"verb": "push", "branch": branch}).encode() + b"\n", fake_git=True)
     check(f"push {branch!r} refused", not resp["ok"], resp)
@@ -202,6 +203,11 @@ for name, upload, want in (("empty bundle", b"0\n", "nothing to push"), ("bad le
     resp = raw(b'{"verb": "push", "branch": "feat/new"}\n', upload=upload)
     check(f"push {name} refused", resp["ok"] is False and want in resp["message"], resp)
     check(f"push {name} pushes nothing", remote_sha("refs/heads/feat/new") == "")
+scenario()
+resp = raw(b'{"verb": "push", "branch": "feat/new"}\n', upload=b"", OC_PR_UPLOAD_SECONDS="0")
+check("push upload deadline", resp["ok"] is False and "timed out" in resp["message"], resp)
+resp = raw(b'{"verb": "push", "branch": "feat/x"}\n' + b"[" * 100000 + b"\n", fake_git=True)
+check("deeply nested request refused", resp["ok"] is False, resp)
 
 # Push the feature branch (current branch), then again (up to date).
 scenario()
@@ -272,6 +278,9 @@ check("pr-create existing", rc == 0 and out.startswith("exists") and gh_did("pr 
 scenario()
 rc, out, _ = client("pr-create", "--title", "a\nb")
 check("pr-create multi-line title refused", rc == 1 and "invalid title" in out, out)
+scenario()
+rc, out, _ = client("pr-create", "--title", "x" * 257)
+check("pr-create long title refused", rc == 1 and "invalid title" in out and gh_did("pr create") == [], out)
 
 # A failing gh call reports only its label to the sandbox; the journal gets the detail, token masked.
 scenario(**{"pr create": {"out": "", "err": "HTTP 401 for token test-token: secret detail", "rc": 1}})
@@ -333,6 +342,10 @@ reds = {
     "no checks": {"pr checks": {"out": "no checks reported", "rc": 1}},
     "no review": {"pr view": view(comments=[])},
     "review not ready": {"pr view": view(comments=[{**REVIEW, "body": "PR quality review\nMerge readiness: not ready"}])},
+    "review not yet ready": {"pr view": view(comments=[{**REVIEW, "body": "PR quality review\nMerge readiness: not yet ready"}])},
+    "review isn't ready": {"pr view": view(comments=[{**REVIEW, "body": "PR quality review\nMerge readiness: isn't ready"}])},
+    "review already in body": {"pr view": view(comments=[{**REVIEW, "body": "PR quality review\nMerge readiness:\nalready discussed"}])},
+    "head outside feature namespace": {"pr view": view(headRefName="gh-pages")},
     "review no verdict": {"pr view": view(comments=[{**REVIEW, "body": "PR quality review\nlooks fine"}])},
     "review by stranger": {"pr view": view(comments=[{**REVIEW, "author": {"login": "mallory"}}])},
     "stale review after newer comment": {"pr view": view(comments=[REVIEW, {**REVIEW, "id": "IC_2", "body": "PR quality review\nMerge readiness: NOT READY"}])},

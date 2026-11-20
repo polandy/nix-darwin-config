@@ -27,11 +27,13 @@ MAX_BUNDLE = 256 * 1024 * 1024
 MAX_TITLE = 256
 MAX_BODY = 60000
 HAVE_DEPTH = 500
-UPLOAD_SECONDS = 120
+UPLOAD_SECONDS = float(os.environ.get("OC_PR_UPLOAD_SECONDS", 120))
+RUN_SECONDS = 120
 PROTECTED = {"main", "master", "head"}
 BRANCH = re.compile(r"[A-Za-z0-9][A-Za-z0-9._/-]{0,99}")
 SHA = re.compile(r"[0-9a-f]{40}")
 REVIEW_MARK = "PR quality review"
+READINESS = re.compile(r"merge readiness\W*(not ready|ready)\b", re.I)
 CRED_HELPER = '!f() { test "$1" = get && echo username=x-access-token && echo "password=$GH_TOKEN"; }; f'
 
 
@@ -42,10 +44,11 @@ class Refused(Exception):
 
 
 class Broker:
-    def __init__(self, slug, state, reviewers, conn):
+    def __init__(self, slug, state, reviewers, prefixes, conn):
         self.slug = slug
         self.state = state
         self.reviewers = reviewers
+        self.prefixes = prefixes
         self.conn = conn
         self.rfile = conn.makefile("rb")
         self.mirror = os.path.join(state, "mirror.git")
@@ -72,14 +75,17 @@ class Broker:
         self.conn.sendall(json.dumps(obj).encode() + b"\n")
 
     def run(self, cmd, label, input=None, check=True):
-        p = subprocess.run(cmd, input=input, capture_output=True, env=self.env, cwd=self.state)
+        try:
+            p = subprocess.run(cmd, input=input, capture_output=True, env=self.env, cwd=self.state, timeout=RUN_SECONDS)
+        except subprocess.TimeoutExpired:
+            raise Refused(f"{label} timed out")
         if check and p.returncode != 0:
             err = p.stderr.decode(errors="replace").replace(self.env["GH_TOKEN"] or "\0", "***")
             raise Refused(f"{label} failed", err.strip()[-400:])
         return p.stdout.decode(errors="replace").strip()
 
     def git(self, *args, **kw):
-        cmd = ("git", "-C", self.mirror, "-c", "core.hooksPath=/dev/null", "-c", "gc.auto=0",
+        cmd = ("git", "-C", self.mirror, "-c", "core.hooksPath=/dev/null", "-c", "gc.auto=0", "-c", "pack.threads=2", "-c", "index.threads=2",
                "-c", "credential.helper=", "-c", "credential.helper=" + CRED_HELPER) + args
         return self.run(cmd, "git " + args[0], **kw)
 
@@ -101,6 +107,11 @@ class Broker:
             raise Refused("invalid branch name")
         if protected(branch, default):
             raise Refused(f"branch {branch} is protected")
+        if not self.feature(branch):
+            raise Refused(f"branch must start with one of: {' '.join(sorted(self.prefixes))}")
+
+    def feature(self, branch):
+        return any(branch.startswith(p) and len(branch) > len(p) for p in self.prefixes)
 
     @contextlib.contextmanager
     def locked(self):
@@ -185,10 +196,11 @@ class Broker:
             return "up to date"
         if old and not self.is_ancestor(old, new):
             raise Refused("not a fast-forward (no force push)")
-        self.git("push", "-q", "--no-follow-tags", "--no-verify", "origin", f"{new}:refs/heads/{branch}")
+        # Marker first: a crash after the push must not leave only the agent-set commit date.
         os.makedirs(os.path.join(self.state, "pushed"), exist_ok=True)
         with open(os.path.join(self.state, "pushed", new), "w") as f:
             f.write(now())
+        self.git("push", "-q", "--no-follow-tags", "--no-verify", "origin", f"{new}:refs/heads/{branch}")
         return f"pushed {branch} {new[:12]}"
 
     def is_ancestor(self, a, b):
@@ -242,8 +254,8 @@ class Broker:
         if view.get("isCrossRepository"):
             reasons.append("head is a fork")
         head = view.get("headRefName")
-        if not isinstance(head, str) or protected(head, default):
-            reasons.append(f"head branch {head} is protected")
+        if not isinstance(head, str) or protected(head, default) or not self.feature(head):
+            reasons.append(f"head branch {head} is protected or no feature branch")
         if view.get("baseRefName") != default:
             reasons.append(f"base is not {default}")
         oid = view.get("headRefOid") or ""
@@ -273,13 +285,11 @@ class Broker:
             review_reasons.append("review none yet")
         else:
             review = reviews[-1]
-            lines = review["body"].splitlines()
-            start = next((i for i, l in enumerate(lines) if re.search(r"[Mm]erge readiness", l)), None)
-            readiness = "\n".join(lines[start:start + 5]).lower() if start is not None else ""
-            if "not ready" in readiness:
-                review_reasons.append("review not ready")
-            elif "ready" not in readiness:
+            verdict = READINESS.search(review["body"])
+            if not verdict:
                 review_reasons.append("review no readiness verdict")
+            elif verdict.group(1).lower() != "ready":
+                review_reasons.append("review not ready")
             # Edited reviews count by update time; the head time is also the broker's own push time.
             reviewed = self.gh("api", "graphql", "-f", f"id={review.get('id', '')}", "-f",
                                "query=query($id: ID!) { node(id: $id) { ... on IssueComment { updatedAt } } }",
@@ -317,7 +327,7 @@ class Broker:
         line = self.rfile.readline(MAX_LINE + 1)
         try:
             req = json.loads(line) if line and len(line) <= MAX_LINE else None
-        except ValueError:
+        except (ValueError, RecursionError):
             req = None
         verbs = {"push": self.push, "pr-create": self.pr_create, "merge": self.merge}
         verb = req.get("verb") if isinstance(req, dict) else None
@@ -359,10 +369,11 @@ def main():
     state = os.path.join(os.environ["STATE_DIRECTORY"], SLUG.split("/")[1])
     os.makedirs(state, mode=0o700, exist_ok=True)
     reviewers = set(os.environ.get("OC_PR_REVIEWERS", "").split())
+    prefixes = set(os.environ.get("OC_PR_BRANCH_PREFIXES", "").split())
     conn = socket.socket(fileno=os.dup(0))
     conn.settimeout(300)
     try:
-        Broker(SLUG, state, reviewers, conn).handle()
+        Broker(SLUG, state, reviewers, prefixes, conn).handle()
     except (OSError, ValueError, KeyError) as e:
         log(f"error: {e!r}")
 

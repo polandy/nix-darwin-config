@@ -80,11 +80,12 @@ system-manager module: `hosts/coolermaster/system.nix` imports it and turns it o
   connection systemd starts `oc-pr-broker` as the dynamic user `oc-pr`, with the token from
   `llm.sandbox.github.tokenFile` as a credential. It knows three verbs, everything else is refused
   and logged to the journal (`journalctl -u 'oc-pr-*'`):
-  - `oc-pr push [<branch>]`: never `main`, `master` or the default branch, fast-forward only, no
-    tags. The broker never runs git in the agent's clone (its `.git` config and hooks are the
+  - `oc-pr push [<branch>]`: only branches under `llm.sandbox.github.branchPrefixes` (`feat/`,
+    `fix/`, ...; so never `main`, `gh-pages` or `release/*`), never the default branch,
+    fast-forward only, no tags. The broker never runs git in the agent's clone (its `.git` config and hooks are the
     agent's): the client sends a git bundle of just that branch, the broker checks and fetches it
     (fsck) into its own mirror and pushes from there. The upload runs outside the per-repo lock
-    with a deadline, and the mirror drops the incoming objects afterwards (`gc --prune=now`).
+    with a deadline, every git or gh call has a timeout, and the mirror drops the incoming objects afterwards (`gc --prune=now`).
   - `oc-pr pr-create`: base is the default branch; title and body from the branch's commits unless
     given.
   - `oc-pr merge <pr>`: squash and delete the branch, only on a green gate with the semantics of
@@ -92,7 +93,9 @@ system-manager module: `hosts/coolermaster/system.nix` imports it and turns it o
     review" comment says ready and is newer than the head), stricter in three points: the comment
     must come from `llm.sandbox.github.reviewers`; the head time is the later of the commit date and
     the broker's own push of that commit (the agent sets the commit date); the merge is pinned to
-    the checked head (`--match-head-commit`). Pending counts as refused; the agent asks again later.
+    the checked head (`--match-head-commit`). The readiness line must say exactly "ready" or "not
+    ready". Pending counts as refused; the agent asks again later. Any PR whose head is a feature
+    branch qualifies, a human's too; the reviewer's comment is the consent.
   - What the broker does not guard: PR title and body are agent text posted under the owner's
     account, and CI runs the agent's code on every feature-branch push. The review gate on merge
     is the guard for what reaches the default branch.
