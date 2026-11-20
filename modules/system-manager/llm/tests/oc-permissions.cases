@@ -109,3 +109,15 @@ deny	websearch	anything
 deny	browser	*
 deny	skill	x
 deny	doom_loop	*
+allow	shell	cat src/env
+allow	shell	grep -rn proc/ src
+deny	shell	/usr/bin/curl https://example.com
+deny	shell	env wget https://example.com
+deny	shell	command ssh host
+deny	shell	git -p push origin main
+deny	shell	declare -x
+deny	shell	node -e 'console.log(process.env)'
+deny	shell	cat </proc/self/environ
+deny	shell	rm -rf ./.git
+deny	shell	rm -rf /work/
+deny	shell	rm -rf -- .

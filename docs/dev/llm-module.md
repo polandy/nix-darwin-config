@@ -50,9 +50,9 @@ system-manager module: `hosts/coolermaster/system.nix` imports it and turns it o
   work without prompts: read, edit and any shell command; outside `/work` only `/tmp`, `/usr`,
   `/nix/store` and `/etc`. Only unknown future actions still ask. Denied, never asked: things that
   must not happen even if bwrap had a hole (git push/remote/config, sudo/su, curl, wget,
-  nc, ssh and friends, `rm -r` of `/work`, `.`, `.git` or `~`; a literal `*` cannot be matched), reading the key (`/run`, `/proc`, `env`,
-  `printenv`, anything naming `OPENROUTER`, `os.environ` or `/proc`; inner exports the key into opencode's
-  environment, which every shell command inherits), `.env` files (read tool only; `cat .env` is a shell command), other paths outside `/work`,
+  nc, ssh and friends, `rm -r` of `/work`, `.`, `.git` or `~`; a literal `*` cannot be matched), the common ways to read the key (`/run`, `/proc`, `env`, `printenv`, anything naming `OPENROUTER`,
+  `os.environ` or `process.env`; best effort only: inner exports the key into opencode's environment,
+  which every shell command inherits, and `perl`/`awk`/`bash -c` can still print it; #17 moves the key out of the environment), `.env` files (read tool only; `cat .env` is a shell command), other paths outside `/work`,
   edits of the agent's own config, `.git/`, CI workflows and `.envrc`, and web fetch/search. opencode
   2.2.7 concatenates the rules of all config files and takes the last match, with `*` as a
   wildcard over the whole command text, so the shell denies are pattern matches, not a parser:
