@@ -8,7 +8,7 @@ Personal Nix configuration managing Linux (standalone home-manager) and macOS (n
 * Upgrade Homebrew formulae and casks (macOS only): `just upgrade`
 * Build without activating (macOS only): `just build-darwin`
 * Update flake dependencies: `nix flake update`
-  (a weekly workflow does this and opens a PR; its commit is signed by GitHub via `peter-evans/create-pull-request` with `sign-commits`, as `main` requires signed commits)
+  (a weekly workflow does this and opens a PR; its commit is signed by GitHub via `peter-evans/create-pull-request` with `sign-commits`, as `main` requires signed commits; the workflow then dispatches `ci.yml` on that branch, since PRs opened with `GITHUB_TOKEN` trigger no checks)
 
 ## Primary Tools
 
