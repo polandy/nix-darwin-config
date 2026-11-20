@@ -25,6 +25,7 @@ in
       };
       classes = {
         cloud = class "cloud" 25 "Orchestrator worker (default), large changes across packages";
+        cloud-fallback = class "cloud-fallback" 25 "Only by owner/orchestrator: cloud model down or repeatedly failing";
         local = class "local" 25 "Bench, private data; bugfix, feature in one package, config/policy (t1-t4)";
         local-128k = class "local-128k" 60 "Only on request: logic change across packages (t5-like)";
       };

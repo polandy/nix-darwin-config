@@ -19,6 +19,9 @@ let
     repos = lib.concatStringsSep " " cfg.sandbox.repos;
     opencode = "${opencode.config}";
     opencodeMount = opencode.mount;
+    opencodePublic = "${opencode.public}";
+    publicRepos = lib.concatStringsSep " " cfg.sandbox.publicRepos;
+    ocConfig = "${oc-config}/bin/oc-config";
     repoProfiles = "${opencode.repos}";
     inner = "${inner}/bin/inner";
     herdrFilter = "${herdr-filter}/bin/herdr-filter";
@@ -31,12 +34,17 @@ let
     destination = "/bin/${name}";
     text = fill (builtins.readFile ./sandbox/${name});
   };
-  shell = name: tool name ''
+  shellCheck = name: ''
     if grep -n '@[A-Za-z]*@' "$target"; then echo "unfilled placeholder in ${name}"; exit 1; fi
     ${pkgs.shellcheck}/bin/shellcheck --rcfile ${./sandbox/.shellcheckrc} -S warning "$target"
   '';
+  shell = name: tool name (shellCheck name);
 
   inner = shell "inner";
+  oc-config = tool "oc-config" ''
+    ${shellCheck "oc-config"}
+    PATH=${pkgs.jq}/bin:$PATH ${pkgs.bash}/bin/bash ${./tests/oc-config.sh} "$target" ${lib.escapeShellArg vars.publicRepos}
+  '';
   herdr-filter = tool "herdr-filter" ''
     ${pkgs.python3}/bin/python3 -I -c 'import ast, sys; ast.parse(open(sys.argv[1]).read())' "$target"
   '';

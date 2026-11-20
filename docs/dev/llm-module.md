@@ -17,8 +17,10 @@ system-manager module: `hosts/coolermaster/system.nix` imports it and turns it o
 - **Network guard.** The sandbox reaches the outside only through an egress proxy with an
   allowlist, enforced by nftables for the agent user. With a local model it gets no key and no
   egress at all, so private data stays on the host.
-- **Model classes.** Models are defined once (`llm.models`); the policy groups three of them into
-  classes: `cloud` (the default for workers), `local` and `local-128k`. The module publishes them as
+- **Model classes.** Models are defined once (`llm.models`); the policy groups four of them into
+  classes: `cloud` (the default for workers), `cloud-fallback` (chosen only by the owner or the
+  orchestrator when `cloud` is down or keeps failing; there is no automatic model fallback),
+  `local` and `local-128k`. The module publishes them as
   a policy file that the orchestrator reads to pick a model. `local-nodraft` is not a policy class:
   it is the 64k Gemma without the base model's MTP draft model, because Ollama 0.40.11 does not plan
   the draft's memory and runs out of CUDA memory on the 16 GB card. `oc-sandbox --model` and the
@@ -31,6 +33,15 @@ system-manager module: `hosts/coolermaster/system.nix` imports it and turns it o
   ollama create bench-gemma4-26b-nodraft -f nodraft.Modelfile
   ```
 
+- **OpenRouter data policy.** The sandbox's `opencode.json` comes in two variants that differ
+  only in OpenRouter's provider routing: ZDR endpoints with `data_collection: deny`, or, for the
+  repos in `llm.sandbox.publicRepos` (public on GitHub), providers that may collect data.
+  `oc-config` picks the variant per run by the repo's profile; anything not listed gets ZDR. The
+  list is declared, not looked up, because the clones have no remote and the sandbox has no
+  GitHub access; keep it in sync with the GitHub visibility. Both variants share quantizations
+  (fp4, nvfp4, fp8), a price cap per model and the limits (context 200k, output 16k).
+  `tests/oc-config.sh` checks the choice at build time. The OpenRouter block must use the v2 key
+  `providers`: opencode 2.2.7 silently drops `body` under the legacy `provider` key.
 - **Jobs, GPU lock, slices.** Long runs (pilot, bench) are systemd jobs that take a shared GPU
   lock, so only one local model run uses the GPU at a time; a run that cannot get it is
   deferred. Slices give LLM work priority over e2e containers.

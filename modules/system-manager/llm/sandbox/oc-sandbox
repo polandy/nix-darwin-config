@@ -19,6 +19,8 @@
 # Model (--model, default from the global opencode.json): cloud models get the key and
 # egress proxy, local ones (ollama/…) only @socketDir@/ollama.sock (-> ollama-filter, chat
 # API only) and neither key nor egress. Private data thus stays on the host.
+# OpenRouter data policy (oc-config): ZDR endpoints only, except for the public repos
+# (@publicRepos@), where providers may collect data. Unknown repos get ZDR.
 #
 # --run: headless (`opencode run --auto --format json`), prompt from stdin, JSON events on
 # stdout. Only here --auto applies: "ask" rules are allowed, "deny" stays. For bench and
@@ -35,7 +37,7 @@ readonly SRV=@agentDir@
 # opencode config, repo profiles and inner live in the Nix store (ro, also in the sandbox).
 readonly OPENCODE=@opencode@ OPENCODE_MOUNT=@opencodeMount@
 readonly REPOS=@repoProfiles@
-readonly INNER=@inner@
+readonly INNER=@inner@ OC_CONFIG=@ocConfig@
 readonly KEYFILE=@keyFile@
 readonly PROXY_DIR=@socketDir@
 readonly DEFAULT_MODEL=@defaultModel@
@@ -163,9 +165,9 @@ args+=(
 )
 fds=()
 (( local_model || ! net )) || { args+=(--ro-bind-data 3 /run/oc/openrouter-key); fds+=(3); }
-# Other model: lay an opencode.json with changed "model" over the global one
-# (the v2 TUI has no -m).
-if [[ -n $model ]]; then
+# Lay this run's opencode.json (model, data policy) over the global one (the v2 TUI has no -m).
+if (( ! script )); then
+  config=$("$OC_CONFIG" "$profile" "${model:-$DEFAULT_MODEL}") || die "oc-config failed"
   args+=(--ro-bind-data 4 "$OPENCODE_MOUNT/opencode.json"); fds+=(4)
 fi
 if (( run )); then
@@ -217,7 +219,7 @@ fi
 for fd in "${fds[@]}"; do
   case $fd in
     3) exec 3<"$KEYFILE" ;;
-    4) exec 4< <(jq --arg m "$model" '.model = $m' "$OPENCODE/opencode.json") ;;
+    4) exec 4< <(printf '%s\n' "$config") ;;
     5) exec 5< <(printf '%s' "$prompt") ;;
   esac
 done

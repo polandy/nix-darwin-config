@@ -7,10 +7,25 @@ let
   # Where oc-sandbox mounts the config inside the sandbox.
   mount = "${cfg.agentHome}/.config/opencode";
   localModels = lib.filterAttrs (_: m: lib.hasPrefix "ollama/" m.id) cfg.models;
+  cloudModels = lib.filterAttrs (_: m: lib.hasPrefix "openrouter/" m.id) cfg.models;
+
+  # OpenRouter provider routing; no automatic model fallback (policy: fallback none).
+  routing = {
+    require_parameters = true;
+    quantizations = [ "fp4" "nvfp4" "fp8" ];
+    allow_fallbacks = true;
+  };
+  dataPolicy = {
+    zdr = {
+      data_collection = "deny";
+      zdr = true;
+    };
+    public.data_collection = "allow";
+  };
 
   # Permissions and the rest come from sandbox/opencode/opencode.json; the models
   # and the sandbox's Ollama bridge (inner) come from the llm options.
-  settings = lib.recursiveUpdate (lib.importJSON ./sandbox/opencode/opencode.json) {
+  settings = data: lib.recursiveUpdate (lib.importJSON ./sandbox/opencode/opencode.json) {
     model = cfg.models.cloud.id;
     provider.ollama = {
       options.baseURL = "http://127.0.0.1:${toString cfg.ports.ollama}/v1";
@@ -24,6 +39,22 @@ let
           };
         })
         localModels;
+    };
+    # v2 key: opencode 2.2.7 drops "body" under the legacy "provider" key.
+    providers.openrouter = {
+      body.provider = routing // dataPolicy.${data};
+      models = lib.mapAttrs'
+        (_: m: lib.nameValuePair (lib.removePrefix "openrouter/" m.id) {
+          limit = {
+            inherit (m) context;
+            output = 16384;
+          };
+          body.provider.max_price = {
+            prompt = 0.2;
+            completion = 0.8;
+          };
+        })
+        cloudModels;
     };
   };
 
@@ -52,7 +83,12 @@ in
     cp -r ${./sandbox/opencode}/. $out/
     chmod u+w $out
     rm $out/opencode.json
-    jq . ${json "opencode" settings} > $out/opencode.json
+    jq . ${json "opencode" (settings "zdr")} > $out/opencode.json
+  '';
+
+  # Variant for public repos (llm.sandbox.publicRepos), picked by oc-config.
+  public = pkgs.runCommand "oc-sandbox-opencode-public.json" { nativeBuildInputs = [ pkgs.jq ]; } ''
+    jq . ${json "opencode" (settings "public")} > $out
   '';
 
   repos = pkgs.runCommand "oc-sandbox-repos" { nativeBuildInputs = [ pkgs.jq ]; } (
