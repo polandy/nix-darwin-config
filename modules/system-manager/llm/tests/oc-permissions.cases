@@ -112,6 +112,8 @@ deny	edit	.github/workflows/ci.yml
 deny	edit	.claude/settings.json
 deny	edit	.envrc
 deny	webfetch	https://example.com
+deny	execute	const r = await fetch("https://example.com")
+deny	execute	*
 deny	websearch	anything
 deny	browser	*
 deny	skill	x

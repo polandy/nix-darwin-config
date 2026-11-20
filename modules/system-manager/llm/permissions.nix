@@ -20,7 +20,7 @@ rec {
     # Outside /work only these; never /run (key, prompt), /proc (environments) or $HOME.
     ++ rules "external_directory" "deny" [ "*" ]
     ++ rules "external_directory" "allow" [ "/tmp/*" "/usr/*" "/nix/store/*" "/etc/*" ]
-    ++ each [ "webfetch" "websearch" "browser" "skill" "doom_loop" ] "deny" [ "*" ]
+    ++ each [ "webfetch" "websearch" "browser" "skill" "doom_loop" "execute" ] "deny" [ "*" ]
     ++ rules "shell" "deny" (
       lib.concatMap (g: [ g "*/${g}" "env ${g}" "command ${g}" "exec ${g}" ]) [ "sudo *" "su" "su *" "doas *" "pkexec *" ]
       # Any global options before the subcommand (`-C`, `-c`, `-p`, `--no-pager`, ...), plus prefixed forms.

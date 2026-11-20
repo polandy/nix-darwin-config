@@ -54,12 +54,13 @@ system-manager module: `hosts/coolermaster/system.nix` imports it and turns it o
     (a literal `*` cannot be matched, so `rm -rf *` is not denied), other paths outside `/work`,
     edit-tool writes to the agent's own config, `.git/`, CI workflows and `.envrc` (shell writes
     to them are not caught; PR review is the guard, and the owner must not run git on the host
-    in a sandbox clone, whose `.git/hooks` the agent controls), web fetch/search, and
-    `doom_loop` (an unattended run has nobody to answer the prompt, so a repeating call stops).
+    in a sandbox clone, whose `.git/hooks` the agent controls), web fetch/search,
+    the v2 Code Mode tool `execute` (its runtime has `fetch`; the sandbox has no MCP servers, so
+    nothing is lost), and `doom_loop` (an unattended run has nobody to answer the prompt, so a repeating call stops).
   - The key, best effort: `/run`, `/proc`, `env`, `printenv`, anything naming `OPENROUTER`,
     `os.environ`. inner exports the key into opencode's environment, which every
-    shell command inherits, and `perl`, `awk` or `bash -c` can still print it; issue #17 (host
-    broker) moves the key out of the environment. `*OPENROUTER*` also blocks grepping for the
+    shell command inherits, and `perl`, `awk` or `bash -c` can still print it; moving the key
+    out of the environment is still open (the GitHub broker below keeps only its own token out). `*OPENROUTER*` also blocks grepping for the
     name; accepted. The `.env` deny covers the read tool only (`cat .env` is a shell command).
   - opencode 2.2.7 concatenates the rules of all config files and takes the last match, with `*`
     as a wildcard over the whole command text. The shell denies are pattern matches, not a parser:
