@@ -9,11 +9,16 @@ let
   localModels = lib.filterAttrs (_: m: lib.hasPrefix "ollama/" m.id) cfg.models;
   cloudModels = lib.filterAttrs (_: m: lib.hasPrefix "openrouter/" m.id) cfg.models;
 
-  # OpenRouter provider routing; no automatic model fallback (policy: fallback none).
+  # OpenRouter provider routing, in one body so no per-model body can shadow the data policy.
+  # allow_fallbacks: other endpoints of the same model only, never another model.
   routing = {
     require_parameters = true;
     quantizations = [ "fp4" "nvfp4" "fp8" ];
     allow_fallbacks = true;
+    max_price = {
+      prompt = 0.2;
+      completion = 0.8;
+    };
   };
   dataPolicy = {
     zdr = {
@@ -48,10 +53,6 @@ let
           limit = {
             inherit (m) context;
             output = 16384;
-          };
-          body.provider.max_price = {
-            prompt = 0.2;
-            completion = 0.8;
           };
         })
         cloudModels;

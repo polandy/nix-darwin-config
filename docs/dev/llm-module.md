@@ -36,10 +36,12 @@ system-manager module: `hosts/coolermaster/system.nix` imports it and turns it o
 - **OpenRouter data policy.** The sandbox's `opencode.json` comes in two variants that differ
   only in OpenRouter's provider routing: ZDR endpoints with `data_collection: deny`, or, for the
   repos in `llm.sandbox.publicRepos` (public on GitHub), providers that may collect data.
-  `oc-config` picks the variant per run by the repo's profile; anything not listed gets ZDR. The
+  `oc-config` picks the variant per run by the repo's profile (throwaway clones count as their
+  base repo: bench-* as skipper-cd, stella-* as Stella); anything not listed gets ZDR. The
   list is declared, not looked up, because the clones have no remote and the sandbox has no
   GitHub access; keep it in sync with the GitHub visibility. Both variants share quantizations
-  (fp4, nvfp4, fp8), a price cap per model and the limits (context 200k, output 16k).
+  (fp4, nvfp4, fp8), the price cap and the limits (context 200k, output 16k). All routing sits in
+  the provider-level `body`, so no model-level `body` can shadow the data policy.
   `tests/oc-config.sh` checks the choice at build time. The OpenRouter block must use the v2 key
   `providers`: opencode 2.2.7 silently drops `body` under the legacy `provider` key.
 - **Jobs, GPU lock, slices.** Long runs (pilot, bench) are systemd jobs that take a shared GPU

@@ -41,8 +41,11 @@ for p in "$first" unknown-repo; do
   jq -e '.provider.openrouter == null' <<<"$cfg" >/dev/null || { echo "FAIL $p: openrouter under legacy key"; fail=1; }
   jq -e '.providers.openrouter.body.provider.quantizations == ["fp4","nvfp4","fp8"]' <<<"$cfg" >/dev/null \
     || { echo "FAIL $p: quantizations"; fail=1; }
-  jq -e '[.providers.openrouter.models[] | .body.provider.max_price == {prompt: 0.2, completion: 0.8}] | length > 0 and all' \
-    <<<"$cfg" >/dev/null || { echo "FAIL $p: max_price"; fail=1; }
+  jq -e '.providers.openrouter.body.provider.max_price == {prompt: 0.2, completion: 0.8}' <<<"$cfg" >/dev/null \
+    || { echo "FAIL $p: max_price"; fail=1; }
+  # A model-level body could replace the provider-level one, data policy included.
+  jq -e '[.providers.openrouter.models[] | select(has("body"))] | length == 0' <<<"$cfg" >/dev/null \
+    || { echo "FAIL $p: model-level body"; fail=1; }
 done
 
 if run "$first" >/dev/null 2>&1; then

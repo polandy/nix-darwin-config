@@ -22,6 +22,7 @@ let
     opencodePublic = "${opencode.public}";
     publicRepos = lib.concatStringsSep " " cfg.sandbox.publicRepos;
     ocConfig = "${oc-config}/bin/oc-config";
+    jq = "${pkgs.jq}/bin/jq";
     repoProfiles = "${opencode.repos}";
     inner = "${inner}/bin/inner";
     herdrFilter = "${herdr-filter}/bin/herdr-filter";

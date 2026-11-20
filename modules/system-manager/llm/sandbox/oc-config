@@ -8,4 +8,4 @@ config=@opencode@/opencode.json
 for r in @publicRepos@; do
   if [[ $1 == "$r" ]]; then config=@opencodePublic@; fi
 done
-jq --arg m "$2" '.model = $m' "$config"
+@jq@ --arg m "$2" '.model = $m' "$config"
