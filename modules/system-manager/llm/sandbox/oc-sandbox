@@ -26,6 +26,9 @@
 # stdout. Only here --auto applies: "ask" rules are allowed, "deny" stays. For bench and
 # pilot (caller runs as aiagent; GPU lock and timeout are the caller's job).
 #
+# Fixed repos get the GitHub broker's socket as /run/oc/pr.sock: `oc-pr push|pr-create|merge`
+# (feature branches only, merge on a green gate); the token stays on the host.
+#
 # --script: bash script from stdin in the same sandbox, without key, without sockets (no network).
 # For everything that runs agent code or touches the agent's .git (evaluation: build, test,
 # git diff), so that it never runs unprotected as aiagent. Output on stdout.
@@ -190,6 +193,10 @@ args+=(
   --setenv GIT_CONFIG_NOSYSTEM 1
   --setenv OC_REPO "$repo" --setenv OC_MODEL "${model:-$DEFAULT_MODEL}"
 )
+# GitHub broker (oc-pr) for this repo only; throwaway clones and --script get none.
+if (( ! script )) && [[ $profile == "$repo" && -S $PROXY_DIR/pr-$repo.sock ]]; then
+  args+=(--ro-bind "$PROXY_DIR/pr-$repo.sock" /run/oc/pr.sock)
+fi
 if [[ -n $herdr_sock ]]; then
   args+=(--ro-bind "$herdr_sock" /run/oc/herdr.sock
          --setenv HERDR_ENV 1 --setenv HERDR_SOCKET_PATH /run/oc/herdr.sock

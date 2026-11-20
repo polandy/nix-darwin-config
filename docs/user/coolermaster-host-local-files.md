@@ -56,6 +56,7 @@ header of `sandbox/oc-sandbox`). The host needs:
 | `/home/aiagent/.openrouter-apikey` (aiagent, 0600, one line) | `llm.sandbox.keyFile`; read at runtime, never in the store. Key limit set by hand on openrouter.ai: credit limit 15 USD, reset weekly, expiry 90 days; replace the file when it expires (see [OpenRouter key](#openrouter-key)) |
 | `/etc/sudoers.d/aiagent` (root, 0440) | andy may start the sandbox as aiagent and open grants with `oc-net` |
 | `/srv/aiagent` (aiagent, 0750, ACL `u:andy:rx`) | clones the agent works in (`llm.sandbox.repos`) |
+| `/etc/oc-pr/github-token` (root, 0600, one line) | `llm.sandbox.github.tokenFile`: the GitHub broker's token (`oc-pr`, see [GitHub token](#github-token)); without it `oc-pr` fails, the rest of the sandbox works |
 | `sysctl dev.tty.legacy_tiocsti` = `0` | `oc-sandbox` refuses to start otherwise (Arch kernel default) |
 
 Do not enable `nftables.service`: `/etc/nftables.conf` drops input and breaks Docker; the sandbox
@@ -107,6 +108,28 @@ echo 'Reply only: PONG' | sudo -u aiagent /usr/local/bin/oc-sandbox skipper-cd -
 echo 'Reply only: PONG' | sudo -u aiagent /usr/local/bin/oc-sandbox skipper-cd --run \
   --model openrouter/minimax/minimax-m3.1-flash
 ```
+
+### GitHub token
+
+The broker (`oc-pr`, [llm-module.md](../dev/llm-module.md)) pushes, opens and merges the sandbox
+worker's PRs with this token; it never enters the sandbox. Create it at
+<https://github.com/settings/personal-access-tokens/new>: fine-grained, resource owner `polandy`,
+expiry 90 days, repository access "Only select repositories" with the repos of
+`llm.sandbox.repos` (skipper-cd, Stella, framehive, honeycomb), permissions Contents: Read and
+write, Pull requests: Read and write (Metadata: Read is added by GitHub). Nothing else, in
+particular no Workflows and no Administration. Then, without putting it into history or argv:
+
+```bash
+sudo install -d -m 0700 -o root -g root /etc/oc-pr
+sudoedit /etc/oc-pr/github-token   # paste the token, one line
+sudo chmod 600 /etc/oc-pr/github-token
+just switch                         # first time: creates the oc-pr-<repo>.socket units
+systemctl list-sockets 'oc-pr-*'    # one socket per repo under /run/oc-proxy
+printf '{"verb":"nope"}\n' | sudo -u aiagent socat - UNIX-CONNECT:/run/oc-proxy/pr-skipper-cd.sock
+journalctl -u 'oc-pr-skipper-cd@*' -n 3 --no-pager   # "refused: unknown verb"
+```
+
+Replace it the same way when it expires; the next connection picks it up.
 
 ### Clones
 

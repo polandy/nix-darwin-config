@@ -15,6 +15,7 @@ in
     ./filter.nix
     ./sandbox.nix
     ./sandbox-net.nix
+    ./pr-broker.nix
     ./gpu-job.nix
     ./jobs.nix
     ./policy.nix
@@ -120,6 +121,35 @@ in
           collect data for them. All others, and anything unknown, use ZDR endpoints only.
           Keep in sync with the GitHub visibility; remove a repo before it turns private.
         '';
+      };
+
+      github = {
+        owner = mkOption {
+          type = types.str;
+          default = "polandy";
+          description = "GitHub owner of sandbox.repos; the broker (oc-pr) pushes to <owner>/<repo>.";
+        };
+
+        tokenFile = mkOption {
+          type = types.str;
+          default = "/etc/oc-pr/github-token";
+          description = ''
+            Host-local file (root, 0600) with the broker's fine-grained GitHub token; systemd hands
+            it to the broker as a credential. Never in the store, never in the sandbox.
+          '';
+        };
+
+        reviewers = mkOption {
+          type = types.listOf types.str;
+          default = [ "polandy" ];
+          description = "GitHub logins whose \"PR quality review\" comment counts for the broker's merge gate.";
+        };
+
+        branchPrefixes = mkOption {
+          type = types.listOf types.str;
+          default = [ "feat/" "fix/" "chore/" "docs/" "ci/" "refactor/" "test/" "perf/" "build/" ];
+          description = "Branch prefixes the broker pushes and merges; anything else (gh-pages, release/*) is refused.";
+        };
       };
     };
 
