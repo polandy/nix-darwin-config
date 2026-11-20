@@ -16,7 +16,7 @@ rec {
     rules "read" "deny" [ "*.env" "*.env.*" ]
     ++ rules "read" "allow" [ "*.env.example" ]
     # Edit tool only; shell writes reach these too and are caught in PR review.
-    ++ rules "edit" "deny" [ "opencode.json" "opencode.jsonc" ".opencode/**" ".git/**" ".github/workflows/**" ".claude/**" ".envrc" ]
+    ++ rules "edit" "deny" (lib.concatMap (f: [ f "*/${f}" ]) [ "opencode.json" "opencode.jsonc" ".opencode/**" ".git/**" ".github/workflows/**" ".claude/**" ".envrc" ])
     # Outside /work only these; never /run (key, prompt), /proc (environments) or $HOME.
     ++ rules "external_directory" "deny" [ "*" ]
     ++ rules "external_directory" "allow" [ "/tmp/*" "/usr/*" "/nix/store/*" "/etc/*" ]

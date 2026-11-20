@@ -128,3 +128,7 @@ allow	shell	git -C /work add config/app.yml
 allow	shell	git -C /work diff -- remote.go
 allow	shell	grep -rn process.env src
 deny	shell	git -C /work push origin feat/x
+deny	edit	sub/.envrc
+deny	edit	/work/.git/hooks/pre-commit
+deny	edit	pkg/.github/workflows/ci.yml
+allow	edit	src/envrc.go
