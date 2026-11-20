@@ -1,0 +1,11 @@
+#!/bin/bash
+# oc-config <profile> <model>: the sandbox's opencode.json for one run (called by oc-sandbox).
+# Public repos (llm.sandbox.publicRepos) get the variant that allows OpenRouter providers
+# with data collection; every other profile, including unknown or empty ones, gets ZDR only.
+set -euo pipefail
+(( $# == 2 )) || { echo "usage: oc-config <profile> <model>" >&2; exit 2; }
+config=@opencode@/opencode.json
+for r in @publicRepos@; do
+  if [[ $1 == "$r" ]]; then config=@opencodePublic@; fi
+done
+@jq@ --arg m "$2" '.model = $m' "$config"

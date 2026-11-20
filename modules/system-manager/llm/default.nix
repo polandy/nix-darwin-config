@@ -111,6 +111,16 @@ in
           Throwaway clones bench-* and stella-* are added by oc-sandbox itself.
         '';
       };
+
+      publicRepos = mkOption {
+        type = types.listOf types.str;
+        default = [ "skipper-cd" "Stella" "framehive" "honeycomb" ];
+        description = ''
+          Repos (of sandbox.repos) that are public on GitHub: OpenRouter may use providers that
+          collect data for them. All others, and anything unknown, use ZDR endpoints only.
+          Keep in sync with the GitHub visibility; remove a repo before it turns private.
+        '';
+      };
     };
 
     ports = {
@@ -149,7 +159,14 @@ in
         };
       });
       default = {
-        cloud.id = "openrouter/z-ai/glm-5.3-flash";
+        cloud = {
+          id = "openrouter/z-ai/glm-5.3-flash";
+          context = 200000;
+        };
+        cloud-fallback = {
+          id = "openrouter/minimax/minimax-m3.1-flash";
+          context = 200000;
+        };
         local = {
           id = "ollama/bench-gemma4-26b";
           context = 65536;
@@ -176,6 +193,10 @@ in
       {
         assertion = lib.hasPrefix "/etc/" cfg.jobsDir && lib.hasPrefix "/etc/" cfg.sandboxNetDir;
         message = "llm.jobsDir and llm.sandboxNetDir must be below /etc (environment.etc).";
+      }
+      {
+        assertion = lib.all (r: lib.elem r cfg.sandbox.repos) cfg.sandbox.publicRepos;
+        message = "llm.sandbox.publicRepos must be a subset of llm.sandbox.repos.";
       }
     ];
   };

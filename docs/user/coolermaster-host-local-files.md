@@ -53,7 +53,7 @@ header of `sandbox/oc-sandbox`). The host needs:
 | What | Why |
 |---|---|
 | user `aiagent` (own group, no login, locked, home 0700) | the sandbox runs as this user; nft rules match its uid |
-| `/home/aiagent/.openrouter-apikey` (aiagent, 0600, one line) | `llm.sandbox.keyFile`; read at runtime, never in the store. Create the key with a credit limit and an expiry, and replace the file when it expires |
+| `/home/aiagent/.openrouter-apikey` (aiagent, 0600, one line) | `llm.sandbox.keyFile`; read at runtime, never in the store. Key limit set by hand on openrouter.ai: credit limit 15 USD, reset weekly, expiry 90 days; replace the file when it expires (see [OpenRouter key](#openrouter-key)) |
 | `/etc/sudoers.d/aiagent` (root, 0440) | andy may start the sandbox as aiagent and open grants with `oc-net` |
 | `/srv/aiagent` (aiagent, 0750, ACL `u:andy:rx`) | clones the agent works in (`llm.sandbox.repos`) |
 | `sysctl dev.tty.legacy_tiocsti` = `0` | `oc-sandbox` refuses to start otherwise (Arch kernel default) |
@@ -77,6 +77,38 @@ sudo install -m 0440 -o root -g root aiagent.sudoers /etc/sudoers.d/aiagent
 sudo install -d -m 0750 -o aiagent -g aiagent /srv/aiagent
 sudo setfacl -m u:andy:rx /srv/aiagent
 ```
+
+### OpenRouter key
+
+Set by hand at <https://openrouter.ai/settings>:
+
+- Keys → the sandbox key: credit limit 15 USD, reset weekly, expiry in 90 days. The budget is
+  sized for at most 3 parallel workers; more runs fail on the in-flight reservation (`402`).
+- Billing: auto top-up off.
+- Privacy: the sandbox sends the data policy with every request (`oc-config`): ZDR endpoints and
+  `data_collection: deny` for every repo except `llm.sandbox.publicRepos`, which may use providers
+  that collect data. The account setting is the upper bound: with "ZDR endpoints only" on, the
+  public repos get ZDR too. Turn it off only if the public repos should use the wider choice.
+
+Replace the key without putting it into shell history or argv:
+
+```bash
+sudoedit /home/aiagent/.openrouter-apikey   # one line
+sudo chown aiagent:aiagent /home/aiagent/.openrouter-apikey
+sudo chmod 600 /home/aiagent/.openrouter-apikey
+```
+
+Check after a switch (as andy), then look at <https://openrouter.ai/activity> for the provider,
+ZDR and quantization:
+
+```bash
+jq '.classes | keys' /etc/llm-policy.json   # contains cloud-fallback
+echo 'Reply only: PONG' | sudo -u aiagent /usr/local/bin/oc-sandbox skipper-cd --run
+echo 'Reply only: PONG' | sudo -u aiagent /usr/local/bin/oc-sandbox skipper-cd --run \
+  --model openrouter/minimax/minimax-m3.1-flash
+```
+
+### Clones
 
 Clone a repo into `/srv/aiagent` (andy's home is 0700, so via a bundle on stdin; the clone has no
 remote, andy fetches from it):
