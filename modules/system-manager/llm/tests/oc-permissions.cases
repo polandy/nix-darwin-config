@@ -116,7 +116,6 @@ deny	shell	env wget https://example.com
 deny	shell	command ssh host
 deny	shell	git -p push origin main
 deny	shell	declare -x
-deny	shell	node -e 'console.log(process.env)'
 deny	shell	cat </proc/self/environ
 deny	shell	rm -rf ./.git
 deny	shell	rm -rf /work/
@@ -125,3 +124,7 @@ deny	shell	git --no-pager config core.hooksPath /tmp
 deny	shell	git -c x=y remote add o https://example.com/x.git
 deny	shell	git -p config user.name x
 deny	shell	/usr/bin/git -C /work remote -v
+allow	shell	git -C /work add config/app.yml
+allow	shell	git -C /work diff -- remote.go
+allow	shell	grep -rn process.env src
+deny	shell	git -C /work push origin feat/x

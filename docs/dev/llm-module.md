@@ -52,17 +52,18 @@ system-manager module: `hosts/coolermaster/system.nix` imports it and turns it o
   - Denied, never asked, even if bwrap had a hole: git push/remote/config (with any global
     options), sudo/su, curl, wget, nc, ssh and friends, `rm -r` of `/work`, `.`, `.git` or `~`
     (a literal `*` cannot be matched, so `rm -rf *` is not denied), other paths outside `/work`,
-    edits of the agent's own config, `.git/`, CI workflows and `.envrc`, web fetch/search, and
+    edit-tool writes to the agent's own config, `.git/`, CI workflows and `.envrc` (shell writes
+    to them are not caught; PR review is the guard), web fetch/search, and
     `doom_loop` (an unattended run has nobody to answer the prompt, so a repeating call stops).
   - The key, best effort: `/run`, `/proc`, `env`, `printenv`, anything naming `OPENROUTER`,
-    `os.environ` or `process.env`. inner exports the key into opencode's environment, which every
+    `os.environ`. inner exports the key into opencode's environment, which every
     shell command inherits, and `perl`, `awk` or `bash -c` can still print it; issue #17 (host
     broker) moves the key out of the environment. `*OPENROUTER*` also blocks grepping for the
     name; accepted. The `.env` deny covers the read tool only (`cat .env` is a shell command).
   - opencode 2.2.7 concatenates the rules of all config files and takes the last match, with `*`
     as a wildcard over the whole command text. The shell denies are pattern matches, not a parser:
     wrappers (`bash -c`, `timeout`, `xargs`) get past them, so they are defense in depth on top of
-    bwrap. A `git -C` command whose message contains `push`, `remote` or `config` is denied too.
+    bwrap. A `git -C` command with the word `push`, `remote` or `config` in its message is denied too.
   - `AGENTS.md`, `CLAUDE.md`, `flake.nix` and other repo files stay editable: they reach the
     owner's repo only through a reviewed PR; review `flake.nix` changes before `nix develop`.
   - Per-repo profiles (`OPENCODE_CONFIG`) may add rules, but the denies are appended again after

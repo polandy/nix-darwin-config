@@ -15,7 +15,7 @@ rec {
   deny =
     rules "read" "deny" [ "*.env" "*.env.*" ]
     ++ rules "read" "allow" [ "*.env.example" ]
-    # The agent cannot change its own rules, git internals, CI or the owner's direnv.
+    # Edit tool only; shell writes reach these too and are caught in PR review.
     ++ rules "edit" "deny" [ "opencode.json" "opencode.jsonc" ".opencode/**" ".git/**" ".github/workflows/**" ".claude/**" ".envrc" ]
     # Outside /work only these; never /run (key, prompt), /proc (environments) or $HOME.
     ++ rules "external_directory" "deny" [ "*" ]
@@ -24,11 +24,11 @@ rec {
     ++ rules "shell" "deny" (
       [ "sudo *" "su" "su *" "doas *" "pkexec *" ]
       # Any global options before the subcommand (`-C`, `-c`, `-p`, `--no-pager`, ...), plus prefixed forms.
-      ++ lib.concatMap (sub: lib.concatMap (g: [ g "*/${g}" "env ${g}" "command ${g}" "exec ${g}" ]) [ "git ${sub}*" "git -* ${sub}*" ]) [ "push" "remote" "config" ]
+      ++ lib.concatMap (sub: lib.concatMap (g: [ g "*/${g}" "env ${g}" "command ${g}" "exec ${g}" ]) [ "git ${sub} *" "git -* ${sub} *" ]) [ "push" "remote" "config" ]
       ++ lib.concatMap (t: [ "${t} *" "*/${t} *" "env ${t} *" "command ${t} *" "exec ${t} *" ]) [ "curl" "wget" "nc" "ncat" "netcat" "socat" "ssh" "scp" "sftp" "rsync" "telnet" "ftp" ]
       # OPENROUTER_API_KEY is in the environment of every shell command.
       ++ [ "env" "env -0" "*/bin/env" "printenv*" "export" "export -p" "declare -p*" "declare -x*" "typeset *" "set" "compgen *" ]
-      ++ [ "*OPENROUTER*" "*os.environ*" "* /proc/*" "*</proc/*" "*/run/oc*" "*process.env*" ]
+      ++ [ "*OPENROUTER*" "*os.environ*" "* /proc/*" "*</proc/*" "*/run/oc*" ]
       ++ map (p: "rm -*r* ${p}") [ "/" "." ".." "./" "~" "~/" "$HOME" "/work" "/work/*" ".git" ".git/*" "./.git" "./.git/*" "-- ." "-- /work" "../*" ]
     );
 }
