@@ -76,7 +76,8 @@ class Broker:
 
     def run(self, cmd, label, input=None, check=True):
         try:
-            p = subprocess.run(cmd, input=input, capture_output=True, env=self.env, cwd=self.state, timeout=RUN_SECONDS)
+            p = subprocess.run(cmd, input=input, stdin=None if input is not None else subprocess.DEVNULL,
+                               capture_output=True, env=self.env, cwd=self.state, timeout=RUN_SECONDS)
         except subprocess.TimeoutExpired:
             raise Refused(f"{label} timed out")
         if check and p.returncode != 0:
@@ -122,6 +123,7 @@ class Broker:
     def fetch(self):
         if not os.path.isdir(self.mirror):
             self.run(("git", "init", "-q", "--bare", self.mirror), "git init")
+        if not self.git("remote", check=False):
             self.git("remote", "add", "origin", self.remote)
         self.git("fetch", "-q", "--prune", "--no-tags", "origin", "+refs/heads/*:refs/remotes/origin/*")
 
@@ -285,7 +287,7 @@ class Broker:
             review_reasons.append("review none yet")
         else:
             review = reviews[-1]
-            verdict = READINESS.search(review["body"])
+            verdict = ([None] + list(READINESS.finditer(review["body"])))[-1]
             if not verdict:
                 review_reasons.append("review no readiness verdict")
             elif verdict.group(1).lower() != "ready":

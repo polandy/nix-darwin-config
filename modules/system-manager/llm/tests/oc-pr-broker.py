@@ -190,6 +190,10 @@ for args in (("merge", "abc"), ("frobnicate",), ("push", "a", "b"), ("pr-create"
                        env={**os.environ, "OC_PR_SOCKET": os.path.join(TMP, "none.sock")})
     check(f"client {args} usage", p.returncode != 0 and "not reachable" not in p.stderr, p.stderr)
 
+# A mirror left without a remote (crash after git init) recovers on the next request.
+os.makedirs(os.path.join(TMP, "state", "r"), exist_ok=True)
+subprocess.run(["git", "init", "-q", "--bare", os.path.join(TMP, "state", "r", "mirror.git")], check=True)
+
 # pr-create before the branch is pushed.
 scenario()
 rc, out, _ = client("pr-create")
@@ -346,6 +350,7 @@ reds = {
     "review isn't ready": {"pr view": view(comments=[{**REVIEW, "body": "PR quality review\nMerge readiness: isn't ready"}])},
     "review already in body": {"pr view": view(comments=[{**REVIEW, "body": "PR quality review\nMerge readiness:\nalready discussed"}])},
     "head outside feature namespace": {"pr view": view(headRefName="gh-pages")},
+    "review later verdict not ready": {"pr view": view(comments=[{**REVIEW, "body": "PR quality review\nMerge readiness: ready\n\nUpdate:\nMerge readiness: not ready"}])},
     "review no verdict": {"pr view": view(comments=[{**REVIEW, "body": "PR quality review\nlooks fine"}])},
     "review by stranger": {"pr view": view(comments=[{**REVIEW, "author": {"login": "mallory"}}])},
     "stale review after newer comment": {"pr view": view(comments=[REVIEW, {**REVIEW, "id": "IC_2", "body": "PR quality review\nMerge readiness: NOT READY"}])},
