@@ -29,6 +29,7 @@ with open({GH_LOG!r}, "a") as f:
     f.write(json.dumps({{"args": args, "stdin": stdin}}) + "\\n")
 r = json.load(open({SCENARIO!r})).get(" ".join(args[:2]), {{"out": "", "rc": 1}})
 print(r["out"])
+print(r.get("err", ""), file=sys.stderr)
 sys.exit(r.get("rc", 0))
 """
 FAKE_GIT = f"""#!/bin/sh
@@ -112,17 +113,28 @@ def client(*args, fake_git=False):
     return c.returncode, out.strip(), log
 
 
-def raw(lines, fake_git=False, bundle=None):
-    """Talk to the broker directly (requests the client never sends)."""
+def answer(r):
+    line = r.readline()
+    try:
+        return json.loads(line)
+    except ValueError:
+        return {"ok": None, "message": f"no JSON answer: {line!r}"}
+
+
+def raw(lines, fake_git=False, bundle=None, upload=None):
+    """Talk to the broker directly (requests the client never sends); upload is the raw bundle stream."""
+    if bundle is not None:
+        upload = f"{len(bundle)}\n".encode() + bundle
     with socket.socket(socket.AF_UNIX) as s:
         s.connect(SOCK)
         b = serve(fake_git)
         s.sendall(lines)
         r = s.makefile("rb")
-        resp = json.loads(r.readline())
-        if bundle is not None and "have" in resp:
-            s.sendall(f"{len(bundle)}\n".encode() + bundle)
-            resp = json.loads(r.readline())
+        resp = answer(r)
+        if upload is not None and "have" in resp:
+            s.sendall(upload)
+            s.shutdown(socket.SHUT_WR)
+            resp = answer(r)
     b.communicate(timeout=60)
     return resp
 
@@ -148,14 +160,22 @@ srv.bind(SOCK)
 srv.listen(4)
 
 # Refused before git or the network is touched (fake git logs and fails).
-for branch in ("main", "master", "HEAD", "-f", "a..b", "x.lock", "refs/../main", "feat/.x", ""):
+for branch in ("main", "master", "HEAD", "Main", "MASTER", "main\n", "feat/x\n", "-f", "a..b", "x.lock",
+               "refs/../main", "feat/.x", "feat//x", "feat/x/", "feat/x.", "a" * 101, "", None, 1):
     scenario()
     resp = raw(json.dumps({"verb": "push", "branch": branch}).encode() + b"\n", fake_git=True)
     check(f"push {branch!r} refused", not resp["ok"], resp)
     check(f"push {branch!r} runs no git", calls(GIT_LOG) == [], calls(GIT_LOG))
 scenario(**{"repo view": {"out": "trunk"}})
-resp = raw(b'{"verb": "push", "branch": "trunk"}\n', fake_git=True)
-check("push default branch refused", not resp["ok"] and "protected" in resp["message"], resp)
+for verb in ("push", "pr-create"):
+    for branch in ("trunk", "Trunk"):
+        scenario(**{"repo view": {"out": "trunk"}})
+        resp = raw(json.dumps({"verb": verb, "branch": branch}).encode() + b"\n", fake_git=True)
+        check(f"{verb} default branch {branch} refused", not resp["ok"] and "protected" in resp["message"], resp)
+        check(f"{verb} default branch {branch} runs no git", calls(GIT_LOG) == [], calls(GIT_LOG))
+scenario()
+resp = raw(b'{"verb": "pr-create", "branch": "main"}\n', fake_git=True)
+check("pr-create main refused", not resp["ok"] and "protected" in resp["message"], resp)
 for req in (b'{"verb": "delete-branch", "branch": "feat/x"}\n', b'{"verb": "gh", "args": ["repo", "delete"]}\n',
             b'{"verb": "push --force"}\n', b"not json\n", b"[1]\n", b"\n"):
     scenario()
@@ -174,6 +194,14 @@ scenario()
 rc, out, _ = client("pr-create")
 check("pr-create unpushed refused", rc == 1 and "not pushed" in out, out)
 check("pr-create unpushed creates nothing", gh_did("pr create") == [], calls(GH_LOG))
+
+# A new branch with an empty bundle has nothing to push; broken uploads are refused.
+for name, upload, want in (("empty bundle", b"0\n", "nothing to push"), ("bad length", b"abc\n", "bundle length"),
+                           ("too large", b"999999999\n", "too large"), ("short", b"100\nPACK", "short bundle")):
+    scenario()
+    resp = raw(b'{"verb": "push", "branch": "feat/new"}\n', upload=upload)
+    check(f"push {name} refused", resp["ok"] is False and want in resp["message"], resp)
+    check(f"push {name} pushes nothing", remote_sha("refs/heads/feat/new") == "")
 
 # Push the feature branch (current branch), then again (up to date).
 scenario()
@@ -202,6 +230,11 @@ rc, out, log = client("push")
 check("force push refused", rc == 1 and "not a fast-forward" in out, out)
 check("force push remote unchanged", remote_sha("refs/heads/feat/x") == before)
 check("force push logged", "refused: not a fast-forward" in log, log)
+MIRROR = os.path.join(TMP, "state", "r", "mirror.git")
+rewritten = sh("git", "rev-parse", "feat/x")
+check("refused objects dropped", subprocess.run(["git", "-C", MIRROR, "cat-file", "-e", rewritten]).returncode != 0)
+check("incoming ref dropped", subprocess.run(["git", "-C", MIRROR, "rev-parse", "-q", "--verify",
+                                              "refs/oc-pr/incoming"], capture_output=True).returncode != 0)
 sh("git", "reset", "-q", "--hard", before)
 
 # A bundle with a tag, or naming another branch than requested, is refused.
@@ -218,7 +251,7 @@ other = subprocess.run(["git", "bundle", "create", "-q", "-", "refs/heads/main-c
                        cwd=WORK, capture_output=True, check=True).stdout
 scenario()
 resp = raw(b'{"verb": "push", "branch": "feat/x"}\n', bundle=other)
-check("bundle of another branch refused", not resp["ok"], resp)
+check("bundle of another branch refused", not resp["ok"] and "exactly the branch" in resp["message"], resp)
 check("feat/x unchanged after refused bundles", remote_sha("refs/heads/feat/x") == before)
 
 # pr-create: title and body from the commits, base is the default branch.
@@ -231,12 +264,25 @@ if created:
     check("pr-create args", a[a.index("--base") + 1] == "main" and a[a.index("--head") + 1] == "feat/x"
           and a[a.index("--title") + 1] == "feat: first" and a[-2:] == ["-R", "polandy/r"], a)
     check("pr-create body", created[0]["stdin"] == "- feat: first\n- feat: second", created[0]["stdin"])
+listed = gh_did("pr list")
+check("pr-create skips fork PRs", listed and "isCrossRepository" in " ".join(listed[0]["args"]), listed)
 scenario(**{"pr list": {"out": "https://github.com/polandy/r/pull/7"}})
 rc, out, _ = client("pr-create", "--title", "x")
 check("pr-create existing", rc == 0 and out.startswith("exists") and gh_did("pr create") == [], out)
 scenario()
 rc, out, _ = client("pr-create", "--title", "a\nb")
 check("pr-create multi-line title refused", rc == 1 and "invalid title" in out, out)
+
+# A failing gh call reports only its label to the sandbox; the journal gets the detail, token masked.
+scenario(**{"pr create": {"out": "", "err": "HTTP 401 for token test-token: secret detail", "rc": 1}})
+rc, out, log = client("pr-create")
+check("gh failure refused", rc == 1 and out == "refused: gh pr create failed", out)
+check("gh failure detail logged masked", "secret detail" in log and "***" in log and "test-token" not in log, log)
+
+# A crash inside a verb (gh answers a list, not an object) still answers the client.
+scenario(**{"pr view": {"out": "[]"}})
+rc, out, log = client("merge", "12")
+check("internal error answered", rc == 1 and out == "refused: internal error" and gh_did("pr merge") == [], out + log)
 
 # merge: green gate, then every red or pending reason refuses without merging.
 REVIEW = {"id": "IC_1", "author": {"login": "polandy"},
@@ -259,6 +305,27 @@ merged = gh_did("pr merge")
 check("merge green ok", rc == 0 and out == "merged #12", out)
 check("merge args", merged and merged[0]["args"] == ["pr", "merge", "12", "--squash", "--delete-branch",
                                                       "--match-head-commit", OID, "-R", "polandy/r"], merged)
+viewed, checked = gh_did("pr view"), gh_did("pr checks")
+check("gate view args", viewed and viewed[0]["args"][:3] == ["pr", "view", "12"] and viewed[0]["args"][-2:] == ["-R", "polandy/r"], viewed)
+check("gate checks args", checked and checked[0]["args"] == ["pr", "checks", "12", "--json", "name,bucket", "-R", "polandy/r"], checked)
+scenario(**{**GREEN, "pr view": view(comments=[REVIEW, {**REVIEW, "id": "IC_9", "author": {"login": "mallory"},
+                                                           "body": "PR quality review\nMerge readiness: not ready"}])})
+rc, out, _ = client("merge", "12")
+check("stranger's newer review ignored", rc == 0 and out == "merged #12", out)
+
+# A push stalled in its upload holds no lock: a merge goes through meanwhile.
+scenario(**GREEN)
+with socket.socket(socket.AF_UNIX) as stalled:
+    stalled.connect(SOCK)
+    sb = serve(False)
+    stalled.sendall(b'{"verb": "push", "branch": "feat/x"}\n')
+    check("stalled push got haves", "have" in answer(stalled.makefile("rb")))
+    try:
+        rc, out, _ = client("merge", "12")
+        check("merge while a push stalls", rc == 0 and out == "merged #12", out)
+    except subprocess.TimeoutExpired:
+        check("merge while a push stalls", False, "blocked by the stalled push")
+sb.communicate(timeout=60)
 
 reds = {
     "checks pending": {"pr checks": {"out": json.dumps([{"name": "eval", "bucket": "pending"}]), "rc": 8}},
@@ -274,6 +341,8 @@ reds = {
     "draft": {"pr view": view(isDraft=True)},
     "fork": {"pr view": view(isCrossRepository=True)},
     "head main": {"pr view": view(headRefName="main")},
+    "head is default trunk": {"repo view": {"out": "trunk"}, "pr view": view(headRefName="trunk", baseRefName="trunk")},
+    "bad head oid": {"pr view": view(headRefOid="HEAD~1")},
     "base not default": {"pr view": view(baseRefName="release")},
     "conflicting": {"pr view": view(mergeable="CONFLICTING")},
     "mergeable unknown": {"pr view": view(mergeable="UNKNOWN")},

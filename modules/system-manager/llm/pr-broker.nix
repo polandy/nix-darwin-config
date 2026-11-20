@@ -4,8 +4,7 @@ let
   cfg = config.llm;
   gh = cfg.sandbox.github;
   inherit (import ./sockets.nix { inherit cfg pkgs; }) sandboxSocket;
-  # GitHub broker for the sandbox (push, pr-create, merge), one socket per fixed repo, so a
-  # sandbox reaches only its own repo. Design and owner setup: docs/dev/llm-module.md.
+  # GitHub broker: one socket per repo, so a sandbox reaches only its own (docs/dev/llm-module.md).
   script = name: checkPhase: pkgs.writeTextFile {
     inherit name checkPhase;
     executable = true;
@@ -51,12 +50,30 @@ in
           StateDirectory = "oc-pr";
           StateDirectoryMode = "0700";
           LoadCredential = "github-token:${gh.tokenFile}";
-          RuntimeMaxSec = 900;
+          RuntimeMaxSec = 600;
+          MemoryMax = "1G";
+          TasksMax = 64;
+          LimitFSIZE = "1G";
+          UMask = "0077";
           NoNewPrivileges = true;
           ProtectSystem = "strict";
           ProtectHome = true;
           PrivateTmp = true;
           PrivateDevices = true;
+          ProtectProc = "invisible";
+          ProcSubset = "pid";
+          ProtectKernelTunables = true;
+          ProtectKernelModules = true;
+          ProtectKernelLogs = true;
+          ProtectControlGroups = true;
+          ProtectClock = true;
+          ProtectHostname = true;
+          RestrictNamespaces = true;
+          RestrictRealtime = true;
+          RestrictSUIDSGID = true;
+          LockPersonality = true;
+          SystemCallArchitectures = "native";
+          SystemCallFilter = "@system-service";
           CapabilityBoundingSet = "";
           RestrictAddressFamilies = "AF_INET AF_INET6 AF_UNIX";
         };

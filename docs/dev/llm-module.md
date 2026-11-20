@@ -83,7 +83,8 @@ system-manager module: `hosts/coolermaster/system.nix` imports it and turns it o
   - `oc-pr push [<branch>]`: never `main`, `master` or the default branch, fast-forward only, no
     tags. The broker never runs git in the agent's clone (its `.git` config and hooks are the
     agent's): the client sends a git bundle of just that branch, the broker checks and fetches it
-    (fsck) into its own mirror and pushes from there.
+    (fsck) into its own mirror and pushes from there. The upload runs outside the per-repo lock
+    with a deadline, and the mirror drops the incoming objects afterwards (`gc --prune=now`).
   - `oc-pr pr-create`: base is the default branch; title and body from the branch's commits unless
     given.
   - `oc-pr merge <pr>`: squash and delete the branch, only on a green gate with the semantics of
@@ -92,6 +93,11 @@ system-manager module: `hosts/coolermaster/system.nix` imports it and turns it o
     must come from `llm.sandbox.github.reviewers`; the head time is the later of the commit date and
     the broker's own push of that commit (the agent sets the commit date); the merge is pinned to
     the checked head (`--match-head-commit`). Pending counts as refused; the agent asks again later.
+  - What the broker does not guard: PR title and body are agent text posted under the owner's
+    account, and CI runs the agent's code on every feature-branch push. The review gate on merge
+    is the guard for what reaches the default branch.
+  - Errors reach the sandbox as a short label ("gh pr create failed"); the detail goes to the
+    journal with the token masked.
   - Raw `git push` stays denied in opencode (`permissions.nix`); `oc-pr` is an ordinary shell
     command. The token: fine-grained, only the repos in `llm.sandbox.repos`, Contents and Pull
     requests read/write (Metadata read is implied), no Workflows, so a push that changes
@@ -99,8 +105,9 @@ system-manager module: `hosts/coolermaster/system.nix` imports it and turns it o
     `docs/user/coolermaster-host-local-files.md`. Without the file the broker
     fails to start and `oc-pr` prints "no answer from the broker".
   - `tests/oc-pr-broker.py` runs client and broker at build time against a local bare repo and a
-    fake `gh`: the refusals (protected branches, bad names, unknown verbs, non-fast-forward, tags or
-    another branch in the bundle, every red or pending gate reason) and the green paths.
+    fake `gh`: the refusals (protected branches in any case, bad names, unknown verbs, broken
+    uploads, non-fast-forward, tags or another branch in the bundle, the red and pending gate
+    reasons), a stalled upload that must not block a merge, and the green paths.
 - **Jobs, GPU lock, slices.** Long runs (pilot, bench) are systemd jobs that take a shared GPU
   lock, so only one local model run uses the GPU at a time; a run that cannot get it is
   deferred. Slices give LLM work priority over e2e containers.
