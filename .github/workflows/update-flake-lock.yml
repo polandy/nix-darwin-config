@@ -11,6 +11,7 @@ jobs:
     permissions:
       contents: write
       pull-requests: write
+      actions: write
     steps:
       - uses: actions/checkout@v7
 
@@ -21,6 +22,7 @@ jobs:
           NIX_CONFIG: access-tokens = github.com=${{ secrets.GITHUB_TOKEN }}
 
       - uses: peter-evans/create-pull-request@v8.1.3
+        id: pr
         with:
           branch: update_flake_lock_action
           sign-commits: true
@@ -29,3 +31,8 @@ jobs:
           title: 'chore(flake): update inputs'
           body: Automated `nix flake update`.
           delete-branch: true
+
+      - if: steps.pr.outputs.pull-request-operation == 'created' || steps.pr.outputs.pull-request-operation == 'updated'
+        run: gh workflow run ci.yml --ref update_flake_lock_action
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
