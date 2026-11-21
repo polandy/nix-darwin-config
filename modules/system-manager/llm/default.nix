@@ -213,16 +213,10 @@ in
             };
           };
         };
-        kimi-pro = {
-          id = "openrouter/moonshotai/kimi-k3.1-pro";
-          context = 256000;
-          routing = {
-            quantizations = [ "int4" "fp4" "nvfp4" "fp8" ];
-            max_price = {
-              prompt = 1;
-              completion = 4;
-            };
-          };
+        deepseek-flash = {
+          id = "openrouter/deepseek/deepseek-v4.1-flash";
+          context = 1000000;
+          routing.quantizations = [ "fp8" ];
         };
         local = {
           id = "ollama/bench-gemma4-26b";
