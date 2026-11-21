@@ -186,6 +186,11 @@ in
             default = null;
             description = "Display name in opencode (local models).";
           };
+          routing = mkOption {
+            type = types.attrsOf types.anything;
+            default = { };
+            description = "OpenRouter provider routing for this model (quantizations, max_price); replaces the shared default per key. The data policy cannot be overridden.";
+          };
         };
       });
       default = {
@@ -196,6 +201,28 @@ in
         cloud-fallback = {
           id = "openrouter/minimax/minimax-m3.1-flash";
           context = 200000;
+        };
+        gpt-sol = {
+          id = "openrouter/openai/gpt-6.2-sol";
+          context = 400000;
+          routing = {
+            quantizations = [ "fp8" "bf16" ];
+            max_price = {
+              prompt = 2.5;
+              completion = 10;
+            };
+          };
+        };
+        kimi-pro = {
+          id = "openrouter/moonshotai/kimi-k3.1-pro";
+          context = 256000;
+          routing = {
+            quantizations = [ "int4" "fp4" "nvfp4" "fp8" ];
+            max_price = {
+              prompt = 1;
+              completion = 4;
+            };
+          };
         };
         local = {
           id = "ollama/bench-gemma4-26b";

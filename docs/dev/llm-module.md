@@ -44,8 +44,11 @@ system-manager module: `hosts/coolermaster/system.nix` imports it and turns it o
   base repo: bench-* as skipper-cd, stella-* as Stella); anything not listed gets ZDR. The
   list is declared, not looked up, because the clones have no remote and the sandbox reaches
   GitHub only through the broker below; keep it in sync with the GitHub visibility. Both variants share quantizations
-  (fp4, nvfp4, fp8), the price cap and the limits (context 200k, output 16k). All routing sits in
-  the provider-level `body`, so no model-level `body` can shadow the data policy.
+  (fp4, nvfp4, fp8), the price cap and the limits (output 16k). All routing sits in
+  the provider-level `body`. Only models with `models.<name>.routing` (`gpt-sol` = openai/gpt-6.2-sol,
+  `kimi-pro` = moonshotai/kimi-k3.1-pro) get a model-level `body`, which repeats the shared routing
+  with their own quantizations and `max_price` plus the same data policy; `tests/oc-config.sh` checks that.
+  Both are no policy classes, like `local-nodraft`; pick them with `--model`.
   `tests/oc-config.sh` checks the choice at build time. The OpenRouter block must use the v2 key
   `providers`: opencode 2.2.7 silently drops `body` under the legacy `provider` key.
 - **Permissions (auto mode).** bwrap is the security boundary: user aiagent, only the clone as

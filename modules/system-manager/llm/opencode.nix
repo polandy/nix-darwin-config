@@ -31,6 +31,11 @@ let
 
   # The rest comes from sandbox/opencode/opencode.json; the models
   # and the sandbox's Ollama bridge (inner) come from the llm options.
+  # A model-level body replaces the provider-level one, so overridden models repeat the whole of it.
+  modelBody = data: m: lib.optionalAttrs (m.routing != { }) {
+    body.provider = routing // m.routing // dataPolicy.${data};
+  };
+
   settings = data: lib.recursiveUpdate (lib.importJSON ./sandbox/opencode/opencode.json) {
     permissions = permissions.base ++ permissions.deny;
     model = cfg.models.cloud.id;
@@ -51,12 +56,12 @@ let
     providers.openrouter = {
       body.provider = routing // dataPolicy.${data};
       models = lib.mapAttrs'
-        (_: m: lib.nameValuePair (lib.removePrefix "openrouter/" m.id) {
+        (_: m: lib.nameValuePair (lib.removePrefix "openrouter/" m.id) ((modelBody data m) // {
           limit = {
             inherit (m) context;
             output = 16384;
           };
-        })
+        }))
         cloudModels;
     };
   };
