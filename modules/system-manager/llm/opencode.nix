@@ -10,7 +10,7 @@ let
   cloudModels = lib.filterAttrs (_: m: lib.hasPrefix "openrouter/" m.id) cfg.models;
   permissions = import ./permissions.nix { inherit lib; };
 
-  # OpenRouter provider routing, in one body so no per-model body can shadow the data policy.
+  # OpenRouter provider routing; models with their own routing repeat it in a model-level body (modelBody).
   # allow_fallbacks: other endpoints of the same model only, never another model.
   routing = {
     require_parameters = true;
@@ -33,7 +33,7 @@ let
   # and the sandbox's Ollama bridge (inner) come from the llm options.
   # A model-level body replaces the provider-level one, so overridden models repeat the whole of it.
   modelBody = data: m: lib.optionalAttrs (m.routing != { }) {
-    body.provider = routing // m.routing // dataPolicy.${data};
+    body.provider = routing // removeAttrs m.routing [ "zdr" "data_collection" "require_parameters" "allow_fallbacks" ] // dataPolicy.${data};
   };
 
   settings = data: lib.recursiveUpdate (lib.importJSON ./sandbox/opencode/opencode.json) {

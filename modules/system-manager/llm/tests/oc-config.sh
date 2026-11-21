@@ -49,7 +49,8 @@ for p in "$first" unknown-repo; do
     <<<"$cfg" >/dev/null || { echo "FAIL $p: model-level body drops the data policy"; fail=1; }
   jq -e '.providers.openrouter.models | .["openai/gpt-6.2-sol"].body.provider.max_price == {prompt: 2.5, completion: 10}
     and (.["moonshotai/kimi-k3.1-pro"].body.provider.max_price == {prompt: 1, completion: 4})
-    and (.["z-ai/glm-5.3-flash"] | has("body") | not)' <<<"$cfg" >/dev/null \
+    and (.["z-ai/glm-5.3-flash"] | has("body") | not)
+    and ([.[] | select(has("body")) | .body.provider | select(.require_parameters != true or .allow_fallbacks != true)] | length == 0)' <<<"$cfg" >/dev/null \
     || { echo "FAIL $p: per-model routing"; fail=1; }
 done
 
