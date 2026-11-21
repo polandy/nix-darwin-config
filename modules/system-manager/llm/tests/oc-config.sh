@@ -47,7 +47,7 @@ for p in "$first" unknown-repo; do
   jq -e --argjson d "$(jq -c '.providers.openrouter.body.provider | {data_collection, zdr}' <<<"$cfg")" \
     '[.providers.openrouter.models[] | select(has("body")) | .body.provider | select({data_collection, zdr} != $d)] | length == 0' \
     <<<"$cfg" >/dev/null || { echo "FAIL $p: model-level body drops the data policy"; fail=1; }
-  jq -e '.providers.openrouter.models | .["openai/gpt-6.2-sol"].body.provider.max_price == {prompt: 2.5, completion: 10}
+  jq -e '.providers.openrouter.models | (.["openai/gpt-6.2-sol"].body.provider | .max_price == {prompt: 2.5, completion: 10} and (.quantizations | index("unknown")))
     and (.["deepseek/deepseek-v4.1-flash"].body.provider | .quantizations == ["fp8"] and .max_price == {prompt: 0.2, completion: 0.8})
     and (.["z-ai/glm-5.3-flash"] | has("body") | not)
     and ([.[] | select(has("body")) | .body.provider | select(.require_parameters != true or .allow_fallbacks != true)] | length == 0)' <<<"$cfg" >/dev/null \

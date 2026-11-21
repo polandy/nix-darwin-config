@@ -206,7 +206,7 @@ in
           id = "openrouter/openai/gpt-6.2-sol";
           context = 400000;
           routing = {
-            quantizations = [ "fp8" "bf16" ];
+            quantizations = [ "fp8" "bf16" "unknown" ];
             max_price = {
               prompt = 2.5;
               completion = 10;

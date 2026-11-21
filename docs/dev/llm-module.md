@@ -47,7 +47,7 @@ system-manager module: `hosts/coolermaster/system.nix` imports it and turns it o
   (fp4, nvfp4, fp8), the price cap and the limits (output 16k). All routing sits in
   the provider-level `body`. Only models with `models.<name>.routing` (`gpt-sol` = openai/gpt-6.2-sol,
   `deepseek-flash` = deepseek/deepseek-v4.1-flash) get a model-level `body`, which repeats the shared routing
-  with their own quantizations and `max_price` (`require_parameters`, `allow_fallbacks` and the data keys cannot be overridden; `deepseek-flash` allows fp8 only, within the shared cap; `gpt-sol` costs about 12x the shared cap) plus the same data policy; `tests/oc-config.sh` checks that.
+  with their own quantizations and `max_price` (`require_parameters`, `allow_fallbacks` and the data keys cannot be overridden; `deepseek-flash` allows fp8 only, within the shared cap; `gpt-sol` costs about 12x the shared cap and also allows `unknown`, the quantization OpenAI reports, else OpenRouter answers 404) plus the same data policy; `tests/oc-config.sh` checks that.
   Both are no policy classes, like `local-nodraft`; pick them with `--model`.
   `tests/oc-config.sh` checks the choice at build time. The OpenRouter block must use the v2 key
   `providers`: opencode 2.2.7 silently drops `body` under the legacy `provider` key.
