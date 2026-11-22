@@ -58,7 +58,6 @@ autostart in Hyprland — candidates for a binding or for removal:
 
 | Tool | Purpose |
 |------|---------|
-| flameshot | Screenshots (grimblast in use) |
 | swaybg, swayidle | Wallpaper / idle (replaced by awww / hypridle) |
 | wdisplays, wlr-randr | Monitor setup (nwg-displays / kanshi in use) |
 | matugen | Color scheme generation from wallpaper |
