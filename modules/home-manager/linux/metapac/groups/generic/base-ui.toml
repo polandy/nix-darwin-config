@@ -19,7 +19,6 @@ packages = [
   "fbida",
   "ffmpegthumbnailer",
   "file-roller",
-  "flameshot",
   "google-chrome",
   "kwalletmanager",
   "seahorse",
