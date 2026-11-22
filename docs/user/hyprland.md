@@ -14,6 +14,7 @@ by metapac (`modules/home-manager/linux/metapac/groups/`), config lives in
 | App launcher | [Rofi](https://github.com/davatorium/rofi) | `Super + D` (run), `Super + Ctrl + D` (combi), `Super + Tab` (windows) | `rofi/` |
 | Window switcher | [hyprswitch](https://github.com/H3rmt/hyprswitch) | Autostart daemon, `Alt + Tab` | `hypr/hyprland.lua` |
 | Clipboard history | [cliphist](https://github.com/sentriz/cliphist) + `wl-clipboard` | Autostart (`wl-paste --watch`), `Alt + Shift + V` opens searchable history in rofi | `hypr/hyprland.lua` |
+| Screenshots | [grimblast](https://github.com/hyprwm/contrib) (grim + slurp) | macOS-style, see [Screenshots](#screenshots) | `hypr/hyprland.lua` |
 | Notifications | [dunst](https://dunst-project.org/) | Autostart | `dunst/dunstrc` |
 | Idle handling | [hypridle](https://wiki.hypr.land/Hypr-Ecosystem/hypridle/) | Autostart; locks after 5 min, screen off after 10 min | `hypr/hypridle.conf` |
 | Screen lock | [hyprlock](https://wiki.hypr.land/Hypr-Ecosystem/hyprlock/) | `Super + Escape` (via `hyprlock-safe` wrapper) | `hypr/hyprlock.conf`, `hypr/hyprlock-safe` |
@@ -27,6 +28,20 @@ by metapac (`modules/home-manager/linux/metapac/groups/`), config lives in
 | File sync | Nextcloud client | Autostart | — |
 | Terminal | [Alacritty](https://alacritty.org/) | `Super + Enter` | `modules/home-manager/linux/alacritty.nix` |
 | File manager | Thunar | `Super + E` | — |
+
+## Screenshots
+
+Like macOS, with `Alt` in place of `Cmd`. Screenshots are saved to `~/Pictures/Screenshots/` and
+copied to the clipboard; adding `Ctrl` only copies them. The image freezes while selecting, and a
+notification follows each capture.
+
+| Key | Captures |
+|-----|----------|
+| `Alt + Shift + 3` | All screens |
+| `Alt + Shift + 4` | Dragged area, or the clicked window |
+| `Alt + Shift + 5` | Active window |
+| `Alt + Shift + Ctrl + 3/4/5` | Same, clipboard only |
+| `Print` | Same as `Alt + Shift + 4` |
 
 ## Theming
 
@@ -43,7 +58,7 @@ autostart in Hyprland — candidates for a binding or for removal:
 
 | Tool | Purpose |
 |------|---------|
-| grimblast, grim, slurp, flameshot | Screenshots |
+| flameshot | Screenshots (grimblast in use) |
 | swaybg, swayidle | Wallpaper / idle (replaced by awww / hypridle) |
 | wdisplays, wlr-randr | Monitor setup (nwg-displays / kanshi in use) |
 | matugen | Color scheme generation from wallpaper |
