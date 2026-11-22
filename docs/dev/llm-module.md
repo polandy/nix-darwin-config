@@ -93,6 +93,9 @@ system-manager module: `hosts/coolermaster/system.nix` imports it and turns it o
     agent's): the client sends a git bundle of just that branch, the broker checks and fetches it
     (fsck) into its own mirror and pushes from there. The upload runs outside the per-repo lock
     with a deadline, every git or gh call has a timeout, and the mirror drops the incoming objects afterwards (`gc --prune=now`).
+  - LFS: a bundle carries no LFS objects, so `oc-pr push` (client side) refuses a branch whose new
+    commits change files with `filter=lfs`; pointers without objects would break the branch on GitHub.
+    The sandbox sets the filter via `GIT_CONFIG_*` with `--skip` (no download, local objects used).
   - `oc-pr pr-create`: base is the default branch; title and body from the branch's commits unless
     given.
   - `oc-pr merge <pr>`: squash and delete the branch, only on a green gate with the semantics of

@@ -150,3 +150,15 @@ git remote add aiagent /srv/aiagent/<repo> && git remote set-url --push aiagent 
 
 To update the clone later, create the bundle the same way and run
 `git fetch ../<repo>.bundle main:refs/remotes/andy/main` in it as aiagent.
+
+#### LFS repos (skipper-cd)
+
+`git-lfs` is a host package (`metapac sync`; the sandbox sees `/usr/bin/git-lfs`). A bundle carries
+no LFS objects, so the clone as aiagent holds pointer files only; that is on purpose, the sandbox
+has no LFS download path and `oc-sandbox` configures the LFS filter with `--skip` (pointers stay
+pointers, objects already in `.git/lfs` are used, nothing is fetched). Nothing to do for clone and
+update. To give the agent real file contents, copy the objects in as andy:
+`git lfs fetch --all` in `~/dev/<repo>`, then
+`rsync -a .git/lfs/objects/` into `/srv/aiagent/<repo>/.git/lfs/objects/` as aiagent, and `git lfs checkout` there.
+`oc-pr push` refuses a branch that changes LFS-tracked files (the broker cannot upload LFS
+objects); andy pushes such branches from his own clone, where `git lfs install` has set up the hooks.

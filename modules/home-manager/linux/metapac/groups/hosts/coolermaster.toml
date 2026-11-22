@@ -21,5 +21,7 @@ packages = [
   "jdownloader2",
 
   "calibre",
-  "ansible"
+  "ansible",
+
+  "git-lfs"
 ]

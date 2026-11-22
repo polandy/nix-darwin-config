@@ -191,6 +191,11 @@ args+=(
   --setenv OPENCODE_DISABLE_AUTOUPDATE 1 --setenv OPENCODE_DISABLE_MODELS_FETCH 1
   --setenv OPENCODE_DISABLE_CLAUDE_CODE_SKILLS 1
   --setenv GIT_CONFIG_NOSYSTEM 1
+  --setenv GIT_CONFIG_COUNT 4
+  --setenv GIT_CONFIG_KEY_0 filter.lfs.clean --setenv GIT_CONFIG_VALUE_0 "git-lfs clean -- %f"
+  --setenv GIT_CONFIG_KEY_1 filter.lfs.smudge --setenv GIT_CONFIG_VALUE_1 "git-lfs smudge --skip -- %f"
+  --setenv GIT_CONFIG_KEY_2 filter.lfs.process --setenv GIT_CONFIG_VALUE_2 "git-lfs filter-process --skip"
+  --setenv GIT_CONFIG_KEY_3 filter.lfs.required --setenv GIT_CONFIG_VALUE_3 true
   --setenv OC_REPO "$repo" --setenv OC_MODEL "${model:-$DEFAULT_MODEL}"
 )
 # GitHub broker (oc-pr) for this repo only; throwaway clones and --script get none.
