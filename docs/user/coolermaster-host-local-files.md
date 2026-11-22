@@ -157,8 +157,8 @@ To update the clone later, create the bundle the same way and run
 no LFS objects, so the clone as aiagent holds pointer files only; that is on purpose, the sandbox
 has no LFS download path and `oc-sandbox` configures the LFS filter with `--skip` (pointers stay
 pointers, objects already in `.git/lfs` are used, nothing is fetched). Nothing to do for clone and
-update. To give the agent real file contents, copy the objects in as andy:
-`git lfs fetch --all` in `~/dev/<repo>`, then
-`rsync -a .git/lfs/objects/` into `/srv/aiagent/<repo>/.git/lfs/objects/` as aiagent, and `git lfs checkout` there.
+update. To give the agent real file contents, as andy run `git lfs fetch --all` in `~/dev/<repo>`, then
+`sudo rsync -a --chown=aiagent: .git/lfs/objects/ /srv/aiagent/<repo>/.git/lfs/objects/`, and in the clone
+as aiagent (outside the sandbox, filter not skipping) `git lfs checkout`.
 `oc-pr push` refuses a branch that changes LFS-tracked files (the broker cannot upload LFS
 objects); andy pushes such branches from his own clone, where `git lfs install` has set up the hooks.
