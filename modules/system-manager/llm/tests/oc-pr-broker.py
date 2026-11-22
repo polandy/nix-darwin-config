@@ -232,6 +232,18 @@ scenario()
 rc, out, _ = client("push")
 check("push fast-forward ok", rc == 0 and remote_sha("refs/heads/feat/x") == sh("git", "rev-parse", "feat/x"), out)
 
+# LFS files: a bundle carries no LFS objects, so the client refuses the push.
+sh("git", "switch", "-q", "-c", "feat/lfs")
+write(os.path.join(WORK, ".gitattributes"), "*.bin filter=lfs diff=lfs merge=lfs -text\n", 0o644)
+write(os.path.join(WORK, "big.bin"), "version https://git-lfs.github.com/spec/v1\noid sha256:00\nsize 1\n", 0o644)
+sh("git", "add", ".gitattributes", "big.bin")
+sh("git", "commit", "-q", "-m", "feat: lfs")
+scenario()
+rc, out, _ = client("push")
+check("push LFS files refused", rc == 1 and "LFS" in out and "big.bin" in out, out)
+check("push LFS files pushes nothing", remote_sha("refs/heads/feat/lfs") == "")
+sh("git", "switch", "-q", "feat/x")
+
 # Rewritten history is no fast-forward: refused, remote unchanged.
 before = remote_sha("refs/heads/feat/x")
 sh("git", "commit", "-q", "--amend", "--allow-empty", "-m", "feat: rewritten")

@@ -33,6 +33,21 @@ def current_branch():
     return git("symbolic-ref", "--short", "HEAD").decode().strip()
 
 
+def refuse_lfs(branch, have):
+    """A bundle carries no LFS objects: pointers pushed without them would break the branch."""
+    names = git("log", "--diff-filter=d", "--format=", "--name-only", "-z", f"refs/heads/{branch}", *(f"^{h}" for h in have))
+    names = b"".join(n + b"\0" for n in sorted(set(names.split(b"\0"))) if n)
+    if not names:
+        return
+    top = git("rev-parse", "--show-toplevel").decode().strip()
+    attrs = git("-C", top, "check-attr", f"--source=refs/heads/{branch}", "-z", "--stdin", "filter", input=names).split(b"\0")
+    if len(attrs) % 3 != 1:
+        die("push refused, unexpected git check-attr output")
+    lfs = sorted({attrs[i].decode() for i in range(0, len(attrs) - 2, 3) if attrs[i + 2] == b"lfs"})
+    if lfs:
+        die("push refused, the branch changes LFS files (the broker cannot upload LFS objects): " + ", ".join(lfs[:5]))
+
+
 def bundle(branch, have):
     git("rev-parse", "--verify", "-q", f"refs/heads/{branch}^{{commit}}")
     if have:
@@ -40,6 +55,7 @@ def bundle(branch, have):
         have = [line.split()[0] for line in known.decode().splitlines() if line.endswith(" commit")]
     if git("rev-list", "--count", f"refs/heads/{branch}", *(f"^{h}" for h in have)).strip() == b"0":
         return b""
+    refuse_lfs(branch, have)
     return git("bundle", "create", "-q", "-", f"refs/heads/{branch}", *(f"^{h}" for h in have))
 
 
