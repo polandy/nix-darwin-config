@@ -194,12 +194,14 @@ in
         };
       });
       default = {
+        # Pilot stage c (Stella): deepseek 3A/1B for $0.20, glm 1A/3B for $0.40; two vendors.
         cloud = {
-          id = "openrouter/z-ai/glm-5.3-flash";
-          context = 200000;
+          id = "openrouter/deepseek/deepseek-v4.1-flash";
+          context = 1000000;
+          routing.quantizations = [ "fp8" ];
         };
         cloud-fallback = {
-          id = "openrouter/minimax/minimax-m3.1-flash";
+          id = "openrouter/z-ai/glm-5.3-flash";
           context = 200000;
         };
         gpt-sol = {
@@ -213,10 +215,9 @@ in
             };
           };
         };
-        deepseek-flash = {
-          id = "openrouter/deepseek/deepseek-v4.1-flash";
-          context = 1000000;
-          routing.quantizations = [ "fp8" ];
+        minimax-flash = {
+          id = "openrouter/minimax/minimax-m3.1-flash";
+          context = 200000;
         };
         local = {
           id = "ollama/bench-gemma4-26b";

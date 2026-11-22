@@ -106,7 +106,7 @@ ZDR and quantization:
 jq '.classes | keys' /etc/llm-policy.json   # contains cloud-fallback
 echo 'Reply only: PONG' | sudo -u aiagent /usr/local/bin/oc-sandbox skipper-cd --run
 echo 'Reply only: PONG' | sudo -u aiagent /usr/local/bin/oc-sandbox skipper-cd --run \
-  --model openrouter/minimax/minimax-m3.1-flash
+  --model openrouter/z-ai/glm-5.3-flash   # cloud-fallback
 ```
 
 ### GitHub token
