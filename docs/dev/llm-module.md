@@ -96,6 +96,7 @@ system-manager module: `hosts/coolermaster/system.nix` imports it and turns it o
   - LFS: a bundle carries no LFS objects, so `oc-pr push` (client side) refuses a branch whose new
     commits change files with `filter=lfs`; pointers without objects would break the branch on GitHub.
     The sandbox sets the filter via `GIT_CONFIG_*` with `--skip` (no download, local objects used).
+    The guard is a safety net, not a boundary: it ignores merge commits and `.gitattributes`-only changes, and needs git 2.40+ (`check-attr --source`).
   - `oc-pr pr-create`: base is the default branch; title and body from the branch's commits unless
     given.
   - `oc-pr merge <pr>`: squash and delete the branch, only on a green gate with the semantics of
