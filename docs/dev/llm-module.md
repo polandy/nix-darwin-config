@@ -46,9 +46,10 @@ system-manager module: `hosts/coolermaster/system.nix` imports it and turns it o
   GitHub only through the broker below; keep it in sync with the GitHub visibility. Both variants share quantizations
   (fp4, nvfp4, fp8), the price cap and the limits (output 16k). All routing sits in
   the provider-level `body`. Only models with `models.<name>.routing` (`gpt-sol` = openai/gpt-6.2-sol,
-  `deepseek-flash` = deepseek/deepseek-v4.1-flash) get a model-level `body`, which repeats the shared routing
-  with their own quantizations and `max_price` (`require_parameters`, `allow_fallbacks` and the data keys cannot be overridden; `deepseek-flash` allows fp8 only, within the shared cap; `gpt-sol` costs about 12x the shared cap and also allows `unknown`, the quantization OpenAI reports, else OpenRouter answers 404 "No endpoints found ... quantization"; this also admits other hosts that do not declare theirs) plus the same data policy; `tests/oc-config.sh` checks that.
-  Both are no policy classes, like `local-nodraft`; pick them with `--model`.
+  `cloud` = deepseek/deepseek-v4.1-flash) get a model-level `body`, which repeats the shared routing
+  with their own quantizations and `max_price` (`require_parameters`, `allow_fallbacks` and the data keys cannot be overridden; `cloud` allows fp8 only, within the shared cap; `gpt-sol` costs about 12x the shared cap and also allows `unknown`, the quantization OpenAI reports, else OpenRouter answers 404 "No endpoints found ... quantization"; this also admits other hosts that do not declare theirs) plus the same data policy; `tests/oc-config.sh` checks that.
+  `gpt-sol` and `minimax-flash` (minimax/minimax-m3.1-flash, the fallback until 2026-11-22) are no
+  policy classes, like `local-nodraft`; pick them with `--model`.
   `tests/oc-config.sh` checks the choice at build time. The OpenRouter block must use the v2 key
   `providers`: opencode 2.2.7 silently drops `body` under the legacy `provider` key.
 - **Permissions (auto mode).** bwrap is the security boundary: user aiagent, only the clone as
