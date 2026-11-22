@@ -318,8 +318,18 @@ hl.on("monitor.added",         assignWorkspaces)
 hl.on("monitor.removed",        assignWorkspaces)
 hl.on("monitor.layout_changed", assignWorkspaces)
 
--- screenshot
-bind("", "Print", exec([[grim -g "$(slurp)" ~/Pictures/Screenshots/$(date +%Y-%m-%d_%H-%M-%S).png]]))
+-- Screenshots, macOS-style: 3 = all screens, 4 = area (click selects a window), 5 = active window.
+-- Saved and copied; with CTRL only copied.
+local function screenshot(mode, target)
+    return exec("grimblast --notify --freeze " .. mode .. " " .. target
+        .. (mode == "copysave" and [[ ~/Pictures/Screenshots/$(date +%Y-%m-%d_%H-%M-%S).png]] or ""))
+end
+local screenshotTargets = { ["3"] = "screen", ["4"] = "area", ["5"] = "active" }
+for key, target in pairs(screenshotTargets) do
+    bind("ALT + SHIFT",        key, screenshot("copysave", target))
+    bind("ALT + SHIFT + CTRL", key, screenshot("copy", target))
+end
+bind("", "Print", screenshot("copysave", "area"))
 
 -- ─── Submaps ──────────────────────────────────────────────────────────────────
 
