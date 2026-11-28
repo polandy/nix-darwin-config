@@ -115,7 +115,7 @@ The broker (`oc-pr`, [llm-module.md](../dev/llm-module.md)) pushes, opens and me
 worker's PRs with this token; it never enters the sandbox. Create it at
 <https://github.com/settings/personal-access-tokens/new>: fine-grained, resource owner `polandy`,
 expiry 90 days, repository access "Only select repositories" with the repos of
-`llm.sandbox.repos` (skipper-cd, Stella, framehive, honeycomb), permissions Contents: Read and
+`llm.sandbox.repos` (skipper-cd, Stella, framehive, honeycomb, fanin), permissions Contents: Read and
 write, Pull requests: Read and write (Metadata: Read is added by GitHub). Nothing else, in
 particular no Workflows and no Administration. Then, without putting it into history or argv:
 

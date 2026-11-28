@@ -106,7 +106,7 @@ in
 
       repos = mkOption {
         type = types.listOf types.str;
-        default = [ "skipper-cd" "Stella" "framehive" "honeycomb" ];
+        default = [ "skipper-cd" "Stella" "framehive" "honeycomb" "fanin" ];
         description = ''
           Fixed clones under agentDir the sandbox accepts (oc-sandbox, oc-outbox).
           Throwaway clones bench-* and stella-* are added by oc-sandbox itself.
@@ -115,7 +115,7 @@ in
 
       publicRepos = mkOption {
         type = types.listOf types.str;
-        default = [ "skipper-cd" "Stella" "framehive" "honeycomb" ];
+        default = [ "skipper-cd" "Stella" "framehive" "honeycomb" "fanin" ];
         description = ''
           Repos (of sandbox.repos) that are public on GitHub: OpenRouter may use providers that
           collect data for them. All others, and anything unknown, use ZDR endpoints only.
